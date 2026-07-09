@@ -1,0 +1,7 @@
+node_modules
+dist
+.env
+server/data/feedback.json
+.DS_Store
+*.tsbuildinfo
+.claude/settings.local.json
