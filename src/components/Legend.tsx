@@ -1,5 +1,6 @@
 import { Link2 } from "lucide-react";
 import type { CommType } from "../data/types";
+import { FOCUS_RING } from "../lib/styles";
 import { COMM_COLORS, COMM_ICONS, COMM_LABELS } from "./icons";
 
 const ALL_TYPES = Object.keys(COMM_ICONS) as CommType[];
@@ -21,7 +22,8 @@ export function Legend({ activeTypes, onToggle, onReset, showLines, onToggleLine
         <button
           type="button"
           onClick={onReset}
-          className={`rounded-full border px-3 py-1.5 text-xs font-medium ${
+          aria-pressed={allActive}
+          className={`inline-flex min-h-9 items-center rounded-full border px-3 py-1.5 text-xs font-medium ${FOCUS_RING} ${
             allActive
               ? "border-rmit-blue bg-rmit-blue text-white"
               : "border-grey-30 bg-white text-grey-80 hover:border-grey-40"
@@ -40,7 +42,8 @@ export function Legend({ activeTypes, onToggle, onReset, showLines, onToggleLine
               key={t}
               type="button"
               onClick={() => onToggle(t)}
-              className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium ${c.text} ${
+              aria-pressed={on}
+              className={`inline-flex min-h-9 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium ${FOCUS_RING} ${c.text} ${
                 selected
                   ? `${c.chip} ${c.border}`
                   : `border-grey-30 bg-white hover:border-grey-40 ${dimmed ? "opacity-40" : ""}`
@@ -66,7 +69,7 @@ export function Legend({ activeTypes, onToggle, onReset, showLines, onToggleLine
           type="button"
           onClick={onToggleLines}
           aria-pressed={showLines}
-          className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium ${
+          className={`inline-flex min-h-9 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium ${FOCUS_RING} ${
             showLines
               ? "border-rmit-blue bg-rmit-blue text-white"
               : "border-grey-30 bg-white text-grey-80 hover:border-grey-40"
@@ -75,12 +78,8 @@ export function Legend({ activeTypes, onToggle, onReset, showLines, onToggleLine
           <Link2 size={12} strokeWidth={1.75} aria-hidden />
           {showLines ? "Trigger lines on" : "Show trigger lines"}
         </button>
-        {!showLines && (
-          <span className="text-xs text-grey-60">or hover a comm to trace it</span>
-        )}
-        <span className="text-xs text-grey-60">
-          Click a comm for details + comments · click any month (or a +N more
-          chip) for a day-by-day view
+        <span className="text-xs text-grey-70">
+          Hover a comm to trace links · click for details · click a month to zoom
         </span>
       </div>
     </div>

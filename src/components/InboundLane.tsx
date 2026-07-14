@@ -54,7 +54,7 @@ export function InboundLane({ data }: { data: InboundLaneData }) {
                 x={x}
                 y={y - 8}
                 textAnchor="middle"
-                className="fill-grey-70 text-xs font-medium"
+                className="fill-grey-90 text-xs font-medium"
               >
                 {p.label}
               </text>

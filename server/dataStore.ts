@@ -3,7 +3,12 @@ import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseCsvRows } from "../src/lib/csv";
-import { COMMS_COLUMNS, normalizeCommRow, resolveTriggers } from "../src/lib/commsSchema";
+import {
+  COMMS_COLUMNS,
+  normalizeCommRow,
+  parseCommRows,
+  type CommsParseResult,
+} from "../src/lib/commsSchema";
 import type { Comm, FeedbackEntry } from "../src/data/types";
 import { appendTableRow, isGraphConfigured, readTable, tableNames } from "./graph";
 
@@ -16,30 +21,27 @@ export type NewCommInput = Record<(typeof COMMS_COLUMNS)[number], string>;
 
 // ── Comms ───────────────────────────────────────────────────────────────
 
-export async function getComms(): Promise<Comm[]> {
-  const rows = isGraphConfigured() ? await readCommsFromGraph() : await readCommsFromCsv();
-  return rows;
+// Returns parsed comms plus any rows that failed validation (skipped, not
+// fatal) so the client can surface a "N rows couldn't be imported" notice.
+export async function getComms(): Promise<CommsParseResult> {
+  return isGraphConfigured() ? readCommsFromGraph() : readCommsFromCsv();
 }
 
-async function readCommsFromCsv(): Promise<Comm[]> {
+async function readCommsFromCsv(): Promise<CommsParseResult> {
   const text = await readFile(CSV_PATH, "utf-8");
-  const rows = parseCsvRows(text);
-  const usedIds = new Set<string>();
-  return resolveTriggers(rows.map((row, i) => normalizeCommRow(row, i + 2, usedIds)));
+  return parseCommRows(parseCsvRows(text));
 }
 
-async function readCommsFromGraph(): Promise<Comm[]> {
+async function readCommsFromGraph(): Promise<CommsParseResult> {
   const { header, rows } = await readTable(tableNames().comms);
-  const usedIds = new Set<string>();
-  const parsed = rows.map((values, i) => {
-    const row = Object.fromEntries(header.map((h, j) => [h, values[j] ?? ""]));
-    return normalizeCommRow(row, i + 2, usedIds);
-  });
-  return resolveTriggers(parsed);
+  const objectRows = rows.map((values) =>
+    Object.fromEntries(header.map((h, j) => [h, values[j] ?? ""])),
+  );
+  return parseCommRows(objectRows);
 }
 
 export async function addComm(input: NewCommInput): Promise<Comm> {
-  const usedIds = new Set((await getComms()).map((c) => c.id));
+  const usedIds = new Set((await getComms()).comms.map((c) => c.id));
   const comm = normalizeCommRow(input, 0, usedIds);
 
   if (isGraphConfigured()) {

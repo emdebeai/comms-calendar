@@ -19,14 +19,44 @@ export interface Comm {
   triggers?: string[];
   /** ties the comm to a moment-that-matters band. */
   momentId?: string;
+  /** Marketo campaign id parsed from the source email name (SL-XXXX-). */
+  marketoId?: string;
+  /** send-performance metrics, stored as display strings e.g. "56.7%". */
+  openRate?: string;
+  clickRate?: string;
 }
+
+export type CampaignChannel =
+  | "youtube"
+  | "livewire"
+  | "radio"
+  | "radio-traffic"
+  | "tiktok"
+  | "meta"
+  | "reddit"
+  | "display"
+  | "weatherzone"
+  | "google"
+  | "pmax"
+  | "group";
 
 export interface Campaign {
   id: string;
   title: string;
-  channel: "social" | "video" | "search" | "burst" | "retargeting";
+  channel: CampaignChannel;
   from: number;
   to: number;
+  /** one-liner shown in the channel's detail panel — what this buy actually is */
+  description?: string;
+}
+
+/** A media schedule: one summary bar that expands into per-channel bars. */
+export interface CampaignGroup {
+  id: string;
+  title: string;
+  from: number;
+  to: number;
+  channels: Campaign[];
 }
 
 export interface Moment {

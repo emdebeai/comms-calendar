@@ -33,7 +33,9 @@
   --color-danger: #c0392b;
   --color-success: #2e7d32;
 
-  /* Categorical (extended palette, supplied by EDC) */
+  /* Categorical comm-type palette — NOT in the canonical styleguide.
+     Tracked deviation: see docs/decisions/DR-0001-categorical-comm-colours.md
+     (proposed; must go through /rmit-design:propose-change before handoff). */
   --color-tint-purple: #ede4f7;
   --color-tint-teal: #d4f1ee;
   --color-tint-pink: #fde0ea;
@@ -42,4 +44,16 @@
   --color-teal: #0d6f64;
   --color-pink: #a92561;
   --color-indigo: #2e3a8c;
+}
+
+/* Respect users who ask for reduced motion — WCAG 2.3.3. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

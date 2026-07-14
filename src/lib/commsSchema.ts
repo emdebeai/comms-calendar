@@ -1,3 +1,4 @@
+import { MOMENTS } from "../data/journey";
 import type { Comm, CommType, Team } from "../data/types";
 
 // Shared row schema for comms, however they're sourced (local CSV today,
@@ -22,16 +23,27 @@ import type { Comm, CommType, Team } from "../data/types";
 // school_year   10 / 11 / 12 / Post
 // month         Jan..Dec (full name or abbreviation)
 // day           optional, 1-31 — leave blank to place it mid-month
-// moment        optional — id of a moment from src/data/journey.ts
-//               (openday-y11, openday-y12, vtac-close, cop, offers, oweek)
-// triggers      optional — semicolon-separated ids (the auto-generated
-//               slug described above, not free text) of comms this one
-//               sets off. An id that doesn't match anything is dropped
-//               silently rather than erroring the whole import.
+// moment        optional — the moment-that-matters this comm ties to, by
+//               NAME (as shown on the timeline): "Open Day · Yr 11",
+//               "Open Day · Yr 12", "VTAC Timely Close", "Change of
+//               Preference", "Offer Round", "O-Week". Ids still work too.
+//               An unrecognised value is ignored (no band linked).
+// triggers      optional — semicolon-separated list of the OTHER comms this
+//               one relates to, by their exact title (e.g. "Open Day –
+//               Bundoora Campus"). Titles are auto-slugified to match, so
+//               you don't need to know the internal id. A title that
+//               doesn't match anything is dropped silently rather than
+//               erroring the whole import.
 // secondary_cta_1 / secondary_cta_2
 //               optional — extra CTAs shown in the comm's detail panel.
 //               Kept at the END of the column order so older sheets
 //               without them still load.
+// marketo_id    optional — source campaign id (the digits between SL- and
+//               the date in a Marketo email name). Shown in the detail panel.
+// open_rate / click_rate
+//               optional — send-performance metrics, stored verbatim as
+//               display strings (e.g. "56.7%"). Also END-of-order for
+//               back-compat.
 
 export const COMMS_COLUMNS = [
   "id",
@@ -46,6 +58,9 @@ export const COMMS_COLUMNS = [
   "triggers",
   "secondary_cta_1",
   "secondary_cta_2",
+  "marketo_id",
+  "open_rate",
+  "click_rate",
 ] as const;
 
 const TEAMS: Team[] = ["recruitment", "marketing", "admissions", "conversion"];
@@ -98,6 +113,21 @@ function monthOffset(raw: string): number {
   return idx;
 }
 
+/** Resolves a `moment` cell to a moment id. Accepts the moment's name as
+ *  shown on the timeline (e.g. "Change of Preference") or its raw id
+ *  (e.g. "cop"); an unrecognised value returns undefined so a typo just
+ *  means "no moment linked" rather than a phantom reference. */
+function resolveMoment(raw: string): string | undefined {
+  const v = raw.trim();
+  if (!v) return undefined;
+  const lc = v.toLowerCase();
+  return (
+    MOMENTS.find((m) => m.id.toLowerCase() === lc)?.id ??
+    MOMENTS.find((m) => m.label.toLowerCase() === lc)?.id ??
+    undefined
+  );
+}
+
 /** Converts school_year + month + optional day into the internal month
  *  float (0 = Jan of Year 10). Day only nudges position within the month —
  *  it doesn't need to be calendar-precise. */
@@ -140,11 +170,43 @@ export function normalizeCommRow(
     type: matchType(row.type || "email"),
     month: toMonthValue(row.school_year, row.month, row.day),
     row: 0, // overwritten by layoutTimeline on the client
-    momentId: row.moment || undefined,
+    momentId: resolveMoment(row.moment || ""),
     triggers: row.triggers
-      ? row.triggers.split(";").map((t) => t.trim()).filter(Boolean)
+      ? row.triggers.split(";").map((t) => slugify(t)).filter(Boolean)
       : undefined,
+    marketoId: row.marketo_id || undefined,
+    openRate: row.open_rate || undefined,
+    clickRate: row.click_rate || undefined,
   };
+}
+
+export interface CommsParseResult {
+  comms: Comm[];
+  /** rows that failed validation — skipped, not fatal, so one team's typo
+   *  can't take down everyone else's comms */
+  issues: { row: number; message: string }[];
+}
+
+/** Parses a whole batch of raw rows, skipping (and collecting) any that fail
+ *  validation instead of throwing on the first bad one. This is what makes
+ *  the multi-team spreadsheet handover safe: a single malformed row is
+ *  reported, not fatal. `startRow` is the sheet row number of the first data
+ *  row (2 when a header occupies row 1) for human-readable issue messages. */
+export function parseCommRows(
+  rows: Record<string, string>[],
+  startRow = 2,
+): CommsParseResult {
+  const usedIds = new Set<string>();
+  const comms: Comm[] = [];
+  const issues: { row: number; message: string }[] = [];
+  rows.forEach((row, i) => {
+    try {
+      comms.push(normalizeCommRow(row, startRow + i, usedIds));
+    } catch (e) {
+      issues.push({ row: startRow + i, message: (e as Error).message });
+    }
+  });
+  return { comms: resolveTriggers(comms), issues };
 }
 
 /** Drops any `triggers` reference that isn't a real id in this batch

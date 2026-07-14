@@ -15,7 +15,12 @@ app.get("/api/health", (_req, res) => {
 
 app.get("/api/comms", async (_req, res) => {
   try {
-    res.json(await getComms());
+    const result = await getComms();
+    if (result.issues.length > 0) {
+      console.warn(`[api] ${result.issues.length} comm row(s) skipped on import:`);
+      for (const issue of result.issues) console.warn(`  row ${issue.row}: ${issue.message}`);
+    }
+    res.json(result);
   } catch (err) {
     res.status(500).json({ error: (err as Error).message });
   }

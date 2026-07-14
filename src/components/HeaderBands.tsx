@@ -1,4 +1,4 @@
-import { Flame, X } from "lucide-react";
+import { X } from "lucide-react";
 import { MOMENTS, STAGES, YEARS } from "../data/journey";
 import type { Moment } from "../data/types";
 import {
@@ -11,7 +11,19 @@ import {
   YEAR_H,
   monthLabel,
   scaleX,
+  type ExpandedMonth,
 } from "../lib/scale";
+import { FOCUS_RING } from "../lib/styles";
+
+// Fixed week buckets within the abstract 30/31-day month, labelled by date
+// range — shown when a month is expanded to week view (level 1).
+const WEEKS = [
+  { start: 1, label: "1–7" },
+  { start: 8, label: "8–14" },
+  { start: 15, label: "15–21" },
+  { start: 22, label: "22–28" },
+  { start: 29, label: "29–31" },
+];
 
 // Keeps wide band labels (e.g. Consider, Year 11) in view while scrolling.
 const stickyLabel = { position: "sticky", left: LABEL_W + 8 } as const;
@@ -54,14 +66,14 @@ export function StageYearBands() {
 }
 
 interface MonthBandProps {
-  expandedMonth: number | null;
+  expandedMonth: ExpandedMonth | null;
   onToggleMonth: (monthIndex: number) => void;
 }
 
-/** Month ticks — stays pinned while scrolling down. Each month is a button:
- *  click to expand it to a day-by-day view (and again to collapse). The
- *  expanded month shows day-number ticks aligned with the canvas
- *  gridlines. */
+/** Month ticks — stays pinned while scrolling down. Each month is a button
+ *  that cycles collapsed → week view → day-by-day → collapsed. Week view
+ *  shows date-range ticks; day view shows day-number ticks, both aligned
+ *  with the canvas gridlines. */
 export function MonthBand({ expandedMonth, onToggleMonth }: MonthBandProps) {
   return (
     <div
@@ -71,41 +83,60 @@ export function MonthBand({ expandedMonth, onToggleMonth }: MonthBandProps) {
       {Array.from({ length: MONTHS }, (_, m) => {
         const left = scaleX(m);
         const width = scaleX(m + 1) - left;
-        const expanded = m === expandedMonth;
+        const level = expandedMonth?.month === m ? expandedMonth.level : 0;
+        const title =
+          level === 0
+            ? "Expand to week view"
+            : level === 1
+              ? "Expand to day-by-day view"
+              : "Back to month view";
         return (
           <button
             key={m}
             type="button"
             onClick={() => onToggleMonth(m)}
-            aria-pressed={expanded}
-            title={expanded ? "Back to month view" : "Expand to day view"}
-            className={`absolute h-full cursor-pointer text-xs ${
-              expanded
+            aria-pressed={level > 0}
+            title={title}
+            className={`absolute h-full cursor-pointer text-xs ${FOCUS_RING} ${
+              level > 0
                 ? "bg-rmit-blue font-semibold text-white"
-                : "text-grey-60 hover:bg-grey-10 hover:text-grey-90"
+                : "text-grey-70 hover:bg-grey-10 hover:text-grey-90"
             }`}
             style={{ left, width }}
           >
-            {expanded ? (
+            {level > 0 ? (
               <>
                 <span className="absolute top-1/2 left-2 -translate-y-1/2 font-semibold">
                   {monthLabel(m)}
                 </span>
-                {[5, 10, 15, 20, 25, 30].map((d) => (
-                  <span
-                    key={d}
-                    className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 font-normal text-white/75"
-                    style={{ left: ((d - 1) / 30) * width }}
-                  >
-                    {d}
-                  </span>
-                ))}
-                <X
-                  size={12}
-                  strokeWidth={2}
-                  aria-hidden
-                  className="absolute top-1/2 right-2 -translate-y-1/2 text-white/80"
-                />
+                {level === 1
+                  ? WEEKS.slice(1).map((w) => (
+                      /* tick labels centred within each week segment */
+                      <span
+                        key={w.start}
+                        className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 font-normal text-white/75"
+                        style={{ left: ((w.start - 1) / 30) * width + (3 / 30) * width }}
+                      >
+                        {w.label}
+                      </span>
+                    ))
+                  : [5, 10, 15, 20, 25, 30].map((d) => (
+                      <span
+                        key={d}
+                        className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 font-normal text-white/75"
+                        style={{ left: ((d - 1) / 30) * width }}
+                      >
+                        {d}
+                      </span>
+                    ))}
+                {level === 2 && (
+                  <X
+                    size={12}
+                    strokeWidth={2}
+                    aria-hidden
+                    className="absolute top-1/2 right-2 -translate-y-1/2 text-white/80"
+                  />
+                )}
               </>
             ) : (
               <span className="flex h-full items-center justify-center">{monthLabel(m)}</span>
@@ -118,11 +149,9 @@ export function MonthBand({ expandedMonth, onToggleMonth }: MonthBandProps) {
 }
 
 // Assign each moment label to one of two mini-lines so close-together
-// moments (e.g. Change of Preference + Offer Round) never collide. Major
-// badges are wider (icon + padding + bold text), so they reserve more room.
+// moments (e.g. Change of Preference + Offer Round) never collide.
 function momentLines(): Array<{ moment: Moment; line: number }> {
-  const estWidth = (moment: Moment) =>
-    moment.tier === "major" ? moment.label.length * 7.2 + 40 : moment.label.length * 6.8 + 14;
+  const estWidth = (moment: Moment) => moment.label.length * 6.8 + 14;
   const lineEnds = [-Infinity, -Infinity];
   return [...MOMENTS]
     .sort((a, b) => a.from - b.from)
@@ -140,9 +169,9 @@ interface MomentsBandProps {
   onPinMoment: (id: string) => void;
 }
 
-/** Moment-that-matters labels. Major moments (flagship events like Open
- *  Day) get a solid filled badge; standard ones get a plain flag tick.
- *  Click or hover a moment to highlight every comm tied to it. */
+/** Moment-that-matters labels — a uniform, quiet treatment: a thin left tick
+ *  + label, no pills or icons. Click or hover a moment to highlight every
+ *  comm tied to it (active = red). */
 export function MomentsBand({ activeMomentId, onHoverMoment, onPinMoment }: MomentsBandProps) {
   return (
     <div
@@ -150,32 +179,25 @@ export function MomentsBand({ activeMomentId, onHoverMoment, onPinMoment }: Mome
       style={{ width: TOTAL_W, height: MOMENT_H }}
     >
       {momentLines().map(({ moment, line }) => {
-        const major = moment.tier === "major";
         const active = moment.id === activeMomentId;
         return (
           <button
             key={moment.id}
             type="button"
+            aria-pressed={active}
             onMouseEnter={() => onHoverMoment(moment.id)}
             onMouseLeave={() => onHoverMoment(null)}
             onClick={(e) => {
               e.stopPropagation();
               onPinMoment(moment.id);
             }}
-            className={
-              major
-                ? `absolute flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold whitespace-nowrap transition-colors ${
-                    active
-                      ? "bg-rmit-red text-white"
-                      : "bg-rmit-blue text-white hover:bg-rmit-blue/85"
-                  }`
-                : `absolute border-l-2 pl-1.5 text-xs leading-4 font-semibold whitespace-nowrap transition-colors ${
-                    active ? "border-rmit-red text-rmit-red" : "border-rmit-blue text-rmit-blue"
-                  }`
-            }
-            style={{ left: scaleX(moment.from), top: major ? 2 + line * 21 : 4 + line * 21 }}
+            className={`absolute border-l-2 pl-1.5 text-xs leading-4 font-semibold whitespace-nowrap transition-colors ${FOCUS_RING} ${
+              active
+                ? "border-rmit-red text-rmit-red underline decoration-2 underline-offset-2"
+                : "border-grey-40 text-grey-90 hover:text-rmit-blue"
+            }`}
+            style={{ left: scaleX(moment.from), top: 4 + line * 21 }}
           >
-            {major && <Flame size={11} strokeWidth={2} aria-hidden />}
             {moment.label}
           </button>
         );

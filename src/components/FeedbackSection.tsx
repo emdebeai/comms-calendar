@@ -1,0 +1,174 @@
+import { useRef, useState } from "react";
+import { MessageSquarePlus } from "lucide-react";
+import type { FeedbackEntry } from "../data/types";
+import { EYEBROW, FOCUS_RING } from "../lib/styles";
+
+interface Props {
+  entries: FeedbackEntry[];
+  onAdd: (entry: Omit<FeedbackEntry, "id" | "createdAt">) => void;
+}
+
+const INPUT_CLASS =
+  "rounded-md border border-grey-30 bg-white px-3 py-2 text-sm text-grey-90 placeholder:text-grey-70 focus:border-rmit-blue-interactive focus:outline-2 focus:outline-offset-0 focus:outline-rmit-blue-interactive";
+
+function formatTimestamp(iso: string): string {
+  return new Date(iso).toLocaleString(undefined, {
+    day: "numeric",
+    month: "short",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
+/** Feedback thread heading + entries — placed inside the panel's scroll area. */
+export function FeedbackThread({ entries }: { entries: FeedbackEntry[] }) {
+  return (
+    <>
+      <h3 className={`mt-6 text-grey-70 ${EYEBROW}`}>Feedback &amp; metrics</h3>
+      {/* Live region so newly added notes are announced to screen readers. */}
+      <div aria-live="polite">
+        {entries.length === 0 ? (
+          <p className="mt-3 text-sm text-grey-70">
+            No notes yet — be the first to leave feedback or log a metric.
+          </p>
+        ) : (
+          <ul className="mt-3 flex flex-col gap-4">
+            {[...entries].reverse().map((entry) => (
+              <li key={entry.id}>
+                <div className="flex items-baseline justify-between gap-2">
+                  <span className="text-sm font-semibold text-grey-90">{entry.author}</span>
+                  <span className="text-xs text-grey-70">{formatTimestamp(entry.createdAt)}</span>
+                </div>
+                <p className="mt-0.5 text-sm text-grey-80">{entry.comment}</p>
+                {entry.metricLabel && (
+                  <span className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-tint-blue px-2 py-0.5 text-xs font-medium text-rmit-blue">
+                    {entry.metricLabel}: {entry.metricValue}
+                  </span>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </>
+  );
+}
+
+/** Compose form — one quiet "Add a note…" line until engaged; the name and
+ *  metric fields (with visible labels) only appear while composing. Pinned
+ *  to the bottom of the panel, outside the scroll area. */
+export function FeedbackComposer({ onAdd }: Pick<Props, "onAdd">) {
+  const [author, setAuthor] = useState("");
+  const [comment, setComment] = useState("");
+  const [metricLabel, setMetricLabel] = useState("");
+  const [metricValue, setMetricValue] = useState("");
+  const [composing, setComposing] = useState(false);
+
+  const formRef = useRef<HTMLDivElement>(null);
+  const commentRef = useRef<HTMLTextAreaElement>(null);
+
+  const formEmpty =
+    !comment.trim() && !author.trim() && !metricLabel.trim() && !metricValue.trim();
+
+  // Collapse the compose form when focus leaves it with nothing typed.
+  const onFormBlur = (e: React.FocusEvent) => {
+    if (formRef.current?.contains(e.relatedTarget as Node)) return;
+    if (formEmpty) setComposing(false);
+  };
+
+  const submit = () => {
+    if (!comment.trim()) return;
+    onAdd({
+      author: author.trim() || "Anonymous",
+      comment: comment.trim(),
+      metricLabel: metricLabel.trim() || undefined,
+      metricValue: metricValue.trim() || undefined,
+    });
+    setComment("");
+    setMetricLabel("");
+    setMetricValue("");
+    // Keep the form open and focused so a second note is one keystroke away
+    // (and so focus never falls out of the dialog's tab trap).
+    commentRef.current?.focus();
+  };
+
+  return (
+    <div
+      ref={formRef}
+      className="shrink-0 border-t border-grey-30 bg-white p-5"
+      onBlur={onFormBlur}
+    >
+      <div className="flex flex-col gap-2">
+        <textarea
+          ref={commentRef}
+          id="fb-comment"
+          value={comment}
+          onChange={(e) => setComment(e.target.value)}
+          onFocus={() => setComposing(true)}
+          placeholder="Add a note…"
+          aria-label="Add a note"
+          rows={composing ? 3 : 1}
+          className={`resize-none ${INPUT_CLASS}`}
+        />
+        {composing && (
+          <>
+            <div className="flex gap-2">
+              <div className="flex min-w-0 flex-1 flex-col gap-1">
+                <label htmlFor="fb-author" className="text-xs text-grey-70">
+                  Your name (optional)
+                </label>
+                <input
+                  id="fb-author"
+                  type="text"
+                  value={author}
+                  onChange={(e) => setAuthor(e.target.value)}
+                  className={INPUT_CLASS}
+                />
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <div className="flex min-w-0 flex-1 flex-col gap-1">
+                <label htmlFor="fb-metric" className="text-xs text-grey-70">
+                  Metric (optional)
+                </label>
+                <input
+                  id="fb-metric"
+                  type="text"
+                  value={metricLabel}
+                  onChange={(e) => setMetricLabel(e.target.value)}
+                  placeholder="e.g. Open rate"
+                  className={INPUT_CLASS}
+                />
+              </div>
+              <div className="flex w-28 flex-col gap-1">
+                <label htmlFor="fb-value" className="text-xs text-grey-70">
+                  Value
+                </label>
+                <input
+                  id="fb-value"
+                  type="text"
+                  value={metricValue}
+                  onChange={(e) => setMetricValue(e.target.value)}
+                  placeholder="e.g. 42%"
+                  className={INPUT_CLASS}
+                />
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={submit}
+              disabled={!comment.trim()}
+              className={`mt-1 flex min-h-11 items-center justify-center gap-1.5 rounded-full bg-rmit-blue px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50 ${FOCUS_RING}`}
+            >
+              <MessageSquarePlus size={14} strokeWidth={1.75} aria-hidden />
+              Add note
+            </button>
+            <p className="text-xs text-grey-70">
+              Notes are shared with everyone using this timeline.
+            </p>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
