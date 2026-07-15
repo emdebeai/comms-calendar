@@ -21,8 +21,16 @@
   --color-grey-90: #333333;
   --color-near-black: #1a1a1a;
 
-  /* Surface & tints */
+  /* Surface & tints. `card` = raised surface (cards, panels, the header
+     bands' white); `header` = the deep-navy bars (always navy, white text on
+     top, so it never inverts). Both are semantic so dark mode can retarget
+     them without touching component classes. */
   --color-surface: #f1f2ef;
+  --color-card: #ffffff;
+  --color-header: #000054;
+  /* Floating tooltip bubble — dark in BOTH themes (always white text on it),
+     so it never inverts to white-on-white like a grey token would. */
+  --color-tooltip: #333333;
   --color-tint-blue: #e0edfa;
   --color-tint-amber: #fef3cd;
   --color-tint-red: #fde8e8;
@@ -44,6 +52,66 @@
   --color-teal: #0d6f64;
   --color-pink: #a92561;
   --color-indigo: #2e3a8c;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Dark theme — retargets the SAME semantic tokens, so every component that
+   already uses them flips with no class changes. The grey ramp inverts by
+   role: grey-10/20 stay the quietest *backgrounds* (now dark), grey-80/90
+   stay the strongest *text* (now light). Tint chips go dark-but-tinted and
+   their paired text colour brightens, so comm chips still read as coloured.
+   Applied via [data-theme="dark"] on <html> (set by the toggle, defaulting
+   to the OS preference — see the inline script in index.html).
+   ───────────────────────────────────────────────────────────────────────── */
+:root[data-theme="dark"] {
+  /* Surfaces */
+  --color-surface: #08090d;
+  --color-card: #161a21;
+  --color-header: #16173a;
+  /* stays dark (a touch lifted from card so the bubble reads as elevated) */
+  --color-tooltip: #2b313c;
+
+  /* Greys — inverted by role (bg lightest → text darkest) */
+  --color-grey-10: #0f1218;
+  --color-grey-20: #181c24;
+  --color-grey-30: #2e3542;
+  --color-grey-40: #3d4451;
+  --color-grey-60: #7e8794;
+  --color-grey-70: #99a2b0;
+  --color-grey-80: #c1c8d2;
+  --color-grey-90: #e7eaef;
+  --color-near-black: #f2f4f7;
+
+  /* Brand — bright enough to read as text/accents on dark */
+  --color-rmit-blue: #93b4ff;
+  --color-rmit-blue-interactive: #5b9dff;
+  --color-rmit-red: #ff3b45;
+
+  /* Status */
+  --color-amber: #e3ba52;
+  --color-danger: #ff6b5c;
+  --color-success: #5bbb76;
+
+  /* Comm-type tints go dark; their text colours brighten to sit on them */
+  --color-tint-blue: #17243c;
+  --color-tint-amber: #2c2410;
+  --color-tint-red: #3a1a1a;
+  --color-tint-green: #14281c;
+  --color-tint-purple: #241a3a;
+  --color-tint-teal: #0f2926;
+  --color-tint-pink: #34162a;
+  --color-tint-indigo: #1a2147;
+  --color-purple: #b69bea;
+  --color-teal: #4dd4c4;
+  --color-pink: #f486b4;
+  --color-indigo: #93a4f7;
+}
+
+html {
+  background-color: var(--color-surface);
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
 }
 
 /* Respect users who ask for reduced motion — WCAG 2.3.3. */

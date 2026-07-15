@@ -16,13 +16,15 @@ import {
 import { FOCUS_RING } from "../lib/styles";
 
 // Fixed week buckets within the abstract 30/31-day month, labelled by date
-// range — shown when a month is expanded to week view (level 1).
+// range — shown when a month is expanded to week view (level 1). `mid` is the
+// day the label centres on; the last bucket is only 3 days, so it centres on
+// day 30 (not start+3) to avoid overflowing the month's right edge.
 const WEEKS = [
-  { start: 1, label: "1–7" },
-  { start: 8, label: "8–14" },
-  { start: 15, label: "15–21" },
-  { start: 22, label: "22–28" },
-  { start: 29, label: "29–31" },
+  { start: 1, mid: 4, label: "1–7" },
+  { start: 8, mid: 11, label: "8–14" },
+  { start: 15, mid: 18, label: "15–21" },
+  { start: 22, mid: 25, label: "22–28" },
+  { start: 29, mid: 30, label: "29–31" },
 ];
 
 // Keeps wide band labels (e.g. Consider, Year 11) in view while scrolling.
@@ -32,7 +34,7 @@ const stickyLabel = { position: "sticky", left: LABEL_W + 8 } as const;
 export function StageYearBands() {
   return (
     <div className="absolute top-0 left-0" style={{ width: TOTAL_W }}>
-      <div className="relative bg-rmit-blue" style={{ height: STAGE_H }}>
+      <div className="relative bg-header" style={{ height: STAGE_H }}>
         {STAGES.map((s, i) => (
           <div
             key={s.label}
@@ -77,7 +79,7 @@ interface MonthBandProps {
 export function MonthBand({ expandedMonth, onToggleMonth }: MonthBandProps) {
   return (
     <div
-      className="absolute top-0 left-0 border-b border-grey-30 bg-white"
+      className="absolute top-0 left-0 border-b border-grey-30 bg-card"
       style={{ width: TOTAL_W, height: MONTH_H }}
     >
       {Array.from({ length: MONTHS }, (_, m) => {
@@ -99,36 +101,53 @@ export function MonthBand({ expandedMonth, onToggleMonth }: MonthBandProps) {
             title={title}
             className={`absolute h-full cursor-pointer text-xs ${FOCUS_RING} ${
               level > 0
-                ? "bg-rmit-blue font-semibold text-white"
+                ? "bg-header font-semibold text-white"
                 : "text-grey-70 hover:bg-grey-10 hover:text-grey-90"
             }`}
             style={{ left, width }}
           >
             {level > 0 ? (
               <>
-                <span className="absolute top-1/2 left-2 -translate-y-1/2 font-semibold">
-                  {monthLabel(m)}
-                </span>
+                {/* Labels are placed with the SAME scaleX the gridlines and
+                    comm dots use — never even (d/30) spacing. An expanded month
+                    can straddle a scale segment boundary (e.g. Aug Yr 12 crosses
+                    the magnified "crunch" at 31.7), making the day widths
+                    non-uniform; positioning off scaleX keeps every number sitting
+                    exactly on its own gridline and dot. */}
                 {level === 1
-                  ? WEEKS.slice(1).map((w) => (
-                      /* tick labels centred within each week segment */
-                      <span
-                        key={w.start}
-                        className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 font-normal text-white/75"
-                        style={{ left: ((w.start - 1) / 30) * width + (3 / 30) * width }}
-                      >
-                        {w.label}
-                      </span>
-                    ))
-                  : [5, 10, 15, 20, 25, 30].map((d) => (
+                  ? WEEKS.slice(1).map((w) => {
+                      // Centre on the week's midpoint, but clamp so a wide label
+                      // (e.g. "29–31") near the narrow week-view month's right
+                      // edge can't overhang and clip.
+                      const HALF = 30;
+                      const centre = scaleX(m + (w.mid - 1) / 30) - left;
+                      const pos = Math.min(Math.max(centre, HALF), width - HALF);
+                      return (
+                        <span
+                          key={w.start}
+                          className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 font-normal whitespace-nowrap text-white/75"
+                          style={{ left: pos }}
+                        >
+                          {w.label}
+                        </span>
+                      );
+                    })
+                  : /* day view — a number on every day line (day 1 sits under
+                       the month-name chip, which paints over it) */
+                    Array.from({ length: 30 }, (_, i) => i + 1).map((d) => (
                       <span
                         key={d}
                         className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 font-normal text-white/75"
-                        style={{ left: ((d - 1) / 30) * width }}
+                        style={{ left: scaleX(m + (d - 1) / 30) - left }}
                       >
                         {d}
                       </span>
                     ))}
+                {/* Month name — solid chip pinned left, above the day numbers so
+                    it cleanly occludes the day-1 label beneath it. */}
+                <span className="absolute top-1/2 left-0 z-10 -translate-y-1/2 bg-header py-0.5 pr-2 pl-2 font-semibold">
+                  {monthLabel(m)}
+                </span>
                 {level === 2 && (
                   <X
                     size={12}
@@ -175,7 +194,7 @@ interface MomentsBandProps {
 export function MomentsBand({ activeMomentId, onHoverMoment, onPinMoment }: MomentsBandProps) {
   return (
     <div
-      className="absolute top-0 left-0 border-b border-grey-30 bg-white"
+      className="absolute top-0 left-0 border-b border-grey-30 bg-card"
       style={{ width: TOTAL_W, height: MOMENT_H }}
     >
       {momentLines().map(({ moment, line }) => {

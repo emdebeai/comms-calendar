@@ -1,3 +1,4 @@
+import { ChevronDown, ChevronRight } from "lucide-react";
 import { campaignGroup, inbound } from "../data/comms";
 import { MOMENTS } from "../data/journey";
 import type { Comm, CommType, Team } from "../data/types";
@@ -23,12 +24,12 @@ import {
 } from "../lib/scale";
 import { markerAccent } from "../lib/designConfig";
 import { EYEBROW, FOCUS_RING } from "../lib/styles";
-import { COMM_COLORS } from "./icons";
+import { COMM_COLORS, COMM_LABELS } from "./icons";
 import { CampaignBar } from "./CampaignBar";
 import { CommCard } from "./CommCard";
 import { MomentsBand, MonthBand, StageYearBands } from "./HeaderBands";
 import { InboundLane } from "./InboundLane";
-import { StudentExperienceBand } from "./StudentExperienceBand";
+import { StudentJourneyLane, type QuestionRef } from "./StudentJourneyLane";
 import { TriggerLayer } from "./TriggerLayer";
 
 interface Props {
@@ -42,9 +43,13 @@ interface Props {
   connected: Set<string>;
   showLines: boolean;
   activeMomentId: string | null;
-  /** student-experience band under the stage header */
-  experienceOpen: boolean;
-  onToggleExperience: () => void;
+  /** student journey lane (the spine) — in-lane question focus + ⓘ panel */
+  activeQuestion: QuestionRef | null;
+  onHoverQuestion: (q: QuestionRef | null) => void;
+  onPinQuestion: (q: QuestionRef) => void;
+  onOpenStage: (stageLabel: string) => void;
+  /** comm ids linked to the focused student question; null = no focus */
+  questionCommIds: Set<string> | null;
   /** media-schedule group bar in the Marketing lane */
   campaignsOpen: boolean;
   onToggleCampaigns: () => void;
@@ -58,6 +63,10 @@ interface Props {
   onHoverMoment: (id: string | null) => void;
   onPinMoment: (id: string) => void;
   feedbackCount: (commId: string) => number;
+  /** collapsed swimlanes — their comms/campaigns/curves are hidden and the
+   *  lane shrinks to its label strip */
+  collapsedLanes: Set<string>;
+  onToggleLane: (laneId: string) => void;
 }
 
 export function Timeline({
@@ -71,8 +80,11 @@ export function Timeline({
   connected,
   showLines,
   activeMomentId,
-  experienceOpen,
-  onToggleExperience,
+  activeQuestion,
+  onHoverQuestion,
+  onPinQuestion,
+  onOpenStage,
+  questionCommIds,
   campaignsOpen,
   onToggleCampaigns,
   onOpenCampaign,
@@ -83,20 +95,40 @@ export function Timeline({
   onHoverMoment,
   onPinMoment,
   feedbackCount,
+  collapsedLanes,
+  onToggleLane,
 }: Props) {
-  // Moment focus takes priority over trigger focus. Trigger focus only
-  // kicks in when the hovered comm actually has connections — otherwise
-  // hovering an unconnected comm would needlessly dim everything.
+  // Focus priority: student-question > moment > trigger. A focused question
+  // wins because it's driven from the open stage panel — the user is
+  // explicitly asking "which comms answer this?". (An EMPTY question set is
+  // meaningful: it dims everything — the coverage gap made visible.) Trigger
+  // focus only kicks in when the hovered comm actually has connections —
+  // otherwise hovering an unconnected comm would needlessly dim everything.
   const momentCommIds = activeMomentId
     ? new Set(comms.filter((c) => c.momentId === activeMomentId).map((c) => c.id))
     : null;
   const triggerFocusActive = activeId !== null && connected.size > 0;
   const focusSet =
-    momentCommIds ?? (triggerFocusActive ? new Set([activeId as string, ...connected]) : null);
+    questionCommIds ??
+    momentCommIds ??
+    (triggerFocusActive ? new Set([activeId as string, ...connected]) : null);
 
   // Which outbound lanes have no comms at all — so we can label them "none
   // mapped yet" instead of leaving a blank stripe that reads as a load error.
   const teamsWithComms = new Set(comms.map((c) => c.team));
+  // Comm count per team, for the "N hidden" hint on a collapsed lane.
+  const commCountByTeam = comms.reduce<Record<string, number>>((acc, c) => {
+    acc[c.team] = (acc[c.team] ?? 0) + 1;
+    return acc;
+  }, {});
+  // Endpoints a trigger line must not draw to: folded "+N more" comms plus
+  // anything in a collapsed lane.
+  const hiddenOrCollapsed = collapsedLanes.size
+    ? new Set([
+        ...hiddenIds,
+        ...comms.filter((c) => collapsedLanes.has(c.team)).map((c) => c.id),
+      ])
+    : hiddenIds;
 
   // Alternating lane-stripe background, computed once so the canvas and the
   // sticky gutter stay in sync (divider lanes are skipped in the count).
@@ -127,7 +159,7 @@ export function Timeline({
         </div>
         <div className="sticky left-0 h-full border-r border-grey-30" style={{ width: LABEL_W }}>
           <div
-            className={`flex items-center bg-rmit-blue px-4 text-white ${EYEBROW}`}
+            className={`flex items-center bg-header px-4 text-white ${EYEBROW}`}
             style={{ height: STAGE_H }}
           >
             Journey Stage
@@ -141,15 +173,21 @@ export function Timeline({
         </div>
       </div>
 
-      {/* ── Student experience layer — collapsible, under the stage rows ── */}
-      <StudentExperienceBand open={experienceOpen} onToggle={onToggleExperience} />
+      {/* ── Student journey lane — the map's spine (blueprint-style: student
+          on top, line of interaction, RMIT activity below) ── */}
+      <StudentJourneyLane
+        activeQuestion={activeQuestion}
+        onHoverQuestion={onHoverQuestion}
+        onPinQuestion={onPinQuestion}
+        onOpenStage={onOpenStage}
+      />
 
       <div className="sticky top-0 z-40" style={{ height: MONTH_H }}>
         <div className="absolute top-0" style={{ left: LABEL_W, width: TOTAL_W }}>
           <MonthBand expandedMonth={expandedMonth} onToggleMonth={onToggleMonth} />
         </div>
         <div
-          className="sticky left-0 flex h-full items-center border-r border-b border-grey-30 bg-white px-4 text-xs text-grey-70"
+          className="sticky left-0 flex h-full items-center border-r border-b border-grey-30 bg-card px-4 text-xs text-grey-70"
           style={{ width: LABEL_W }}
         >
           Month
@@ -165,7 +203,7 @@ export function Timeline({
           />
         </div>
         <div
-          className="sticky left-0 flex h-full items-center border-r border-b border-grey-30 bg-white px-4 text-xs text-grey-70"
+          className="sticky left-0 flex h-full items-center border-r border-b border-grey-30 bg-card px-4 text-xs text-grey-70"
           style={{ width: LABEL_W }}
         >
           Moments that matter
@@ -193,9 +231,14 @@ export function Timeline({
           />
         ))}
 
-        {/* Week (level 1) or day (level 2) gridlines inside the expanded month */}
+        {/* Week (level 1) or day (level 2) gridlines inside the expanded month.
+            Day view draws a line for EVERY day (2..30 — day 1 already sits on
+            the month boundary line) so each comm reads against its own day. */}
         {expandedMonth !== null &&
-          (expandedMonth.level === 1 ? [8, 15, 22, 29] : [5, 10, 15, 20, 25, 30]).map((d) => (
+          (expandedMonth.level === 1
+            ? [8, 15, 22, 29]
+            : Array.from({ length: 29 }, (_, i) => i + 2)
+          ).map((d) => (
             <div
               key={`tick-${d}`}
               className="absolute w-px bg-grey-20"
@@ -218,61 +261,105 @@ export function Timeline({
             <div
               key={mo.id}
               className={`absolute z-10 border-l border-dashed transition-colors ${
-                active ? "border-rmit-red bg-rmit-red/5" : "border-grey-30 bg-grey-90/[0.03]"
+                active ? "border-rmit-red bg-rmit-red/8" : "border-grey-30 bg-grey-90/[0.03]"
               }`}
               style={{ left, width, top: HEADER_H, height: TOTAL_H - HEADER_H }}
             />
           );
         })}
 
-        {/* Media schedule — summary bar, expandable to per-channel bars */}
-        <CampaignBar
-          campaign={{
-            id: campaignGroup.id,
-            title: `${campaignGroup.title} — ${campaignGroup.channels.length} channels`,
-            channel: "group",
-            from: campaignGroup.from,
-            to: campaignGroup.to,
-          }}
-          index={0}
-          expanded={campaignsOpen}
-          onToggle={onToggleCampaigns}
-        />
-        {campaignsOpen &&
-          campaignGroup.channels.map((c, i) => (
-            <CampaignBar key={c.id} campaign={c} index={i + 1} onOpen={onOpenCampaign} />
-          ))}
+        {/* Media schedule — summary bar, expandable to per-channel bars.
+            Lives in the Marketing lane, so it's hidden when that's collapsed. */}
+        {!collapsedLanes.has("marketing") && (
+          <>
+            <CampaignBar
+              campaign={{
+                id: campaignGroup.id,
+                title: `${campaignGroup.title} — ${campaignGroup.channels.length} channels`,
+                channel: "group",
+                from: campaignGroup.from,
+                to: campaignGroup.to,
+              }}
+              index={0}
+              expanded={campaignsOpen}
+              onToggle={onToggleCampaigns}
+            />
+            {campaignsOpen &&
+              campaignGroup.channels.map((c, i) => (
+                <CampaignBar key={c.id} campaign={c} index={i + 1} onOpen={onOpenCampaign} />
+              ))}
+          </>
+        )}
 
         {/* Inbound engagement curves */}
-        {inbound.map((d) => (
-          <InboundLane key={d.id} data={d} />
-        ))}
+        {inbound
+          .filter((d) => !collapsedLanes.has(d.id))
+          .map((d) => (
+            <InboundLane key={d.id} data={d} />
+          ))}
 
         {/* Date dots — every comm's exact send date on its lane's baseline
             strip, INCLUDING comms folded into a "+N more" chip, so the true
-            density of a cluster is always visible. */}
-        {comms.map((c) => {
+            density of a cluster is always visible. Folded comms get a HOLLOW
+            dot (outline only, dimmer) so a lineless dot reads as "more here,
+            collapsed" rather than a card that lost its stem. (Collapsed lanes
+            render nothing.) */}
+        {comms
+          .filter((c) => !collapsedLanes.has(c.team))
+          .map((c) => {
           const filteredOut = !activeTypes.has(c.type);
           const inFocus = focusSet ? focusSet.has(c.id) : false;
           const dotDimmed = filteredOut || (focusSet !== null && !inFocus);
+          const folded = hiddenIds.has(c.id);
+          const accent = markerAccent(COMM_COLORS[c.type].accent, "dot"); // bg-*
           // Centre the dot on the 3px spine (card left edge + accent strip),
           // so dot, stem and card edge share one axis.
+          const pos = { left: commPos(c).x + 0.75, top: dotY(c.team) };
+          // Folded → transparent centre + coloured ring (the lane shows
+          // through, so it's unmistakably not a filled card marker) AND it's
+          // a button that expands the month, exactly like the "+N more" chip.
+          if (folded) {
+            return (
+              <button
+                key={`dot-${c.id}`}
+                type="button"
+                disabled={filteredOut}
+                aria-hidden={filteredOut || undefined}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onToggleMonth(Math.floor(c.month));
+                }}
+                title="Expand this month to see it"
+                aria-label={`This ${COMM_LABELS[c.type].toLowerCase()} is folded here — expand this month to see it`}
+                className={`absolute z-10 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 transition-all ${accent.replace(
+                  "bg-",
+                  "border-",
+                )} ${FOCUS_RING} ${
+                  dotDimmed
+                    ? "cursor-default opacity-15"
+                    : "cursor-pointer opacity-70 hover:scale-125 hover:opacity-100"
+                }`}
+                style={pos}
+              />
+            );
+          }
+          // Visible → solid dot with a card-coloured halo separating it from
+          // the lane. Decorative (its card carries the real affordance).
           return (
             <span
               key={`dot-${c.id}`}
               aria-hidden
-              className={`absolute z-10 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full ring-2 ring-white transition-opacity ${markerAccent(
-                COMM_COLORS[c.type].accent,
-                "dot",
-              )} ${dotDimmed ? "opacity-15" : ""}`}
-              style={{ left: commPos(c).x + 0.75, top: dotY(c.team) }}
+              className={`absolute z-10 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full ring-2 ring-card transition-opacity ${accent} ${
+                dotDimmed ? "opacity-15" : ""
+              }`}
+              style={pos}
             />
           );
         })}
 
         {/* Thin stems tying each visible chip back to its date dot */}
         {comms
-          .filter((c) => !hiddenIds.has(c.id))
+          .filter((c) => !hiddenIds.has(c.id) && !collapsedLanes.has(c.team))
           .map((c) => {
             const filteredOut = !activeTypes.has(c.type);
             const inFocus = focusSet ? focusSet.has(c.id) : false;
@@ -297,7 +384,7 @@ export function Timeline({
 
         {/* Comms (collapsed-month overflow is folded into the chips below) */}
         {comms
-          .filter((c) => !hiddenIds.has(c.id))
+          .filter((c) => !hiddenIds.has(c.id) && !collapsedLanes.has(c.team))
           .map((c) => {
             const filteredOut = !activeTypes.has(c.type);
             const inFocus = focusSet ? focusSet.has(c.id) : false;
@@ -319,7 +406,9 @@ export function Timeline({
 
         {/* "+N more" overflow chips — clicking one expands that month to
             day view, which shows everything it holds */}
-        {chips.map((chip) => (
+        {chips
+          .filter((chip) => !collapsedLanes.has(chip.team))
+          .map((chip) => (
           <button
             key={`${chip.team}-${chip.monthIndex}`}
             type="button"
@@ -327,7 +416,7 @@ export function Timeline({
               e.stopPropagation();
               onToggleMonth(chip.monthIndex);
             }}
-            className={`absolute z-10 flex items-center rounded-full border border-grey-30 bg-white px-2 text-xs font-medium whitespace-nowrap text-rmit-blue-interactive hover:border-rmit-blue-interactive ${FOCUS_RING}`}
+            className={`absolute z-10 flex items-center rounded-full border border-grey-30 bg-card px-2 text-xs font-medium whitespace-nowrap text-rmit-blue-interactive hover:border-rmit-blue-interactive ${FOCUS_RING}`}
             style={{
               left: Math.min(scaleX(chip.monthIndex) + 4, TOTAL_W - 80),
               top: chipY(chip.team),
@@ -340,7 +429,14 @@ export function Timeline({
           </button>
         ))}
 
-        <TriggerLayer comms={comms} hiddenIds={hiddenIds} activeId={activeId} showAll={showLines} />
+        {/* Trigger lines skip endpoints in collapsed lanes (nothing to point
+            at there) as well as folded "+N more" comms. */}
+        <TriggerLayer
+          comms={comms}
+          hiddenIds={hiddenOrCollapsed}
+          activeId={activeId}
+          showAll={showLines}
+        />
       </div>
 
       {/* ── Sticky team gutter ── */}
@@ -349,32 +445,71 @@ export function Timeline({
         style={{ width: LABEL_W, height: TOTAL_H - HEADER_H }}
       >
         {LANES.map((lane) => {
-          // Outbound lanes grow with however many rows the data needs —
-          // centering the label in a lane that's grown very tall would
-          // strand it far from the visible cards, so those anchor to the
-          // top instead. Inbound/divider lanes have a fixed height, so
-          // centering still reads fine there.
+          const collapsible = lane.kind === "outbound" || lane.kind === "inbound";
+          const collapsed = collapsedLanes.has(lane.id);
+          // Expanded outbound lanes can grow very tall, so their label anchors
+          // to the top (near the visible cards); collapsed strips and the
+          // fixed-height inbound/divider lanes centre instead.
           const alignment =
-            lane.kind === "outbound" ? "justify-start pt-3.5" : "justify-center";
+            !collapsed && lane.kind === "outbound" ? "justify-start pt-3.5" : "justify-center";
           const isEmpty = lane.kind === "outbound" && !teamsWithComms.has(lane.id as Team);
-          return (
-            <div
-              key={lane.id}
-              className={`absolute left-0 flex w-full flex-col ${alignment} border-b border-grey-30 px-4 ${laneBg[lane.id]}`}
-              style={{ top: lane.top - HEADER_H, height: lane.height }}
-            >
-              <span
-                className={`${EYEBROW} ${
-                  lane.kind === "divider" ? "text-grey-70" : "text-rmit-blue"
-                }`}
-              >
-                {lane.label}
+          const count = commCountByTeam[lane.id] ?? 0;
+
+          const body = (
+            <>
+              <span className="flex items-center gap-1.5">
+                {collapsible &&
+                  (collapsed ? (
+                    <ChevronRight size={13} strokeWidth={2} className="text-grey-60" aria-hidden />
+                  ) : (
+                    <ChevronDown size={13} strokeWidth={2} className="text-grey-60" aria-hidden />
+                  ))}
+                <span className={`${EYEBROW} ${lane.kind === "divider" ? "text-grey-70" : "text-grey-90"}`}>
+                  {lane.label}
+                </span>
               </span>
-              {lane.sub && <span className="mt-0.5 text-xs text-grey-70">{lane.sub}</span>}
-              {isEmpty && (
-                <span className="mt-1 text-xs text-grey-70 italic">No comms mapped yet</span>
+              {!collapsed && lane.sub && (
+                <span className="mt-0.5 pl-[19px] text-xs text-grey-70">{lane.sub}</span>
               )}
-            </div>
+              {!collapsed && isEmpty && (
+                <span className="mt-1 pl-[19px] text-xs text-grey-70 italic">
+                  No comms mapped yet
+                </span>
+              )}
+              {collapsed && lane.kind === "outbound" && count > 0 && (
+                <span className="pl-[19px] text-xs text-grey-70">{count} hidden</span>
+              )}
+            </>
+          );
+
+          const posStyle = { top: lane.top - HEADER_H, height: lane.height };
+
+          if (!collapsible) {
+            return (
+              <div
+                key={lane.id}
+                className={`absolute left-0 flex w-full flex-col ${alignment} border-b border-grey-30 px-4 ${laneBg[lane.id]}`}
+                style={posStyle}
+              >
+                {body}
+              </div>
+            );
+          }
+          return (
+            <button
+              key={lane.id}
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onToggleLane(lane.id);
+              }}
+              aria-expanded={!collapsed}
+              aria-label={`${lane.label} lane — ${collapsed ? "expand" : "collapse"}`}
+              className={`absolute left-0 flex w-full flex-col ${alignment} border-b border-grey-30 px-4 text-left hover:bg-grey-20 ${laneBg[lane.id]} ${FOCUS_RING}`}
+              style={posStyle}
+            >
+              {body}
+            </button>
           );
         })}
       </div>

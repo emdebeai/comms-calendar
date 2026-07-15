@@ -1,5 +1,5 @@
 import { Mail, MessageSquare, Video, Phone, MapPin, type LucideIcon } from "lucide-react";
-import type { CommType } from "../data/types";
+import type { CommType, Platform } from "../data/types";
 
 export const COMM_ICONS: Record<CommType, LucideIcon> = {
   email: Mail,
@@ -28,6 +28,15 @@ export const COMM_LABELS: Record<CommType, string> = {
   webinar: "Webinar",
   call: "Call",
   event: "In-person event",
+};
+
+// Sending-platform labels, brand-cased. Rendered as a quiet grey badge, not
+// a brand-coloured logo — the type colour already carries the channel, so the
+// platform is secondary metadata (which system it goes out of).
+export const PLATFORM_LABELS: Record<Platform, string> = {
+  marketo: "Marketo",
+  cvent: "Cvent",
+  clicksend: "ClickSend",
 };
 
 // Channel icons (brand logos + generic fallbacks) live in ChannelIcon.tsx.

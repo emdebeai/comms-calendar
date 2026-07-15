@@ -52,13 +52,14 @@ export function DetailPanelShell({ overline, title, iconChipClass, icon, onClose
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end" onClick={onClose}>
-      <div className="absolute inset-0 bg-grey-90/30" />
+      {/* black (not a grey token) so the scrim stays dark in dark mode too */}
+      <div className="absolute inset-0 bg-black/40" />
       <div
         ref={panelRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby="detail-panel-title"
-        className="relative flex h-full w-96 max-w-full flex-col bg-white shadow-xl"
+        className="relative flex h-full w-96 max-w-full flex-col bg-card shadow-xl"
         onClick={(e) => e.stopPropagation()}
         onKeyDown={onKeyDown}
       >

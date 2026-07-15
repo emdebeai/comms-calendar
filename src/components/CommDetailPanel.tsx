@@ -1,10 +1,11 @@
 import { MOMENTS, STAGES } from "../data/journey";
+import { linkedQuestions } from "../data/studentExperience";
 import type { Comm, FeedbackEntry } from "../data/types";
 import { commDateLabel } from "../lib/scale";
 import { EYEBROW } from "../lib/styles";
 import { DetailPanelShell } from "./DetailPanelShell";
 import { FeedbackComposer, FeedbackThread } from "./FeedbackSection";
-import { COMM_COLORS, COMM_ICONS, COMM_LABELS } from "./icons";
+import { COMM_COLORS, COMM_ICONS, COMM_LABELS, PLATFORM_LABELS } from "./icons";
 
 interface Props {
   comm: Comm;
@@ -74,7 +75,16 @@ export function CommDetailPanel({ comm, allComms, entries, onClose, onAdd }: Pro
             </>
           )}
           <AttributeRow label="Related comms" value={relatedTitles} />
-          <AttributeRow label="Marketo ID" value={comm.marketoId} />
+          <AttributeRow
+            label="Student question"
+            value={
+              linkedQuestions(comm.id)
+                .map((lq) => `“${lq.question}” (${lq.stage})`)
+                .join("; ") || undefined
+            }
+          />
+          <AttributeRow label="Sent from" value={comm.platform ? PLATFORM_LABELS[comm.platform] : undefined} />
+          {comm.platform === "marketo" && <AttributeRow label="Marketo ID" value={comm.marketoId} />}
         </dl>
 
         {/* ── Send performance — plain stats, whitespace does the work ── */}

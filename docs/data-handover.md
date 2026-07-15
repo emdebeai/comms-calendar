@@ -40,6 +40,7 @@ else's comms still load. Fix the flagged row and refresh.
 | `secondary_cta_1`, `secondary_cta_2` | — | Extra CTAs shown in the detail panel |
 | `marketo_id` | — | Source campaign id, if you have one |
 | `open_rate`, `click_rate` | — | Send metrics as a percentage string, e.g. `56.7%` |
+| `platform` | — | The system it's **sent** from: `Marketo`, `Cvent`, or `ClickSend`. Leave blank and it's inferred — `Email`→Marketo, `SMS`→ClickSend. Only set it for the exceptions, e.g. an event-confirmation **email** that goes out of `Cvent`. Events aren't "sent" and get no badge. |
 
 ### Moment names (use these exactly, or leave blank)
 

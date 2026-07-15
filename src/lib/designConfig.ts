@@ -17,14 +17,11 @@ export const DESIGN = {
    */
   neutralMarkers: false,
 
-  /**
-   * Student-experience band starts expanded — it's the tool's key comparison
-   * ("do the comms answer what students are asking?"), so it leads rather
-   * than hiding behind a toggle.
-   *   true  → open on load
-   *   false → collapsed on load (the previous default)
-   */
-  experienceOpenByDefault: true,
+  // (Removed) experienceOpenByDefault — the student layer is no longer a
+  // collapsible band. It's now the permanent top lane of the map
+  // (service-blueprint style), so there's nothing to default open/closed.
+  // To reverse THAT decision, restore StudentExperienceBand from git history
+  // (commit tagged before the student-journey-spine change).
 } as const;
 
 // Neutral marker colours when DESIGN.neutralMarkers is on. Dot slightly

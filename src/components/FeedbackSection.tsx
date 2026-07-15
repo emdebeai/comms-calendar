@@ -9,7 +9,7 @@ interface Props {
 }
 
 const INPUT_CLASS =
-  "rounded-md border border-grey-30 bg-white px-3 py-2 text-sm text-grey-90 placeholder:text-grey-70 focus:border-rmit-blue-interactive focus:outline-2 focus:outline-offset-0 focus:outline-rmit-blue-interactive";
+  "rounded-md border border-grey-30 bg-card px-3 py-2 text-sm text-grey-90 placeholder:text-grey-70 focus:border-rmit-blue-interactive focus:outline-2 focus:outline-offset-0 focus:outline-rmit-blue-interactive";
 
 function formatTimestamp(iso: string): string {
   return new Date(iso).toLocaleString(undefined, {
@@ -95,7 +95,7 @@ export function FeedbackComposer({ onAdd }: Pick<Props, "onAdd">) {
   return (
     <div
       ref={formRef}
-      className="shrink-0 border-t border-grey-30 bg-white p-5"
+      className="shrink-0 border-t border-grey-30 bg-card p-5"
       onBlur={onFormBlur}
     >
       <div className="flex flex-col gap-2">
@@ -158,7 +158,7 @@ export function FeedbackComposer({ onAdd }: Pick<Props, "onAdd">) {
               type="button"
               onClick={submit}
               disabled={!comment.trim()}
-              className={`mt-1 flex min-h-11 items-center justify-center gap-1.5 rounded-full bg-rmit-blue px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50 ${FOCUS_RING}`}
+              className={`mt-1 flex min-h-11 items-center justify-center gap-1.5 rounded-full bg-header px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50 ${FOCUS_RING}`}
             >
               <MessageSquarePlus size={14} strokeWidth={1.75} aria-hidden />
               Add note

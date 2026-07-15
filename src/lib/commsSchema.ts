@@ -1,5 +1,5 @@
 import { MOMENTS } from "../data/journey";
-import type { Comm, CommType, Team } from "../data/types";
+import type { Comm, CommType, Platform, Team } from "../data/types";
 
 // Shared row schema for comms, however they're sourced (local CSV today,
 // a SharePoint Excel table once that's wired up). Both src/lib/loadComms.ts
@@ -44,6 +44,13 @@ import type { Comm, CommType, Team } from "../data/types";
 //               optional — send-performance metrics, stored verbatim as
 //               display strings (e.g. "56.7%"). Also END-of-order for
 //               back-compat.
+// platform      optional — the system a comm is SENT out of: Marketo
+//               (marketing eDMs), Cvent (event confirmation emails),
+//               ClickSend (text messages). Leave blank and it's inferred
+//               from the channel — email→Marketo, sms→ClickSend — so only
+//               event-confirmation EMAILS (which go out of Cvent, not
+//               Marketo) need it set. In-person events aren't "sent" and get
+//               no platform unless one is stated.
 
 export const COMMS_COLUMNS = [
   "id",
@@ -61,6 +68,7 @@ export const COMMS_COLUMNS = [
   "marketo_id",
   "open_rate",
   "click_rate",
+  "platform",
 ] as const;
 
 const TEAMS: Team[] = ["recruitment", "marketing", "admissions", "conversion"];
@@ -95,6 +103,32 @@ function matchType(raw: string): CommType {
     throw new Error(`Unknown comm type "${raw}" — expected one of ${TYPES.join(", ")}`);
   }
   return found;
+}
+
+// Forgiving platform lookup — accepts the common ways teams write each one.
+const PLATFORM_ALIASES: Record<string, Platform> = {
+  marketo: "marketo",
+  "adobe": "marketo",
+  "adobe marketo": "marketo",
+  "adobe marketo engage": "marketo",
+  cvent: "cvent",
+  clicksend: "clicksend",
+  "click send": "clicksend",
+};
+
+/** Resolves the `platform` cell — the system a comm is *sent* out of. An
+ *  explicit value wins; a blank (or unrecognised) one falls back to the
+ *  channel default: email→Marketo, sms→ClickSend. So the CSV only names a
+ *  platform when it breaks the norm (e.g. a confirmation email that goes out
+ *  of Cvent, not Marketo). In-person events aren't "sent", so they get no
+ *  platform unless one is stated explicitly. */
+function resolvePlatform(raw: string, type: CommType): Platform | undefined {
+  const norm = raw.trim().toLowerCase();
+  const explicit = norm ? PLATFORM_ALIASES[norm] : undefined;
+  if (explicit) return explicit;
+  if (type === "email") return "marketo";
+  if (type === "sms") return "clicksend";
+  return undefined;
 }
 
 function schoolYearOffset(raw: string): number {
@@ -177,6 +211,7 @@ export function normalizeCommRow(
     marketoId: row.marketo_id || undefined,
     openRate: row.open_rate || undefined,
     clickRate: row.click_rate || undefined,
+    platform: resolvePlatform(row.platform || "", matchType(row.type || "email")),
   };
 }
 

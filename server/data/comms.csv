@@ -1,4 +1,4 @@
-id,team,title,cta,type,school_year,month,day,moment,triggers,secondary_cta_1,secondary_cta_2,marketo_id,open_rate,click_rate
+id,team,title,cta,type,school_year,month,day,moment,triggers,secondary_cta_1,secondary_cta_2,marketo_id,open_rate,click_rate,platform
 ,Marketing,Don't miss your opportunity to register for the Bundoora Trades Experience Day {,Explore RMIT,Email,10,Mar,3,,,,,,52.1%,
 ,Marketing,Key dates for 2026 + we'll be in touch throughout the year to tell you all about,Explore RMIT,Email,10,Mar,17,,,,,,51.8%,4.2%
 ,Marketing,What is it series - Vocational study Explaining the difference between TAFE and ,Explore RMIT,Email,10,Apr,22,,,,,,49.0%,1.7%
@@ -59,3 +59,15 @@ id,team,title,cta,type,school_year,month,day,moment,triggers,secondary_cta_1,sec
 ,Recruitment,Victorian Careers Show (Melbourne Showgrounds),Attend Victorian Careers Show,Event,11,May,13,,,,,,,
 ,Recruitment,RMIT Study Expo,Attend Study Expo,Event,11,May,28,,,,,,,
 ,Recruitment,RMIT Study Expo (School Leaver) – October,Attend Study Expo,Event,11,Oct,15,,,,,,,
+,recruitment,Tech and Trades – registration confirmation,View event details,email,10,Jul,1,,Tech and Trades,,,,,,cvent
+,recruitment,Open Day – Bundoora Campus registration confirmation,View event details,email,12,Jul,26,Open Day · Yr 12,Open Day – Bundoora Campus,,,,,,cvent
+,recruitment,Open Day – City & Brunswick registration confirmation,View event details,email,12,Aug,2,Open Day · Yr 12,Open Day – City & Brunswick,,,,,,cvent
+,recruitment,RMIT Student For A Day registration confirmation,View event details,email,11,Sep,23,,RMIT Student For A Day,,,,,,cvent
+,recruitment,Change of Preference event registration confirmation,View event details,email,12,Dec,4,Change of Preference,Change of Preference event,,,,,,cvent
+,recruitment,Alumni Talk & Tours registration confirmation,View event details,email,11,Mar,8,,Alumni Talk & Tours,,,,,,cvent
+,recruitment,Secondary School Events (off campus) registration confirmation,View event details,email,11,Apr,17,,Secondary School Events (off campus),,,,,,cvent
+,recruitment,School Holiday Campus Tours registration confirmation,View event details,email,11,Apr,3,,School Holiday Campus Tours,,,,,,cvent
+,recruitment,VCE and Careers Expo (MCEC) registration confirmation,View event details,email,12,Apr,29,,VCE and Careers Expo (MCEC),,,,,,cvent
+,recruitment,Victorian Careers Show (Melbourne Showgrounds) registration confirmation,View event details,email,11,May,6,,Victorian Careers Show (Melbourne Showgrounds),,,,,,cvent
+,recruitment,RMIT Study Expo registration confirmation,View event details,email,11,May,21,,RMIT Study Expo,,,,,,cvent
+,recruitment,RMIT Study Expo (School Leaver) – October registration confirmation,View event details,email,11,Oct,8,,RMIT Study Expo (School Leaver) – October,,,,,,cvent

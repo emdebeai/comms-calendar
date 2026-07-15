@@ -1,5 +1,9 @@
 export type CommType = "email" | "sms" | "webinar" | "call" | "event";
 export type Team = "recruitment" | "marketing" | "admissions" | "conversion";
+/** Sending/management platform a comm goes out of. Marketing eDMs run out of
+ *  Marketo (Adobe); event registration + confirmation emails out of Cvent;
+ *  text messages out of ClickSend. */
+export type Platform = "marketo" | "cvent" | "clicksend";
 
 export interface Comm {
   id: string;
@@ -21,6 +25,9 @@ export interface Comm {
   momentId?: string;
   /** Marketo campaign id parsed from the source email name (SL-XXXX-). */
   marketoId?: string;
+  /** Sending platform. Defaults by channel when the CSV leaves it blank
+   *  (email→Marketo, sms→ClickSend, event→Cvent). */
+  platform?: Platform;
   /** send-performance metrics, stored as display strings e.g. "56.7%". */
   openRate?: string;
   clickRate?: string;

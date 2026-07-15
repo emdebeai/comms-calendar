@@ -1,16 +1,20 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { Legend } from "./components/Legend";
+import { ControlDock } from "./components/ControlDock";
 import { Timeline } from "./components/Timeline";
 import { connectedIds } from "./components/TriggerLayer";
 import { CommDetailPanel } from "./components/CommDetailPanel";
 import { CampaignDetailPanel } from "./components/CampaignDetailPanel";
+import { StudentStagePanel } from "./components/StudentStagePanel";
+import type { QuestionRef } from "./components/StudentJourneyLane";
 import { campaignGroup } from "./data/comms";
+import { linkedCommIds } from "./data/studentExperience";
 import type { CommType, FeedbackEntry, Comm } from "./data/types";
 import { addFeedbackEntry, loadFeedback, type FeedbackStore } from "./lib/feedback";
 import { loadComms } from "./lib/loadComms";
-import { DESIGN } from "./lib/designConfig";
 import { commDateLabel, layoutTimeline, scaleX, type ExpandedMonth } from "./lib/scale";
 import { COMM_LABELS } from "./components/icons";
+
+const THEME_KEY = "comms-calendar-theme";
 
 const ALL_TYPES: CommType[] = ["email", "sms", "webinar", "call", "event"];
 
@@ -25,19 +29,44 @@ export default function App() {
   const [pinnedMoment, setPinnedMoment] = useState<string | null>(null);
   // Month zoom cycles collapsed → week view → day-by-day → collapsed.
   const [expandedMonth, setExpandedMonth] = useState<ExpandedMonth | null>(null);
-  // Student experience layer band (under the stage header). Its default open
-  // state is a reversible design decision (see DESIGN.experienceOpenByDefault);
-  // expanding it grows the header, so it feeds into layoutTimeline.
-  const [experienceOpen, setExperienceOpen] = useState<boolean>(DESIGN.experienceOpenByDefault);
+  // Student journey — question focus comes straight from the lane (hover is
+  // transient, pin sticks) and drives the cross-highlight: the linked comms
+  // light up, everything else dims. openStage is the optional deep-dive
+  // panel, opened from the ⓘ per stage.
+  const [openStage, setOpenStage] = useState<string | null>(null);
+  const [hoveredQuestion, setHoveredQuestion] = useState<QuestionRef | null>(null);
+  const [pinnedQuestion, setPinnedQuestion] = useState<QuestionRef | null>(null);
   // Media-schedule group bar — expanding shows per-channel bars, which grows
   // the Marketing lane, so it also feeds into layoutTimeline.
   const [campaignsOpen, setCampaignsOpen] = useState(false);
+  // Collapsed swimlanes (by lane id) — a collapsed lane shrinks to its label
+  // strip and its content is hidden, so it feeds into layoutTimeline too.
+  const [collapsedLanes, setCollapsedLanes] = useState<Set<string>>(new Set());
   const [feedback, setFeedback] = useState<FeedbackStore>({});
   const [openCommId, setOpenCommId] = useState<string | null>(null);
   const [openCampaignId, setOpenCampaignId] = useState<string | null>(null);
   // Measured card heights (id → px), reported by each CommCard. Feeds back
   // into layoutTimeline so rows stack by real height instead of a fixed slot.
   const [cardHeights, setCardHeights] = useState<Record<string, number>>({});
+  // Dark mode. The initial value was already resolved (OS pref or saved
+  // choice) by the inline script in index.html before first paint; this just
+  // mirrors it into React so the toggle icon stays in sync.
+  const [theme, setTheme] = useState<"light" | "dark">(() =>
+    typeof document !== "undefined" && document.documentElement.dataset.theme === "dark"
+      ? "dark"
+      : "light",
+  );
+  const toggleTheme = () =>
+    setTheme((prev) => {
+      const next = prev === "dark" ? "light" : "dark";
+      document.documentElement.dataset.theme = next;
+      try {
+        localStorage.setItem(THEME_KEY, next);
+      } catch {
+        /* private mode / storage disabled — the choice just won't persist */
+      }
+      return next;
+    });
 
   const scrollerRef = useRef<HTMLDivElement>(null);
 
@@ -68,9 +97,9 @@ export default function App() {
   const layout = useMemo(
     () =>
       rawComms
-        ? layoutTimeline(rawComms, expandedMonth, cardHeights, experienceOpen, campaignsOpen)
+        ? layoutTimeline(rawComms, expandedMonth, cardHeights, campaignsOpen, collapsedLanes)
         : null,
-    [rawComms, expandedMonth, cardHeights, experienceOpen, campaignsOpen],
+    [rawComms, expandedMonth, cardHeights, campaignsOpen, collapsedLanes],
   );
 
   // NOTE: no scroll-anchoring on expand — expansion only adds width to the
@@ -91,6 +120,13 @@ export default function App() {
   const activeId = hovered;
   const connected = layout ? connectedIds(layout.comms, activeId) : new Set<string>();
   const activeMomentId = pinnedMoment ?? hoveredMoment;
+  // Question focus (hover in the lane wins over a pin) — resolves to the
+  // linked comm ids. Only linked questions are interactive in the lane, so
+  // the set is never empty in practice.
+  const activeQuestion = hoveredQuestion ?? pinnedQuestion;
+  const questionCommIds = activeQuestion
+    ? new Set(linkedCommIds(activeQuestion.stage, activeQuestion.question))
+    : null;
 
   const toggleType = (t: CommType) => {
     setActiveTypes((prev) => {
@@ -124,7 +160,7 @@ export default function App() {
           until focused. */}
       <a
         href="#comms-list"
-        className="absolute left-2 top-2 z-50 -translate-y-16 rounded-md bg-rmit-blue px-3 py-2 text-sm font-medium text-white transition-transform focus:translate-y-0"
+        className="absolute left-2 top-2 z-50 -translate-y-16 rounded-md bg-header px-3 py-2 text-sm font-medium text-white transition-transform focus:translate-y-0"
       >
         Skip to communications list
       </a>
@@ -132,20 +168,20 @@ export default function App() {
           scrolls away vertically like normal page content. */}
       <header className="sticky left-0 w-screen px-6 pt-6 pb-5" {...bgInert}>
         <h1 className="text-3xl font-bold text-rmit-blue">
-          Prospective Student Comms Journey
+          Current State Touch Points
         </h1>
-        <p className="mt-1 max-w-3xl text-sm text-grey-70">
-          Outbound and inbound communications across the three-year journey, from
-          Year 10 to enrolment. The timeline gives Year 12&rsquo;s application season
-          more room — that&rsquo;s where the volume is.
+        <div className="mt-2 flex items-center gap-2 text-xs text-grey-70">
+          <span>Prospective student type</span>
+          <span className="rounded-md bg-tint-blue px-2 py-0.5 font-semibold uppercase tracking-wide text-rmit-blue">
+            DOM SL
+          </span>
+        </div>
+        <p className="mt-2 max-w-3xl text-sm text-grey-70">
+          By creating and working from a holistic view of the future student
+          experience, we aim to enable the business to consider the needs and goals
+          of students at each step of the journey, as well as considering the journey
+          as an end-to-end experience.
         </p>
-        <Legend
-          activeTypes={activeTypes}
-          onToggle={toggleType}
-          onReset={() => setActiveTypes(new Set(ALL_TYPES))}
-          showLines={showLines}
-          onToggleLines={() => setShowLines((s) => !s)}
-        />
         {importIssues.length > 0 && (
           <div
             role="status"
@@ -202,18 +238,45 @@ export default function App() {
               connected={connected}
               showLines={showLines}
               activeMomentId={activeMomentId}
-              experienceOpen={experienceOpen}
-              onToggleExperience={() => setExperienceOpen((s) => !s)}
+              activeQuestion={activeQuestion}
+              onHoverQuestion={setHoveredQuestion}
+              onPinQuestion={(q) =>
+                setPinnedQuestion((p) =>
+                  p?.stage === q.stage && p?.question === q.question ? null : q,
+                )
+              }
+              onOpenStage={(stage) => {
+                // One right-hand panel at a time; ⓘ on the open stage closes it.
+                setOpenCommId(null);
+                setOpenCampaignId(null);
+                setOpenStage((p) => (p === stage ? null : stage));
+              }}
+              questionCommIds={questionCommIds}
               campaignsOpen={campaignsOpen}
               onToggleCampaigns={() => setCampaignsOpen((s) => !s)}
               onOpenCampaign={setOpenCampaignId}
               onHover={setHovered}
-              onOpenDetail={setOpenCommId}
+              onOpenDetail={(id) => {
+                setOpenStage(null);
+                setOpenCommId(id);
+              }}
               onMeasure={handleMeasure}
-              onClearFocus={() => setPinnedMoment(null)}
+              onClearFocus={() => {
+                setPinnedMoment(null);
+                setPinnedQuestion(null);
+              }}
               onHoverMoment={setHoveredMoment}
               onPinMoment={(id) => setPinnedMoment((p) => (p === id ? null : id))}
               feedbackCount={(commId) => feedback[commId]?.length ?? 0}
+              collapsedLanes={collapsedLanes}
+              onToggleLane={(laneId) =>
+                setCollapsedLanes((prev) => {
+                  const next = new Set(prev);
+                  if (next.has(laneId)) next.delete(laneId);
+                  else next.add(laneId);
+                  return next;
+                })
+              }
             />
             {/* Text alternative to the visual timeline canvas, which conveys
                 meaning through colour + position (WCAG 1.3.1). Hidden visually,
@@ -237,6 +300,19 @@ export default function App() {
         )}
       </main>
 
+      {/* Sleek floating control dock — filters, trigger lines, legend, theme.
+          Fixed bottom-centre so it stays reachable while scrolling and never
+          clashes with the sticky header bands or the right-hand panels. */}
+      <ControlDock
+        activeTypes={activeTypes}
+        onToggleType={toggleType}
+        onResetTypes={() => setActiveTypes(new Set(ALL_TYPES))}
+        showLines={showLines}
+        onToggleLines={() => setShowLines((s) => !s)}
+        theme={theme}
+        onToggleTheme={toggleTheme}
+      />
+
       {openComm && layout && (
         <CommDetailPanel
           comm={openComm}
@@ -254,6 +330,11 @@ export default function App() {
           onClose={() => setOpenCampaignId(null)}
           onAdd={(entry) => addFeedback(openCampaign.id, entry)}
         />
+      )}
+
+      {/* Deep-dive reference panel — non-modal so the canvas stays visible. */}
+      {openStage && (
+        <StudentStagePanel stageLabel={openStage} onClose={() => setOpenStage(null)} />
       )}
     </div>
   );

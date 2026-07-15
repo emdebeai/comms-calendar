@@ -442,3 +442,86 @@ export const STUDENT_EXPERIENCE: StageExperience[] = [
     ],
   },
 ];
+
+// ── Question ↔ comms links ────────────────────────────────────────────────
+//
+// The alignment layer: which comms speak to which student question. The tool
+// deliberately does NOT judge whether coverage is good — it just draws the
+// line so teams can see it. Hover/click a question in the stage panel and the
+// linked comms light up on the canvas; a question with no links dims
+// everything, which is the gap made visible.
+//
+// Links reference comms by id (the slugified title — same rule as the CSV's
+// `triggers` column, see commsSchema.ts). `match` is a case-insensitive
+// substring of the question text, so rewording a question slightly doesn't
+// silently orphan its links (and a broken match just means "no links", never
+// an error).
+//
+// Worked example: Change of Preference. One student question in Wait — "How
+// does Change of Preference work?" — mapped to the full COP cluster across
+// Marketing (eDMs) and Recruitment (event + confirmation). Add more links the
+// same way, or let teams call them out in feedback until they're captured
+// here.
+
+export interface QuestionLink {
+  /** STAGES label the question lives under */
+  stage: string;
+  /** case-insensitive substring of the question text */
+  match: string;
+  /** linked comm ids (slugified titles) */
+  commIds: string[];
+}
+
+export const QUESTION_LINKS: QuestionLink[] = [
+  {
+    stage: "Wait",
+    match: "change of preference",
+    commIds: [
+      "cop-explained",
+      "thanks-for-preferencing-rmit",
+      "it-s-not-too-late-to-make-the-most-of-your-preferences-and-make-an-course-as-you",
+      "we-ll-be-on-the-phone-from-today-until-12pm-on-13-december-to-help-you-secure-yo",
+      "cop-closes-today-at-12pm-we-re-still-open-today-if-you-ve-got-questions",
+      "vtac-offers-are-released-today-good-luck-upcoming-rounds",
+      "change-of-preference-event",
+      "change-of-preference-event-reminder",
+      "change-of-preference-event-registration-confirmation",
+    ],
+  },
+];
+
+/** Comm ids linked to a question (empty = no links mapped yet). */
+export function linkedCommIds(stageLabel: string, question: string): string[] {
+  const q = question.toLowerCase();
+  return (
+    QUESTION_LINKS.find((l) => l.stage === stageLabel && q.includes(l.match.toLowerCase()))
+      ?.commIds ?? []
+  );
+}
+
+/** Reverse lookup: the student questions a comm is linked to. */
+export function linkedQuestions(commId: string): { stage: string; question: string }[] {
+  const out: { stage: string; question: string }[] = [];
+  for (const link of QUESTION_LINKS) {
+    if (!link.commIds.includes(commId)) continue;
+    const stage = STUDENT_EXPERIENCE.find((s) => s.stage === link.stage);
+    const question = stage?.blocks
+      .flatMap((b) => b.groups)
+      .filter((g) => g.heading === "Questions")
+      .flatMap((g) => g.items)
+      .find((q) => q.toLowerCase().includes(link.match.toLowerCase()));
+    if (question) out.push({ stage: link.stage, question });
+  }
+  return out;
+}
+
+/** All questions for a stage, flattened across blocks (Offer has two). */
+export function stageQuestions(stageLabel: string): string[] {
+  const stage = STUDENT_EXPERIENCE.find((s) => s.stage === stageLabel);
+  return (
+    stage?.blocks
+      .flatMap((b) => b.groups)
+      .filter((g) => g.heading === "Questions")
+      .flatMap((g) => g.items) ?? []
+  );
+}
