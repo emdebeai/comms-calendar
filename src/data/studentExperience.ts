@@ -473,6 +473,59 @@ export interface QuestionLink {
 }
 
 export const QUESTION_LINKS: QuestionLink[] = [
+  // First-pass, clear-cut mappings only — the unambiguous ones where a comm
+  // plainly answers the question. Everything else stays unmapped (a neutral
+  // "—" on its card) until the teams call the link — or the real gap — for
+  // themselves. Comm ids are the auto-slugified titles; the "What is it"
+  // series and Open Day / Key dates eDMs repeat each school year, so their
+  // later instances carry -2 / -2-2 suffixes (see slugify in commsSchema).
+  {
+    // Understand — the pathway question is exactly what the explainer series
+    // answers (TAFE vs uni, and pathways), across all three years it runs.
+    stage: "Understand",
+    match: "vocational training",
+    commIds: [
+      "what-is-it-series-vocational-study-explaining-the-difference-between-tafe-and",
+      "what-is-it-series-vocational-study-explaining-the-difference-between-tafe-and-2",
+      "what-is-it-series-vocational-study-explaining-the-difference-between-tafe-and-2-2",
+      "what-is-it-series-pathways-explaining-everything-you-need-to-know-about-pathwa",
+      "what-is-it-series-pathways-explaining-everything-you-need-to-know-about-pathwa-2",
+      "what-is-it-series-pathways-explaining-everything-you-need-to-know-about-pathwa-2-2",
+    ],
+  },
+  {
+    // Consider — "which uni / the vibe" is the Open Day cluster: the invite
+    // eDMs plus the campus events and their reminders / confirmations.
+    stage: "Consider",
+    match: "vibe and location",
+    commIds: [
+      "why-you-won-t-want-to-miss-rmit-open-day-2026-it-s-our-biggest-event-of-the-yea",
+      "why-you-won-t-want-to-miss-rmit-open-day-2026-it-s-our-biggest-event-of-the-yea-2",
+      "why-you-won-t-want-to-miss-rmit-open-day-2026-it-s-our-biggest-event-of-the-yea-2-2",
+      "open-day-bundoora-campus",
+      "open-day-city",
+      "open-day-brunswick",
+      "open-day-bundoora-campus-reminder",
+      "open-day-city-reminder",
+      "open-day-brunswick-reminder",
+      "open-day-bundoora-campus-registration-confirmation",
+      "open-day-city-registration-confirmation",
+      "open-day-brunswick-registration-confirmation",
+    ],
+  },
+  {
+    // Decide — "how do I start / what dates" is answered by the VTAC apply
+    // push and the recurring Key dates eDM.
+    stage: "Decide",
+    match: "exact process to start my application",
+    commIds: [
+      "vtac-services-and-event-here-to-help",
+      "vtac-final-push-scholarship-promotion",
+      "key-dates-for-2026-we-ll-be-in-touch-throughout-the-year-to-tell-you-all-about",
+      "key-dates-for-2026-we-ll-be-in-touch-throughout-the-year-to-tell-you-all-about-2",
+      "key-dates-for-2026-we-ll-be-in-touch-throughout-the-year-to-tell-you-all-about-2-2",
+    ],
+  },
   {
     stage: "Wait",
     match: "change of preference",

@@ -24,8 +24,11 @@ interface Props {
 }
 
 // Below this pixel width a channel bar can't fit its label, so it shows just
-// the icon and floats the label just outside its right edge instead.
-const NARROW_PX = 90;
+// the icon and floats the label just outside its right edge instead. Sized for
+// the longest placement names (the campus-prefixed outdoor ones, e.g.
+// "Bundoora: Northland Shopping Centre") — below this they'd all truncate to a
+// useless "Bundoora…", which reads as several identical bars.
+const NARROW_PX = 150;
 
 export function CampaignBar({ campaign, index, expanded, onToggle, onOpen }: Props) {
   const left = scaleX(campaign.from);

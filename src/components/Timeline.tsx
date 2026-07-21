@@ -1,5 +1,6 @@
+import { Fragment } from "react";
 import { ChevronDown, ChevronRight } from "lucide-react";
-import { campaignGroup, inbound } from "../data/comms";
+import { campaignGroups, inbound } from "../data/comms";
 import { MOMENTS } from "../data/journey";
 import type { Comm, CommType, Team } from "../data/types";
 import {
@@ -43,6 +44,8 @@ interface Props {
   connected: Set<string>;
   showLines: boolean;
   activeMomentId: string | null;
+  /** whether the student-journey lane is shown (dock toggle, off by default) */
+  showStudentLayer: boolean;
   /** student journey lane (the spine) — in-lane question focus + ⓘ panel */
   activeQuestion: QuestionRef | null;
   onHoverQuestion: (q: QuestionRef | null) => void;
@@ -50,9 +53,9 @@ interface Props {
   onOpenStage: (stageLabel: string) => void;
   /** comm ids linked to the focused student question; null = no focus */
   questionCommIds: Set<string> | null;
-  /** media-schedule group bar in the Marketing lane */
-  campaignsOpen: boolean;
-  onToggleCampaigns: () => void;
+  /** ids of the media schedules currently expanded to their placements */
+  openCampaigns: Set<string>;
+  onToggleCampaigns: (groupId: string) => void;
   /** click on a channel bar opens its detail panel */
   onOpenCampaign: (id: string) => void;
   onHover: (id: string | null) => void;
@@ -80,12 +83,13 @@ export function Timeline({
   connected,
   showLines,
   activeMomentId,
+  showStudentLayer,
   activeQuestion,
   onHoverQuestion,
   onPinQuestion,
   onOpenStage,
   questionCommIds,
-  campaignsOpen,
+  openCampaigns,
   onToggleCampaigns,
   onOpenCampaign,
   onHover,
@@ -173,14 +177,17 @@ export function Timeline({
         </div>
       </div>
 
-      {/* ── Student journey lane — the map's spine (blueprint-style: student
-          on top, line of interaction, RMIT activity below) ── */}
-      <StudentJourneyLane
-        activeQuestion={activeQuestion}
-        onHoverQuestion={onHoverQuestion}
-        onPinQuestion={onPinQuestion}
-        onOpenStage={onOpenStage}
-      />
+      {/* ── Student journey lane — optional, toggled from the control dock.
+          When hidden, HEADER_H shrinks by STUDENT_LANE_H (see layoutTimeline)
+          so the canvas below closes the gap rather than leaving an empty band. ── */}
+      {showStudentLayer && (
+        <StudentJourneyLane
+          activeQuestion={activeQuestion}
+          onHoverQuestion={onHoverQuestion}
+          onPinQuestion={onPinQuestion}
+          onOpenStage={onOpenStage}
+        />
+      )}
 
       <div className="sticky top-0 z-40" style={{ height: MONTH_H }}>
         <div className="absolute top-0" style={{ left: LABEL_W, width: TOTAL_W }}>
@@ -268,28 +275,44 @@ export function Timeline({
           );
         })}
 
-        {/* Media schedule — summary bar, expandable to per-channel bars.
-            Lives in the Marketing lane, so it's hidden when that's collapsed. */}
-        {!collapsedLanes.has("marketing") && (
-          <>
-            <CampaignBar
-              campaign={{
-                id: campaignGroup.id,
-                title: `${campaignGroup.title} — ${campaignGroup.channels.length} channels`,
-                channel: "group",
-                from: campaignGroup.from,
-                to: campaignGroup.to,
-              }}
-              index={0}
-              expanded={campaignsOpen}
-              onToggle={onToggleCampaigns}
-            />
-            {campaignsOpen &&
-              campaignGroup.channels.map((c, i) => (
-                <CampaignBar key={c.id} campaign={c} index={i + 1} onOpen={onOpenCampaign} />
-              ))}
-          </>
-        )}
+        {/* Media schedules — one summary bar each, expandable to per-placement
+            bars, stacked in the Marketing lane (so both hide when it's
+            collapsed). Row indices run FLAT across both schedules, matching the
+            row-height list campaignY walks. */}
+        {!collapsedLanes.has("marketing") &&
+          (() => {
+            let row = 0;
+            return campaignGroups.map((group) => {
+              const expanded = openCampaigns.has(group.id);
+              const summaryRow = row++;
+              const channelRows = expanded ? group.channels.map(() => row++) : [];
+              return (
+                <Fragment key={group.id}>
+                  <CampaignBar
+                    campaign={{
+                      id: group.id,
+                      title: `${group.title} — ${group.channels.length} placements`,
+                      channel: "group",
+                      from: group.from,
+                      to: group.to,
+                    }}
+                    index={summaryRow}
+                    expanded={expanded}
+                    onToggle={() => onToggleCampaigns(group.id)}
+                  />
+                  {expanded &&
+                    group.channels.map((c, i) => (
+                      <CampaignBar
+                        key={c.id}
+                        campaign={c}
+                        index={channelRows[i]}
+                        onOpen={onOpenCampaign}
+                      />
+                    ))}
+                </Fragment>
+              );
+            });
+          })()}
 
         {/* Inbound engagement curves */}
         {inbound

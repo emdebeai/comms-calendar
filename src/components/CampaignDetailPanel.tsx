@@ -1,4 +1,4 @@
-import { campaignGroup } from "../data/comms";
+import { campaignGroups } from "../data/comms";
 import type { Campaign, FeedbackEntry } from "../data/types";
 import { campaignRangeLabel } from "../lib/scale";
 import { EYEBROW } from "../lib/styles";
@@ -46,7 +46,10 @@ export function CampaignDetailPanel({ campaign, entries, onClose, onAdd }: Props
         <h3 className={`mt-5 text-grey-70 ${EYEBROW}`}>Details</h3>
         <dl className="mt-2">
           <AttributeRow label="Team" value="Marketing" />
-          <AttributeRow label="Schedule" value={campaignGroup.title} />
+          <AttributeRow
+            label="Schedule"
+            value={campaignGroups.find((g) => g.channels.some((c) => c.id === campaign.id))?.title}
+          />
           <AttributeRow label="Flight" value={range} />
           <AttributeRow label="Duration" value={`${weeks} week${weeks === 1 ? "" : "s"}`} />
         </dl>

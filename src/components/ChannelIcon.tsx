@@ -1,4 +1,20 @@
-import { Car, CloudSun, Gamepad2, Megaphone, Monitor, Radio, type LucideIcon } from "lucide-react";
+import {
+  Bus,
+  Car,
+  CloudSun,
+  Frame,
+  Gamepad2,
+  Landmark,
+  Megaphone,
+  Monitor,
+  MoveVertical,
+  Radio,
+  ShoppingBag,
+  Signpost,
+  StickyNote,
+  Truck,
+  type LucideIcon,
+} from "lucide-react";
 import { siGoogle, siGoogleads, siMeta, siReddit, siTiktok, siYoutube } from "simple-icons";
 import type { CampaignChannel } from "../data/types";
 
@@ -25,6 +41,15 @@ const LUCIDE_FALLBACKS: Partial<Record<CampaignChannel, LucideIcon>> = {
   "radio-traffic": Car,
   display: Monitor,
   weatherzone: CloudSun,
+  // out-of-home placements
+  smartframes: Frame,
+  escalators: MoveVertical,
+  wrap: Landmark,
+  billboard: Signpost,
+  posters: StickyNote,
+  "street-furniture": Bus,
+  truck: Truck,
+  retail: ShoppingBag,
   group: Megaphone,
 };
 

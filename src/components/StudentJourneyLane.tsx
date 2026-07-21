@@ -77,23 +77,45 @@ export function StudentJourneyLane({
                       <Info size={13} strokeWidth={2} aria-hidden />
                     </button>
 
-                    <ul className="flex flex-col gap-1">
+                    <ul className="flex flex-col gap-1.5">
                       {questions.map((q) => {
                         const links = linkedCommIds(stage.label, q);
                         const hasLinks = links.length > 0;
                         const active =
                           activeQuestion?.stage === stage.label &&
                           activeQuestion?.question === q;
+                        // Each question is a coverage card: the question text
+                        // plus a pill showing how many comms answer it. A blue
+                        // count means "N comms mapped"; a neutral "—" means
+                        // "nothing mapped yet" — deliberately grey, not a red
+                        // gap flag, because unmapped ≠ a confirmed gap (the
+                        // links are populated by hand, so a real gap is a
+                        // judgement the teams make, not an absence of data).
+                        const cardBase =
+                          "flex w-full items-start justify-between gap-2 rounded-md border px-2 py-1.5 text-left text-xs leading-snug transition-colors";
+                        const pill = hasLinks ? (
+                          <span className="inline-flex shrink-0 translate-y-px items-center gap-0.5 rounded-full bg-tint-blue px-1.5 py-0.5 text-[10px] font-semibold whitespace-nowrap text-rmit-blue-interactive">
+                            <Link2 size={10} strokeWidth={2} aria-hidden />
+                            {links.length}
+                          </span>
+                        ) : (
+                          <span
+                            className="inline-flex shrink-0 translate-y-px items-center rounded-full bg-grey-20 px-1.5 py-0.5 text-[10px] font-medium whitespace-nowrap text-grey-60"
+                            title="No comms mapped to this question yet"
+                          >
+                            —
+                          </span>
+                        );
                         // Only linked questions are interactive — hovering a
                         // question with no links would dim the whole canvas
                         // with no visible response, which just reads as broken.
                         if (!hasLinks) {
                           return (
-                            <li
-                              key={q}
-                              className="border-l-2 border-grey-30 py-0.5 pl-2 text-xs leading-snug text-grey-80 italic"
-                            >
-                              {q}
+                            <li key={q}>
+                              <div className={`${cardBase} border-grey-30 bg-card text-grey-70`}>
+                                <span>{q}</span>
+                                {pill}
+                              </div>
                             </li>
                           );
                         }
@@ -110,17 +132,14 @@ export function StudentJourneyLane({
                                 e.stopPropagation();
                                 onPinQuestion({ stage: stage.label, question: q });
                               }}
-                              className={`w-full rounded-r-md border-l-2 py-0.5 pl-2 text-left text-xs leading-snug italic transition-colors ${FOCUS_RING} ${
+                              className={`${cardBase} ${FOCUS_RING} ${
                                 active
                                   ? "border-rmit-blue bg-tint-blue/60 text-rmit-blue"
-                                  : "border-rmit-blue-interactive/50 text-grey-90 hover:bg-tint-blue/40"
+                                  : "border-grey-30 bg-card text-grey-90 hover:border-rmit-blue-interactive/60 hover:bg-tint-blue/30"
                               }`}
                             >
-                              {q}{" "}
-                              <span className="inline-flex translate-y-px items-center gap-0.5 text-[10px] font-semibold whitespace-nowrap not-italic text-rmit-blue-interactive">
-                                <Link2 size={10} strokeWidth={2} aria-hidden />
-                                {links.length}
-                              </span>
+                              <span>{q}</span>
+                              {pill}
                             </button>
                           </li>
                         );

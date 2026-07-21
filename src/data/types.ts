@@ -34,6 +34,7 @@ export interface Comm {
 }
 
 export type CampaignChannel =
+  // digital + radio
   | "youtube"
   | "livewire"
   | "radio"
@@ -45,6 +46,15 @@ export type CampaignChannel =
   | "weatherzone"
   | "google"
   | "pmax"
+  // digital + static outdoor (out-of-home placements)
+  | "smartframes"
+  | "escalators"
+  | "wrap"
+  | "billboard"
+  | "posters"
+  | "street-furniture"
+  | "truck"
+  | "retail"
   | "group";
 
 export interface Campaign {

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Info, Link2, Moon, Sun } from "lucide-react";
+import { GraduationCap, Info, Link2, Moon, Sun } from "lucide-react";
 import type { CommType } from "../data/types";
 import { FOCUS_RING } from "../lib/styles";
 import { COMM_COLORS, COMM_ICONS, COMM_LABELS } from "./icons";
@@ -12,6 +12,8 @@ interface Props {
   onResetTypes: () => void;
   showLines: boolean;
   onToggleLines: () => void;
+  showStudentLayer: boolean;
+  onToggleStudentLayer: () => void;
   theme: "light" | "dark";
   onToggleTheme: () => void;
 }
@@ -27,6 +29,8 @@ export function ControlDock({
   onResetTypes,
   showLines,
   onToggleLines,
+  showStudentLayer,
+  onToggleStudentLayer,
   theme,
   onToggleTheme,
 }: Props) {
@@ -95,6 +99,21 @@ export function ControlDock({
         })}
 
         <span className="mx-1 h-5 w-px bg-grey-30" aria-hidden />
+
+        {/* Student journey — reveals the per-stage question cards under the
+            stage header; off by default. */}
+        <button
+          type="button"
+          onClick={onToggleStudentLayer}
+          aria-pressed={showStudentLayer}
+          aria-label={showStudentLayer ? "Hide student journey" : "Show student journey"}
+          title="Student journey"
+          className={`${iconBtn} ${
+            showStudentLayer ? "bg-header text-white" : "text-grey-70 hover:bg-grey-20"
+          }`}
+        >
+          <GraduationCap size={15} strokeWidth={1.75} aria-hidden />
+        </button>
 
         {/* Trigger lines */}
         <button

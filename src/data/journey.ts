@@ -36,8 +36,11 @@ export const YEARS: YearSpan[] = [
 // heavier styling for flagship events; omit tier (or "standard") for
 // process deadlines that still matter but aren't the headline moment.
 export const MOMENTS: Moment[] = [
-  { id: "openday-y11", label: "Open Day · Yr 11", from: 19.1, to: 19.9, tier: "major" },
-  { id: "openday-y12", label: "Open Day · Yr 12", from: 31.1, to: 32, tier: "major" },
+  // Open Day 2026 runs across two Sundays — Bundoora on 2 August, City and
+  // Brunswick on 9 August — so each band brackets 1–10 August (month 19/31 =
+  // August, day d = (d-1)/30) rather than trailing off through September.
+  { id: "openday-y11", label: "Open Day · Yr 11", from: 19.0, to: 19.3, tier: "major" },
+  { id: "openday-y12", label: "Open Day · Yr 12", from: 31.0, to: 31.3, tier: "major" },
   { id: "vtac-close", label: "VTAC Timely Close", from: 32.4, to: 33 },
   { id: "cop", label: "Change of Preference", from: 35, to: 35.45 },
   { id: "offers", label: "Offer Round", from: 35.55, to: 36.4, tier: "major" },

@@ -37,7 +37,8 @@ id,team,title,cta,type,school_year,month,day,moment,triggers,secondary_cta_1,sec
 ,Marketing,VTAC Offers are released today! Good Luck! + Upcoming rounds,Update your preferences,Email,12,Dec,23,cop,,,,,,
 ,Marketing,Tech and Trades reminder,Tech and Trades is tomorrow,SMS,10,Jul,7,,tech-and-trades,,,,,
 ,Marketing,Open Day – Bundoora Campus reminder,Open Day is tomorrow,SMS,12,Aug,1,openday-y12,open-day-bundoora-campus,,,,,
-,Marketing,Open Day – City & Brunswick reminder,Open Day is tomorrow,SMS,12,Aug,8,openday-y12,open-day-city-brunswick,,,,,
+,Marketing,Open Day – City reminder,Open Day is tomorrow,SMS,12,Aug,8,openday-y12,open-day-city,,,,,
+,Marketing,Open Day – Brunswick reminder,Open Day is tomorrow,SMS,12,Aug,8,openday-y12,open-day-brunswick,,,,,
 ,Marketing,RMIT Student For A Day reminder,Student For A Day is tomorrow,SMS,11,Sep,29,,rmit-student-for-a-day,,,,,
 ,Marketing,Change of Preference event reminder,Change of Preference event is tomorrow,SMS,12,Dec,10,cop,change-of-preference-event,,,,,
 ,Marketing,Alumni Talk & Tours reminder,Alumni Talk & Tours are tomorrow,SMS,11,Mar,14,,alumni-talk-tours,,,,,
@@ -49,7 +50,8 @@ id,team,title,cta,type,school_year,month,day,moment,triggers,secondary_cta_1,sec
 ,Marketing,RMIT Study Expo (School Leaver) – October reminder SMS,Study Expo is tomorrow,SMS,11,Oct,14,,rmit-study-expo-school-leaver-october,,,,,
 ,Recruitment,Tech and Trades,Attend Tech and Trades,Event,10,Jul,8,,,,,,,
 ,Recruitment,Open Day – Bundoora Campus,Attend Open Day,Event,12,Aug,2,openday-y12,,,,,,
-,Recruitment,Open Day – City & Brunswick,Attend Open Day,Event,12,Aug,9,openday-y12,,,,,,
+,Recruitment,Open Day – City,Attend Open Day,Event,12,Aug,9,openday-y12,,,,,,
+,Recruitment,Open Day – Brunswick,Attend Open Day,Event,12,Aug,9,openday-y12,,,,,,
 ,Recruitment,RMIT Student For A Day,Attend Student For A Day,Event,11,Sep,30,,,,,,,
 ,Recruitment,Change of Preference event,Attend Change of Preference event,Event,12,Dec,11,cop,,,,,,
 ,Recruitment,Alumni Talk & Tours,Attend Alumni Talk & Tours,Event,11,Mar,15,,,,,,,
@@ -61,7 +63,8 @@ id,team,title,cta,type,school_year,month,day,moment,triggers,secondary_cta_1,sec
 ,Recruitment,RMIT Study Expo (School Leaver) – October,Attend Study Expo,Event,11,Oct,15,,,,,,,
 ,recruitment,Tech and Trades – registration confirmation,View event details,email,10,Jul,1,,Tech and Trades,,,,,,cvent
 ,recruitment,Open Day – Bundoora Campus registration confirmation,View event details,email,12,Jul,26,Open Day · Yr 12,Open Day – Bundoora Campus,,,,,,cvent
-,recruitment,Open Day – City & Brunswick registration confirmation,View event details,email,12,Aug,2,Open Day · Yr 12,Open Day – City & Brunswick,,,,,,cvent
+,recruitment,Open Day – City registration confirmation,View event details,email,12,Aug,2,Open Day · Yr 12,Open Day – City,,,,,,cvent
+,recruitment,Open Day – Brunswick registration confirmation,View event details,email,12,Aug,2,Open Day · Yr 12,Open Day – Brunswick,,,,,,cvent
 ,recruitment,RMIT Student For A Day registration confirmation,View event details,email,11,Sep,23,,RMIT Student For A Day,,,,,,cvent
 ,recruitment,Change of Preference event registration confirmation,View event details,email,12,Dec,4,Change of Preference,Change of Preference event,,,,,,cvent
 ,recruitment,Alumni Talk & Tours registration confirmation,View event details,email,11,Mar,8,,Alumni Talk & Tours,,,,,,cvent

@@ -6,7 +6,7 @@ import { CommDetailPanel } from "./components/CommDetailPanel";
 import { CampaignDetailPanel } from "./components/CampaignDetailPanel";
 import { StudentStagePanel } from "./components/StudentStagePanel";
 import type { QuestionRef } from "./components/StudentJourneyLane";
-import { campaignGroup } from "./data/comms";
+import { allCampaignChannels } from "./data/comms";
 import { linkedCommIds } from "./data/studentExperience";
 import type { CommType, FeedbackEntry, Comm } from "./data/types";
 import { addFeedbackEntry, loadFeedback, type FeedbackStore } from "./lib/feedback";
@@ -36,9 +36,12 @@ export default function App() {
   const [openStage, setOpenStage] = useState<string | null>(null);
   const [hoveredQuestion, setHoveredQuestion] = useState<QuestionRef | null>(null);
   const [pinnedQuestion, setPinnedQuestion] = useState<QuestionRef | null>(null);
-  // Media-schedule group bar — expanding shows per-channel bars, which grows
-  // the Marketing lane, so it also feeds into layoutTimeline.
-  const [campaignsOpen, setCampaignsOpen] = useState(false);
+  // The student-journey lane is off by default — the comms map stays clean
+  // until you opt into the student view from the control dock.
+  const [showStudentLayer, setShowStudentLayer] = useState(false);
+  // Media-schedule summary bars — expanding one shows its per-placement bars,
+  // which grows the Marketing lane, so it also feeds into layoutTimeline.
+  const [openCampaigns, setOpenCampaigns] = useState<Set<string>>(new Set());
   // Collapsed swimlanes (by lane id) — a collapsed lane shrinks to its label
   // strip and its content is hidden, so it feeds into layoutTimeline too.
   const [collapsedLanes, setCollapsedLanes] = useState<Set<string>>(new Set());
@@ -97,10 +100,26 @@ export default function App() {
   const layout = useMemo(
     () =>
       rawComms
-        ? layoutTimeline(rawComms, expandedMonth, cardHeights, campaignsOpen, collapsedLanes)
+        ? layoutTimeline(
+            rawComms,
+            expandedMonth,
+            cardHeights,
+            openCampaigns,
+            collapsedLanes,
+            showStudentLayer,
+          )
         : null,
-    [rawComms, expandedMonth, cardHeights, campaignsOpen, collapsedLanes],
+    [rawComms, expandedMonth, cardHeights, openCampaigns, collapsedLanes, showStudentLayer],
   );
+
+  // Toggling the lane also drops any question focus — otherwise a pinned
+  // question could keep the canvas dimmed with the lane (its only "clear"
+  // affordance) hidden.
+  const toggleStudentLayer = () => {
+    setShowStudentLayer((s) => !s);
+    setHoveredQuestion(null);
+    setPinnedQuestion(null);
+  };
 
   // NOTE: no scroll-anchoring on expand — expansion only adds width to the
   // RIGHT of the expanded month's left edge, so leaving scrollLeft alone
@@ -146,7 +165,7 @@ export default function App() {
   const openComm =
     layout && openCommId ? layout.comms.find((c) => c.id === openCommId) : undefined;
   const openCampaign = openCampaignId
-    ? campaignGroup.channels.find((c) => c.id === openCampaignId)
+    ? allCampaignChannels.find((c) => c.id === openCampaignId)
     : undefined;
 
   // While a detail dialog is open, take the timeline behind it out of the
@@ -238,6 +257,7 @@ export default function App() {
               connected={connected}
               showLines={showLines}
               activeMomentId={activeMomentId}
+              showStudentLayer={showStudentLayer}
               activeQuestion={activeQuestion}
               onHoverQuestion={setHoveredQuestion}
               onPinQuestion={(q) =>
@@ -252,8 +272,15 @@ export default function App() {
                 setOpenStage((p) => (p === stage ? null : stage));
               }}
               questionCommIds={questionCommIds}
-              campaignsOpen={campaignsOpen}
-              onToggleCampaigns={() => setCampaignsOpen((s) => !s)}
+              openCampaigns={openCampaigns}
+              onToggleCampaigns={(groupId) =>
+                setOpenCampaigns((prev) => {
+                  const next = new Set(prev);
+                  if (next.has(groupId)) next.delete(groupId);
+                  else next.add(groupId);
+                  return next;
+                })
+              }
               onOpenCampaign={setOpenCampaignId}
               onHover={setHovered}
               onOpenDetail={(id) => {
@@ -309,6 +336,8 @@ export default function App() {
         onResetTypes={() => setActiveTypes(new Set(ALL_TYPES))}
         showLines={showLines}
         onToggleLines={() => setShowLines((s) => !s)}
+        showStudentLayer={showStudentLayer}
+        onToggleStudentLayer={toggleStudentLayer}
         theme={theme}
         onToggleTheme={toggleTheme}
       />

@@ -7,7 +7,7 @@
 // layoutTimeline / EXPANDED_MONTH_PX) so busy periods are inspected in place
 // without a permanently distorted, over-weighted Year-12 season.
 
-import { campaignGroup } from "../data/comms";
+import { campaignGroups, campaignSpan } from "../data/comms";
 import { YEARS } from "../data/journey";
 import type { Comm, Team } from "../data/types";
 
@@ -95,13 +95,24 @@ export const YEAR_H = 30;
 export const MONTH_H = 26;
 export const MOMENT_H = 46; // moment-that-matters label track (two mini-lines)
 
-// Student journey lane — the map's spine, a PERMANENT lane under the
-// stage/year rows. Shows each stage's QUESTIONS directly — hover one to light
-// up its linked comms in place, no panel in the way. The deep-dive panel
+// Student journey lane — an OPTIONAL lane under the stage/year rows, toggled
+// on from the control dock (off by default so the comms map is uncluttered).
+// When on, it shows each stage's QUESTIONS as coverage cards — hover one to
+// light up its linked comms in place, no panel in the way. The deep-dive panel
 // (voice/needs/decisions/actions) opens from the small info button per stage.
 // See StudentJourneyLane.
 export const STUDENT_LANE_H = 172;
-export const HEADER_H = STAGE_H + YEAR_H + STUDENT_LANE_H + MONTH_H + MOMENT_H;
+
+// Whether the student-journey lane is currently shown — set by layoutTimeline
+// from App's toggle. HEADER_H (and therefore every lane's `top`) shrinks by
+// STUDENT_LANE_H when it's off, so the canvas reclaims that vertical space
+// instead of leaving an empty band. Both the layout maths here and the
+// conditional render in Timeline read the same App state, so they stay in sync.
+let studentLayerVisible = false;
+function headerHeight(): number {
+  return STAGE_H + YEAR_H + (studentLayerVisible ? STUDENT_LANE_H : 0) + MONTH_H + MOMENT_H;
+}
+export let HEADER_H = headerHeight();
 
 // Comms render as a DOT on the exact date (on a baseline strip at the top of
 // each lane) plus a chip below it, connected by a stem. The chip carries the
@@ -128,17 +139,18 @@ export const CAMPAIGN_GAP = 6;
 // like the comm cards, instead of truncating. Channel rows shift down by the
 // difference. Keep in sync with CampaignBar's summary rendering.
 export const CAMPAIGN_SUMMARY_H = 44;
-const CAMPAIGN_SUMMARY_EXTRA = CAMPAIGN_SUMMARY_H - CAMPAIGN_H;
 
 export const INBOUND_H = 96;
 export const DIVIDER_H = 32;
 
 const OUTBOUND_TEAMS: Team[] = ["recruitment", "marketing", "admissions", "conversion"];
 
-// Campaign bars shown in the Marketing lane: the "Digital and radio" summary
-// bar alone, or summary + one bar per channel when expanded. Mutable module
-// state like the rest of the layout — set by layoutTimeline.
-let visibleCampaignRows = 1;
+// Campaign bars shown in the Marketing lane, in draw order: every media
+// schedule contributes a (taller) summary bar, plus one bar per placement
+// while it's expanded. Held as a flat list of row HEIGHTS so the two schedules
+// can stack with different row counts. Mutable module state like the rest of
+// the layout — set by layoutTimeline.
+let campaignRowHeights: number[] = campaignGroups.map(() => CAMPAIGN_SUMMARY_H);
 
 export interface LaneDef {
   id: Team | "digital" | "study" | "divider";
@@ -266,34 +278,31 @@ export function chipY(team: Team): number {
   return lane.top + DOT_STRIP_H + LANE_PAD + cardAreaByTeam[team] + 8;
 }
 
+/** Top of the campaign block, measured from the marketing lane's top. Sits
+ *  ROW_GAP below the deepest card in its own column — same tight gap the comm
+ *  cards have between each other. No "+N more" chip-strip reservation: the
+ *  chips live at the lane-wide depth off to the sides, not in this column. */
+function campaignBlockTop(): number {
+  return DOT_STRIP_H + LANE_PAD + marketingCampaignArea + ROW_GAP + 2;
+}
+
+/** y of campaign row `index` — a flat index across every schedule's summary
+ *  and (when expanded) placement rows, in the order Timeline draws them. */
 export function campaignY(index: number): number {
-  const lane = laneById("marketing");
-  // Sits ROW_GAP below the deepest card in its own column — same tight gap the
-  // comm cards have between each other. No "+N more" chip-strip reservation:
-  // the chips live at the lane-wide depth off to the sides, not in this column.
-  const base =
-    lane.top +
-    DOT_STRIP_H +
-    LANE_PAD +
-    marketingCampaignArea +
-    ROW_GAP +
-    2 +
-    index * (CAMPAIGN_H + CAMPAIGN_GAP);
-  // Channel rows (index ≥ 1) sit below the taller two-line summary bar.
-  return index === 0 ? base : base + CAMPAIGN_SUMMARY_EXTRA;
+  let y = laneById("marketing").top + campaignBlockTop();
+  for (let i = 0; i < Math.min(index, campaignRowHeights.length); i++) {
+    y += campaignRowHeights[i] + CAMPAIGN_GAP;
+  }
+  return y;
 }
 
 /** Bottom offset (from the marketing lane top) of the whole campaign block —
- *  so the lane can grow to fit it when the media schedule is deeper than the
- *  card stack (e.g. all channels expanded). Mirrors campaignY's geometry. */
+ *  so the lane can grow to fit it when the media schedules are deeper than the
+ *  card stack (e.g. both expanded). Mirrors campaignY's geometry. */
 function marketingCampaignBottom(): number {
-  const c0 = DOT_STRIP_H + LANE_PAD + marketingCampaignArea + ROW_GAP + 2;
-  const last = visibleCampaignRows - 1;
-  const bottom =
-    last === 0
-      ? c0 + CAMPAIGN_SUMMARY_H
-      : c0 + CAMPAIGN_SUMMARY_EXTRA + last * (CAMPAIGN_H + CAMPAIGN_GAP) + CAMPAIGN_H;
-  return bottom + LANE_PAD;
+  const rows = campaignRowHeights.reduce((sum, h) => sum + h, 0);
+  const gaps = Math.max(campaignRowHeights.length - 1, 0) * CAMPAIGN_GAP;
+  return campaignBlockTop() + rows + gaps + LANE_PAD;
 }
 
 export interface OverflowChip {
@@ -318,12 +327,20 @@ export function layoutTimeline(
   raw: Comm[],
   expandedMonth: ExpandedMonth | null,
   heights: Record<string, number> = {},
-  campaignsOpen = false,
+  openCampaigns: Set<string> = new Set(),
   collapsedLanes: Set<string> = new Set(),
+  studentLayer = false,
 ): TimelineLayout {
+  // Set the header height before anything reads it (buildLanes anchors every
+  // lane's `top` to HEADER_H).
+  studentLayerVisible = studentLayer;
+  HEADER_H = headerHeight();
   expandedMonthState = expandedMonth;
   cardHeightById = heights;
-  visibleCampaignRows = 1 + (campaignsOpen ? campaignGroup.channels.length : 0);
+  campaignRowHeights = campaignGroups.flatMap((g) => [
+    CAMPAIGN_SUMMARY_H,
+    ...(openCampaigns.has(g.id) ? g.channels.map(() => CAMPAIGN_H) : []),
+  ]);
   TOTAL_W =
     baseScaleX(MONTHS) +
     140 +
@@ -355,8 +372,8 @@ export function layoutTimeline(
   // clear the cards in ITS OWN column (the campaign x-span) — not the lane's
   // globally-deepest stack (e.g. the dense COP cluster far to the right).
   // Otherwise a big empty gap opens above it at the campaign's position.
-  const campFrom = scaleX(campaignGroup.from);
-  const campTo = scaleX(campaignGroup.to);
+  const campFrom = scaleX(campaignSpan.from);
+  const campTo = scaleX(campaignSpan.to);
   let campArea = DEFAULT_CARD_H;
   for (const team of OUTBOUND_TEAMS) {
     // Collapsed lanes contribute no card area (they shrink to the label
