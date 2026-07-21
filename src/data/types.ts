@@ -31,6 +31,10 @@ export interface Comm {
   /** send-performance metrics, stored as display strings e.g. "56.7%". */
   openRate?: string;
   clickRate?: string;
+  /** Run time for in-person events, verbatim from the source e.g.
+   *  "10am – 4pm". Free text, not parsed — the timeline positions by date
+   *  only, so this is for the detail panel to display. */
+  time?: string;
 }
 
 export type CampaignChannel =

@@ -64,6 +64,9 @@ export function CommDetailPanel({ comm, allComms, entries, onClose, onAdd }: Pro
         {/* ── Attributes ── */}
         <h3 className={`text-grey-70 ${EYEBROW}`}>Details</h3>
         <dl className="mt-2">
+          {/* Sits first so it reads straight on from the date in the header.
+              Events only — AttributeRow renders nothing when it's unset. */}
+          <AttributeRow label="Time" value={comm.time} />
           <AttributeRow label="Team" value={teamLabel} />
           <AttributeRow label="Journey stage" value={stage} />
           <AttributeRow label="Moment" value={moment} />

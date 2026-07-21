@@ -51,6 +51,11 @@ import type { Comm, CommType, Platform, Team } from "../data/types";
 //               event-confirmation EMAILS (which go out of Cvent, not
 //               Marketo) need it set. In-person events aren't "sent" and get
 //               no platform unless one is stated.
+// time          optional — run time for in-person events, written however
+//               the source writes it (e.g. "10am – 4pm"). Free text: it's
+//               shown in the detail panel but never parsed, since the
+//               timeline positions a comm by its date alone. Leave blank
+//               for anything that isn't an event.
 
 export const COMMS_COLUMNS = [
   "id",
@@ -69,6 +74,7 @@ export const COMMS_COLUMNS = [
   "open_rate",
   "click_rate",
   "platform",
+  "time",
 ] as const;
 
 const TEAMS: Team[] = ["recruitment", "marketing", "admissions", "conversion"];
@@ -212,6 +218,7 @@ export function normalizeCommRow(
     openRate: row.open_rate || undefined,
     clickRate: row.click_rate || undefined,
     platform: resolvePlatform(row.platform || "", matchType(row.type || "email")),
+    time: row.time || undefined,
   };
 }
 
