@@ -140,7 +140,7 @@ export function CommCard({
             </span>
           ) : (
             <span className="mt-0.5 block truncate text-xs leading-tight text-grey-60 italic">
-              No CTA recorded
+              CTA not recorded
             </span>
           ))}
       </span>
