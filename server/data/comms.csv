@@ -1,76 +1,121 @@
-id,team,title,cta,type,school_year,month,day,moment,triggers,secondary_cta_1,secondary_cta_2,marketo_id,open_rate,click_rate,platform,time
-,Marketing,Don't miss your opportunity to register for the Bundoora Trades Experience Day {,Explore RMIT,Email,10,Mar,3,,,,,,52.1%,
-,Marketing,Key dates for 2026 + we'll be in touch throughout the year to tell you all about,Explore RMIT,Email,10,Mar,17,,,,,,51.8%,4.2%
-,Marketing,What is it series - Vocational study Explaining the difference between TAFE and ,Explore RMIT,Email,10,Apr,22,,,,,,49.0%,1.7%
-,Marketing,What is it series - Scholarships Explaining everything you need to know about sc,Explore RMIT,Email,10,Apr,29,,,,,,50.2%,6.1%
-,Marketing,What is it series - Pathways Explaining everything you need to know about pathwa,Explore RMIT,Email,10,May,13,,,,,,52.6%,2.4%
-,Marketing,Uni guide and tips + Open Day mention,Explore RMIT,Email,10,May,29,,,,,,48.8%,2.0%
-,Marketing,Why you won't want to miss RMIT Open Day 2026. It's our biggest event of the yea,Register now,Email,10,Jul,2,,,,,,,
-,Marketing,Good luck on your exams!,Apply via VTAC,Email,10,Oct,20,,,,,,,
-,Marketing,What's next for you after year 10 or 11,Update your preferences,Email,10,Nov,19,,,,,,,
-,Marketing,Don't miss your opportunity to register for the Bundoora Trades Experience Day {,Explore RMIT,Email,11,Mar,3,,,,,,52.1%,
-,Marketing,Key dates for 2026 + we'll be in touch throughout the year to tell you all about,Explore RMIT,Email,11,Mar,17,,,,,,52.6%,3.5%
-,Marketing,What is it series - Vocational study Explaining the difference between TAFE and ,Explore RMIT,Email,11,Apr,22,,,,,,49.0%,1.7%
-,Marketing,What is it series - Scholarships Explaining everything you need to know about sc,Explore RMIT,Email,11,Apr,29,,,,,,50.2%,6.1%
-,Marketing,What is it series - Pathways Explaining everything you need to know about pathwa,Explore RMIT,Email,11,May,13,,,,,,52.6%,2.4%
-,Marketing,Uni guide and tips + Open Day mention,Explore RMIT,Email,11,May,29,,,,,,48.8%,2.0%
-,Marketing,Why you won't want to miss RMIT Open Day 2026. It's our biggest event of the yea,Register now,Email,11,Jul,2,openday-y11,,,,,,
-,Marketing,Good luck on your exams!,Apply via VTAC,Email,11,Oct,20,,,,,,,
-,Marketing,Skills you can take from school to uni,Update your preferences,Email,11,Nov,19,,,,,,,
-,Marketing,Get on the tools at the Bundoora Trades Experience Day {name pending}. Experienc,Explore RMIT,Email,12,Feb,10,,,,,,50.9%,0.8%
-,Marketing,Don't miss your opportunity to register for the Bundoora Trades Experience Day {,Explore RMIT,Email,12,Mar,3,,,,,,44.6%,1.1%
-,Marketing,Key dates for 2026 + we'll be in touch throughout the year to tell you all about,Explore RMIT,Email,12,Mar,17,,,,,,54.3%,3.7%
-,Marketing,What is it series - Vocational study Explaining the difference between TAFE and ,Explore RMIT,Email,12,Apr,22,,,,,,50.6%,0.9%
-,Marketing,What is it series - Scholarships Explaining everything you need to know about sc,Explore RMIT,Email,12,Apr,29,,,,,,54.1%,8.4%
-,Marketing,What is it series - Pathways Explaining everything you need to know about pathwa,Explore RMIT,Email,12,May,13,,,,,,55.2%,2.4%
-,Marketing,Uni guide and tips + Open Day mention,Explore RMIT,Email,12,May,29,,,,,,51.9%,1.5%
-,Marketing,Moving to Melbourne/Uni guide and tips + Open Day mention,Explore RMIT,Email,12,May,29,,,,,,47.8%,3.4%
-,Marketing,Why you won't want to miss RMIT Open Day 2026. It's our biggest event of the yea,Register now,Email,12,Jul,2,openday-y12,,,,,,
-,Marketing,VTAC services and event + 'here to help',Apply via VTAC,Email,12,Sep,3,vtac-close,,,,,,
-,Marketing,VTAC final push + scholarship promotion,Apply via VTAC,Email,12,Sep,25,vtac-close,,,,,,
-,Marketing,Good luck on your exams!,Apply via VTAC,Email,12,Oct,20,vtac-close,,,,,,
-,Marketing,COP Explained,Update your preferences,Email,12,Nov,19,cop,,,,,,
-,Marketing,Thanks for preferencing RMIT,Update your preferences,Email,12,Nov,30,cop,,,,,,
-,Marketing,It's not too late to make the most of your preferences and make an course as you,Update your preferences,Email,12,Nov,30,cop,,,,,,
-,Marketing,We'll be on the phone from today until 12pm on 13 December to help you secure yo,Update your preferences,Email,12,Dec,10,cop,,,,,,
-,Marketing,COP closes today at 12pm. We're still open today if you've got questions,Update your preferences,Email,12,Dec,12,cop,,,,,,
-,Marketing,VTAC Offers are released today! Good Luck! + Upcoming rounds,Update your preferences,Email,12,Dec,23,cop,,,,,,
-,Marketing,Tech and Trades reminder,Tech and Trades is tomorrow,SMS,10,Jul,7,,tech-and-trades,,,,,
-,Marketing,Open Day – Bundoora Campus reminder,Open Day is tomorrow,SMS,12,Aug,1,openday-y12,open-day-bundoora-campus,,,,,
-,Marketing,Open Day – City reminder,Open Day is tomorrow,SMS,12,Aug,8,openday-y12,open-day-city,,,,,
-,Marketing,Open Day – Brunswick reminder,Open Day is tomorrow,SMS,12,Aug,8,openday-y12,open-day-brunswick,,,,,
-,Marketing,RMIT Student For A Day reminder,Student For A Day is tomorrow,SMS,11,Sep,29,,rmit-student-for-a-day,,,,,
-,Marketing,Change of Preference event reminder,Change of Preference event is tomorrow,SMS,12,Dec,10,cop,change-of-preference-event,,,,,
-,Marketing,Alumni Talk & Tours reminder,Alumni Talk & Tours are tomorrow,SMS,11,Mar,14,,alumni-talk-tours,,,,,
-,Marketing,Secondary School Event reminder SMS,Your Secondary School event is tomorrow,SMS,11,Apr,23,,secondary-school-events-off-campus,,,,,
-,Marketing,School Holiday Campus Tours reminder SMS,School Holiday Campus Tours are tomorrow,SMS,11,Apr,9,,school-holiday-campus-tours,,,,,
-,Marketing,VCE and Careers Expo reminder SMS,VCE and Careers Expo starts tomorrow,SMS,12,May,5,,vce-and-careers-expo-mcec,,,,,
-,Marketing,Victorian Careers Show reminder SMS,Victorian Careers Show starts tomorrow,SMS,11,May,12,,victorian-careers-show-melbourne-showgrounds,,,,,
-,Marketing,RMIT Study Expo reminder SMS,Study Expo is tomorrow,SMS,11,May,27,,rmit-study-expo,,,,,
-,Marketing,RMIT Study Expo (School Leaver) – October reminder SMS,Study Expo is tomorrow,SMS,11,Oct,14,,rmit-study-expo-school-leaver-october,,,,,
-,Recruitment,Tech and Trades,Attend Tech and Trades,Event,10,Jul,8,,,,,,,
-,Recruitment,Open Day – Bundoora Campus,Attend Open Day,Event,12,Aug,2,openday-y12,,,,,,,,10am – 4pm
-,Recruitment,Open Day – City,Attend Open Day,Event,12,Aug,9,openday-y12,,,,,,,,10am – 4pm
-,Recruitment,Open Day – Brunswick,Attend Open Day,Event,12,Aug,9,openday-y12,,,,,,,,10am – 3pm
-,Recruitment,RMIT Student For A Day,Attend Student For A Day,Event,11,Sep,30,,,,,,,
-,Recruitment,Change of Preference event,Attend Change of Preference event,Event,12,Dec,11,cop,,,,,,
-,Recruitment,Alumni Talk & Tours,Attend Alumni Talk & Tours,Event,11,Mar,15,,,,,,,
-,Recruitment,Secondary School Events (off campus),Attend Secondary School Event,Event,11,Apr,24,,,,,,,
-,Recruitment,School Holiday Campus Tours,Attend School Holiday Campus Tours,Event,11,Apr,10,,,,,,,
-,Recruitment,VCE and Careers Expo (MCEC),Attend VCE and Careers Expo,Event,12,May,6,,,,,,,
-,Recruitment,Victorian Careers Show (Melbourne Showgrounds),Attend Victorian Careers Show,Event,11,May,13,,,,,,,
-,Recruitment,RMIT Study Expo,Attend Study Expo,Event,11,May,28,,,,,,,
-,Recruitment,RMIT Study Expo (School Leaver) – October,Attend Study Expo,Event,11,Oct,15,,,,,,,
-,recruitment,Tech and Trades – registration confirmation,View event details,email,10,Jul,1,,Tech and Trades,,,,,,cvent
-,recruitment,Open Day – Bundoora Campus registration confirmation,View event details,email,12,Jul,26,Open Day · Yr 12,Open Day – Bundoora Campus,,,,,,cvent
-,recruitment,Open Day – City registration confirmation,View event details,email,12,Aug,2,Open Day · Yr 12,Open Day – City,,,,,,cvent
-,recruitment,Open Day – Brunswick registration confirmation,View event details,email,12,Aug,2,Open Day · Yr 12,Open Day – Brunswick,,,,,,cvent
-,recruitment,RMIT Student For A Day registration confirmation,View event details,email,11,Sep,23,,RMIT Student For A Day,,,,,,cvent
-,recruitment,Change of Preference event registration confirmation,View event details,email,12,Dec,4,Change of Preference,Change of Preference event,,,,,,cvent
-,recruitment,Alumni Talk & Tours registration confirmation,View event details,email,11,Mar,8,,Alumni Talk & Tours,,,,,,cvent
-,recruitment,Secondary School Events (off campus) registration confirmation,View event details,email,11,Apr,17,,Secondary School Events (off campus),,,,,,cvent
-,recruitment,School Holiday Campus Tours registration confirmation,View event details,email,11,Apr,3,,School Holiday Campus Tours,,,,,,cvent
-,recruitment,VCE and Careers Expo (MCEC) registration confirmation,View event details,email,12,Apr,29,,VCE and Careers Expo (MCEC),,,,,,cvent
-,recruitment,Victorian Careers Show (Melbourne Showgrounds) registration confirmation,View event details,email,11,May,6,,Victorian Careers Show (Melbourne Showgrounds),,,,,,cvent
-,recruitment,RMIT Study Expo registration confirmation,View event details,email,11,May,21,,RMIT Study Expo,,,,,,cvent
-,recruitment,RMIT Study Expo (School Leaver) – October registration confirmation,View event details,email,11,Oct,8,,RMIT Study Expo (School Leaver) – October,,,,,,cvent
+id,team,title,cta,type,school_year,month,day,moment,triggers,secondary_cta_1,secondary_cta_2,marketo_id,open_rate,click_rate,platform,time,audience,recipient,campaign,theme,preference,college,campus,event_state
+,Marketing,Ready for what's next at RMIT,,email,Post,Jan,11,cop,,,,,61.9%,2.0%,marketo,,Year  12s,student,COP,Did you know about COP rounds 3-5?,,,,
+,Marketing,RMIT Trades Experience,,email,12,Feb,10,,,,,,50.9%,0.8%,marketo,,Year 12,student,Nurture SL,"Get on the tools at the Bundoora Trades Experience Day {name pending}. Experience what it’s like to study carpentry, plumbing, refrigeration, electrical and surveying at RMIT’s Bundoora campus.",,,,
+,Marketing,Here's whats on Trades Event (Rego driven),,email,12,Mar,3,,,,,,44.6%,1.1%,marketo,,Building - Year 12,student,Nurture SL,Don't miss your opportunity to register for the  Bundoora Trades Experience Day {name pending},,,,
+,Marketing,Here's whats on Trades Event (Rego driven),,email,10,Mar,3,,,,,,52.1%,,marketo,,Building - Year 11 and 10,student,Nurture SL,Don't miss your opportunity to register for the  Bundoora Trades Experience Day {name pending},,,,
+,Marketing,Here's whats on Trades Event (Rego driven),,email,11,Mar,3,,,,,,52.1%,,marketo,,Building - Year 11 and 10,student,Nurture SL,Don't miss your opportunity to register for the  Bundoora Trades Experience Day {name pending},,,,
+,Marketing,Here's a glimpse of 2026,,email,12,Mar,17,,,,,,54.3%,3.7%,marketo,,Year 12,student,Nurture SL,Key dates for 2026 + we'll be in touch throughout the year to tell you all about RMIT + April School Holiday Tours,,,,
+,Marketing,Here's a glimpse of 2026,,email,10,Mar,17,,,,,,51.8%,4.2%,marketo,,Yr 10,student,Nurture SL,Key dates for 2026 + we'll be in touch throughout the year to tell you all about RMIT + April School Holiday Tours,,,,
+,Marketing,Here's a glimpse of 2026,,email,11,Mar,17,,,,,,52.6%,3.5%,marketo,,Yr 11,student,Nurture SL,Key dates for 2026 + we'll be in touch throughout the year to tell you all about RMIT + April School Holiday Tours,,,,
+,Marketing,Areyou coming to the event Y/N,,sms,12,Mar,19,,,,,,,,clicksend,,Registered,student,SMS,Bundoora Trades Experience Day,,,,registered
+,Marketing,Reminder if you are still coming to the event,,sms,12,Mar,25,,,,,,,,clicksend,,Registered,student,SMS,Bundoora Trades Experience Day,,,,registered
+,Marketing,Thank you for attending the event + Post-event survey),,email,12,Mar,27,,,,,,67.6%,8.3%,marketo,,Attendees,student,,,,,,attended
+,Marketing,April School Holiday Tours are this week,,email,12,Apr,12,,,,,,82.4%,27.6%,marketo,,,student,Event reminder,Reminder - School tours,,,,
+,Marketing,What is vocational study?,,email,12,Apr,22,,,,,,50.6%,0.9%,marketo,,Year 12,student,Nurture SL,What is it series - Vocational study Explaining  the difference between TAFE and university study + the different kinds of VE courses and which is right for you,,,,
+,Marketing,What is vocational study?,,email,12,Apr,22,,,,,,49.0%,1.7%,marketo,,Y10 & Y11,student,Nurture SL,What is it series - Vocational study Explaining  the difference between TAFE and university study + the different kinds of VE courses and which is right for your teen,,,,
+,Marketing,Thank you for attending the event + Post-event survey),,email,12,Apr,24,,,,,,63.4%,13.2%,marketo,,Attendees,student,,,,,,attended
+,Marketing,What to know about scholarships?,,email,12,Apr,29,,,,,,54.1%,8.4%,marketo,,Year 12,student,Nurture SL,What is it series - Scholarships Explaining everything you need to know about scholarships and how they work. Include a showcase of a few scholarships.,,,,
+,Marketing,What to know about scholarships?,,email,12,Apr,29,,,,,,50.2%,6.1%,marketo,,Y10 & Y11,student,Nurture SL,What is it series - Scholarships Explaining everything you need to know about scholarships and how they work. Include a showcase of a few scholarships.,,,,
+,Marketing,What are pathways?,,email,12,May,13,,,,,,55.2%,2.4%,marketo,,Year 12,student,Nurture SL,What is it series - Pathways Explaining everything you need to know about pathways and how they can be an alternate entry option for students who don't get the ATAR they want,,,,
+,Marketing,What are pathways?,,email,11,May,13,,,,,,52.6%,2.4%,marketo,,Y10 & 11,student,Nurture SL,What is it series - Pathways Explaining everything you need to know about pathways and how they can be an alternate entry option for students who don't get the ATAR they want,,,,
+,Marketing,"Image banner, no copy",,email,12,May,14,offers,,,,,79.3%,4.3%,marketo,,Early Offer EOI,student,Early Offer closure,An update on Early Offer for EOI registrants. Use the Early Offer cessation copy deck in the next cell,,,,
+,Marketing,Only at Open Day can you...,,email,12,May,19,openday-y12,,,,,68.6%,12.5%,marketo,,New Open Day leads (SL & NSL),student,Open Day,Initial Open Day messaging and highlights. Short and concise copy focused on the event and 'line-up',,,,
+,Marketing,Tech and Trades Experience Day 8 July,,email,12,May,26,,,,,,81.0%,29.3%,marketo,,Preregistered for T&T,student,T&T,Email to pre-registered leads with ‘choose your workshop’ messaging. Those who didn’t pre-register got a secondary module for T&T in the regular EDM for that month (split by Parents and Y12),,,,registered
+,Marketing,Discover Melbourne,,email,12,May,29,,,,,,51.9%,1.5%,marketo,,Year 12,student,Nurture SL,Uni guide and tips + Open Day mention,,,,
+,Marketing,Moving to Melbourne,,email,12,May,29,,,,,,47.8%,3.4%,marketo,,Regional Yr 12,student,Nurture SL,Moving to Melbourne/Uni guide and tips + Open Day mention,,,regional,
+,Marketing,Discover Melbourne,,email,10,May,29,,,,,,48.8%,2.0%,marketo,,Yr 10 & 11,student,Nurture SL,Uni guide and tips + Open Day mention,,,,
+,Marketing,Discover Melbourne,,email,11,May,29,,,,,,48.8%,2.0%,marketo,,Yr 10 & 11,student,Nurture SL,Uni guide and tips + Open Day mention,,,,
+,Marketing,Register for Open Day and win,,email,12,Jun,10,openday-y12,,,,,,,marketo,,Interest Area,student,Open Day,Register now for a chance to win. Here's your first peek at the vibe of Open Day + Tech and Trades module,,,,
+,Marketing,Register for Open Day and win,,email,12,Jun,10,openday-y12,,,,,,,marketo,,Interest Area,student,Open Day,Register now for a chance to win. Here's your first peek at the vibe of Open Day + Tech and Trades module,,,,
+,Marketing,Register for Open Day and win,,email,12,Jun,10,openday-y12,,,,,,,marketo,,"Interest Area
+exc. Bundoora IAs + Brunswick IAs",student,Open Day,Register now for a chance to win. Here's your first peek at the vibe of Open Day + Tech and Trades module,,,bundoora,
+,Marketing,Only at Bundoora,,email,12,Jun,18,openday-y12,,,,,,,marketo,,Registered Bundoora,student,Open Day,Get to know your campus! Here's a virtual tour of what the Bundoora campus is all about.,,,bundoora,registered
+,Marketing,Only at the City Campus,,email,12,Jun,18,openday-y12,,,,,,,marketo,,Registered City,student,Open Day,Get to know your campus! Here's a virtual tour of what the city campus is all about.,,,city,registered
+,Marketing,Only at Brunswick,,email,12,Jun,18,openday-y12,,,,,,,marketo,,Registered Brunswick,student,Open Day,Get to know your campus! Here's a virtual tour of what the Brunswick campus is all about.,,,brunswick,registered
+,Marketing,Tech and Trades Experience Day,,email,12,Jun,23,,,,,,,,marketo,,Unregistered leads,student,Tech and Trades,Tech and Trades promotion to support workshop registrations. Trades workshops are struggling the most.,,,,unregistered
+,Marketing,Only at the City Campus,,email,12,Jun,25,openday-y12,,,,,,,marketo,,Aviation (Registered),student,Open Day,Aviation Academy Statement,,,,registered
+,Marketing,Open Day — Registered Bundoora,,email,12,Jun,30,openday-y12,,,,,,,marketo,,Registered Bundoora,student,Open Day,Best questions to ask on the day and who to ask them to,,,bundoora,registered
+,Marketing,Open Day — Registered City,,email,12,Jun,30,openday-y12,,,,,,,marketo,,Registered City,student,Open Day,Best questions to ask on the day and who to ask them to,,,city,registered
+,Marketing,Open Day — Registered Brunswick,,email,12,Jun,30,openday-y12,,,,,,,marketo,,Registered Brunswick,student,Open Day,Best questions to ask on the day and who to ask them to,,,brunswick,registered
+,Marketing,Only at RMIT Open Day,,email,10,Jul,2,,,,,,,,marketo,,Yr 10-12 - unregistered,student,Open Day,Why you won't want to miss RMIT Open Day 2026. It's our biggest event of the year and it's your chance to see what studying your favourite course is like,,,,unregistered
+,Marketing,Only at RMIT Open Day,,email,11,Jul,2,openday-y11,,,,,,,marketo,,Yr 10-12 - unregistered,student,Open Day,Why you won't want to miss RMIT Open Day 2026. It's our biggest event of the year and it's your chance to see what studying your favourite course is like,,,,unregistered
+,Marketing,Only at RMIT Open Day,,email,12,Jul,2,openday-y12,,,,,,,marketo,,Yr 10-12 - unregistered,student,Open Day,Why you won't want to miss RMIT Open Day 2026. It's our biggest event of the year and it's your chance to see what studying your favourite course is like,,,,unregistered
+,Marketing,T&T — T&T SMS to registered,,sms,12,Jul,5,,,,,,,,clicksend,,T&T SMS to registered,student,T&T,Confirm y/n attendance for T&T,,,,registered
+,Marketing,T&T — [Placeholder] Waitlist,,email,12,Jul,6,,,,,,,,marketo,,[Placeholder] Waitlist,student,T&T,Spots have opened up!,,,,
+,Marketing,T&T — SMS Final reminder,,sms,12,Jul,8,,,,,,,,clicksend,,SMS Final reminder,student,T&T,Can't wait to see you today!,,,,
+,Marketing,T&T — Attended,,email,12,Jul,10,,,,,,,,marketo,,Attended,student,T&T,Post event survey - Thanks for coming,,,,attended
+,Marketing,T&T — Did not attend,,email,12,Jul,10,,,,,,,,marketo,,Did not attend,student,T&T,Post event survey - Sorry we missed you!,,,,did-not-attend
+,Marketing,Open Day — Registered - Interest Areas,,email,12,Jul,15,openday-y12,,,,,,,marketo,,Registered - Interest Areas,student,Open Day,"The Open Day guide is live, download the full guide or the study are you're interested in",,,,registered
+,Marketing,Open Day — Operational Interest Areas,,email,12,Jul,15,openday-y12,,,,,,,marketo,,Operational Interest Areas,student,Open Day,"The Open Day guide is live, download the full guide or the study are you're interested in",,,,
+,Marketing,What to know about Open Day,,email,12,Jul,24,openday-y12,,,,,,,marketo,,"Registered
+(Campus Specific) SL + NSL",student,Open Day,"Where to get food, prayer space, sensory space, Free shuttle bus between brunswick and city. Where to park",,,,registered
+,Marketing,What to know about Open Day,,email,12,Jul,24,openday-y12,,,,,,,marketo,,"Unregistered (All campus, excluding Bundoora leads) SL + NSL",student,Open Day,"Where to get food, prayer space, sensory space, Free shuttle bus between brunswick and city. Where to park + Open Day is for everyone, whether you're a parent, in your career, a high schooler, looking to change industries",,,bundoora,unregistered
+,Marketing,What to know about Open Day - Bundoora push,,email,12,Jul,24,openday-y12,,,,,,,marketo,,"Unregistered (IA Education, trades and health) SL + NSL",student,Open Day,"Where to get food, prayer space, sensory space, Free shuttle bus between brunswick and city. Where to park",,,,unregistered
+,Marketing,"Open Day
+(registered) — Bundoora registrants",,email,12,Jul,31,openday-y12,,,,701Od00000jrJU3IAM,,,marketo,,Bundoora registrants,student,"Open Day
+(registered)",Last reminder for Open Day Bundoora,,,bundoora,registered
+,Marketing,"Open Day
+(unregistered) — Health and Education, Biomedical Science and Building",,email,12,Jul,31,openday-y12,,,,,,,marketo,,"Health and Education, Biomedical Science and Building",student,"Open Day
+(unregistered)",Last reminder for Open Day Bundoora,,,,
+,Marketing,Open Day — SMS reminder - registered,,sms,12,Aug,2,openday-y12,,,,,,,clicksend,,SMS reminder - registered,student,Open Day,Reminder: Today is Bundoora Open Day!,,,,registered
+,Marketing,Open Day — City registrants,,email,12,Aug,7,openday-y12,,,,701Od00000jr7eFIAQ,,,marketo,,City registrants,student,Open Day,Last reminder for Open Day City,,,city,registered
+,Marketing,Open Day — Brunswick registrants,,email,12,Aug,7,openday-y12,,,,701Od00000jrBmmIAE,,,marketo,,Brunswick registrants,student,Open Day,Last reminder for Open Brunswick,,,brunswick,registered
+,Marketing,Open Day — Un-registered all,,email,12,Aug,7,openday-y12,,,,,,,marketo,,Un-registered all,student,Open Day,Last reminder for Open Day City & Brunswick,,,,registered
+,Marketing,Open Day — SMS reminder,,sms,12,Aug,9,openday-y12,,,,,,,clicksend,,SMS reminder,student,Open Day,Reminder: Today is the City and Brunswick Open Day!,,,,
+,Marketing,Open Day — Bundoora / Brunswick,,email,12,Aug,10,openday-y12,,,,,,,marketo,,Bundoora / Brunswick,student,Open Day,Post event survey,,,bundoora,
+,Marketing,Open Day — City,,email,12,Aug,10,openday-y12,,,,,,,marketo,,City,student,Open Day,Post event survey,,,city,
+,Marketing,"Open Day — All campuses
+(who attended but have not done the survey)",,email,12,Aug,17,openday-y12,,,,,,,marketo,,"All campuses
+(who attended but have not done the survey)",student,Open Day,Post event survey (reminder),,,,attended
+,Marketing,VTAC,,email,12,Aug,25,vtac-close,,,,,,,marketo,,,student,VTAC,What's next after Open Day,,,,
+,Marketing,We're here to help <Preference RMIT>,,email,12,Sep,3,vtac-close,,,,,,,marketo,,Year 12,student,VTAC,VTAC services and event + 'here to help',,,,
+,Marketing,Become an RMIT Student for a Day,,email,10,Sep,3,,,,,,,,marketo,,Year 10 &11 & Parents,both,S4AD,,,,,
+,Marketing,Become an RMIT Student for a Day,,email,11,Sep,3,,,,,,,,marketo,,Year 10 &11 & Parents,both,S4AD,,,,,
+,Marketing,Why choose RMIT?,,email,12,Sep,10,vtac-close,,,,,,,marketo,,Y12 & parents of Y12,both,VTAC,,,,,
+,Marketing,Become an RMIT Student for a Day (resend),,email,10,Sep,22,,,,,,,,marketo,,Year 10 &11 & Parents,both,S4AD,,,,,
+,Marketing,Become an RMIT Student for a Day (resend),,email,11,Sep,22,,,,,,,,marketo,,Year 10 &11 & Parents,both,S4AD,,,,,
+,Marketing,There's still time to <Preference RMIT>,,email,12,Sep,25,vtac-close,,,,,,,marketo,,Year 12 & Parents of Y12,both,VTAC,VTAC final push,,,,
+,Marketing,There's still time to <Preference RMIT>,,email,12,Sep,25,vtac-close,,,,,,,marketo,,DDINTON,student,VTAC,VTAC final push + scholarship promotion,,,,
+,Marketing,Good luck on your exams!,,email,12,Oct,20,vtac-close,,,,,,,marketo,,Year 12 (exc. DDINTON),student,VTAC,,,,,
+,Marketing,Good luck on your exams!,,email,10,Oct,20,vtac-close,,,,,,,marketo,,Year 10 & 11,student,VTAC,,,,,
+,Marketing,Good luck on your exams!,,email,11,Oct,20,vtac-close,,,,,,,marketo,,Year 10 & 11,student,VTAC,,,,,
+,Marketing,Good luck on your exams!,,email,12,Oct,20,vtac-close,,,,,,,marketo,,Year 12 DDINTON,student,VTAC,,,,,
+,Marketing,COP Explained,,email,12,Nov,19,cop,,,,,,,marketo,,Year 12 (exc. DDINTON & SNAP),student,COP,,,,,
+,Marketing,COP Explained,,email,12,Nov,19,cop,,,,,,,marketo,,Year 12 DDINTON (exc. SNAP),student,COP,,,,,
+,Marketing,COP Explained,,email,12,Nov,19,cop,,,,,,,marketo,,Year 12 SNAP (exc. DDINTON),student,COP,,,,,
+,Marketing,What's next for you after year 10 or 11,,email,10,Nov,19,cop,,,,,,,marketo,,Year 10,student,COP,,,,,
+,Marketing,Skills you can take from school to uni,,email,11,Nov,19,cop,,,,,,,marketo,,Year 11,student,COP,,,,,
+,Marketing,Thanks for preferencing RMIT,,email,12,Nov,30,cop,,,,,,,marketo,,Year 12 #1 preference,student,COP,,#1,,,
+,Marketing,Explore a future with RMIT,,email,12,Nov,30,cop,,,,,,,marketo,,Year 12  - COBL  #2-8,student,COP,It's not too late to make the most of your preferences and make an course as your #1,#2-8,COBL,,
+,Marketing,Explore a future with RMIT,,email,12,Nov,30,cop,,,,,,,marketo,,Year 12  - STEM  #2-8,student,COP,It's not too late to make the most of your preferences and make an course as your #1,#2-8,STEM,,
+,Marketing,Explore a future with RMIT,,email,12,Nov,30,cop,,,,,,,marketo,,Year 12 - DSC #2-8,student,COP,It's not too late to make the most of your preferences and make an course as your #1,#2-8,DSC,,
+,Marketing,Explore a future with RMIT,,email,12,Nov,30,cop,,,,,,,marketo,,Year 12 - No preference,student,COP,It's not too late to make the most of your preferences and make an course as your #1,none,,,
+,Marketing,VTAC results are released today,,email,12,Dec,10,cop,,,,,,,marketo,,Year 12,student,COP,We'll be on the phone from today until 12pm on 13 December to help you secure your preferences. Call the COP hotline on 9925 2260. We're with you!,,,,
+,Marketing,Change of preference closes today,,email,12,Dec,12,cop,,,,,,,marketo,,Year 12,student,COP,COP closes today at 12pm. We're still open today if you've got questions,,,,
+,Marketing,Explore a future with RMIT,,email,12,Dec,23,cop,,,,,,,marketo,,Year 12,student,COP - TBC,VTAC Offers are released today! Good Luck! + Upcoming rounds,,,,
+,Recruitment,Tech and Trades,Attend Tech and Trades,Event,10,Jul,8,,,,,,,,,,,,,,,,,
+,Recruitment,Open Day – Bundoora Campus,Attend Open Day,Event,12,Aug,2,openday-y12,,,,,,,,10am – 4pm,,,,,,,,
+,Recruitment,Open Day – City,Attend Open Day,Event,12,Aug,9,openday-y12,,,,,,,,10am – 4pm,,,,,,,,
+,Recruitment,Open Day – Brunswick,Attend Open Day,Event,12,Aug,9,openday-y12,,,,,,,,10am – 3pm,,,,,,,,
+,Recruitment,RMIT Student For A Day,Attend Student For A Day,Event,11,Sep,30,,,,,,,,,,,,,,,,,
+,Recruitment,Change of Preference event,Attend Change of Preference event,Event,12,Dec,11,cop,,,,,,,,,,,,,,,,
+,Recruitment,Alumni Talk & Tours,Attend Alumni Talk & Tours,Event,11,Mar,15,,,,,,,,,,,,,,,,,
+,Recruitment,Secondary School Events (off campus),Attend Secondary School Event,Event,11,Apr,24,,,,,,,,,,,,,,,,,
+,Recruitment,School Holiday Campus Tours,Attend School Holiday Campus Tours,Event,11,Apr,10,,,,,,,,,,,,,,,,,
+,Recruitment,VCE and Careers Expo (MCEC),Attend VCE and Careers Expo,Event,12,May,6,,,,,,,,,,,,,,,,,
+,Recruitment,Victorian Careers Show (Melbourne Showgrounds),Attend Victorian Careers Show,Event,11,May,13,,,,,,,,,,,,,,,,,
+,Recruitment,RMIT Study Expo,Attend Study Expo,Event,11,May,28,,,,,,,,,,,,,,,,,
+,Recruitment,RMIT Study Expo (School Leaver) – October,Attend Study Expo,Event,11,Oct,15,,,,,,,,,,,,,,,,,
+,recruitment,Tech and Trades – registration confirmation,View event details,email,10,Jul,1,,Tech and Trades,,,,,,cvent,,,,,,,,,
+,recruitment,Open Day – Bundoora Campus registration confirmation,View event details,email,12,Jul,26,Open Day · Yr 12,Open Day – Bundoora Campus,,,,,,cvent,,,,,,,,,
+,recruitment,Open Day – City registration confirmation,View event details,email,12,Aug,2,Open Day · Yr 12,Open Day – City,,,,,,cvent,,,,,,,,,
+,recruitment,Open Day – Brunswick registration confirmation,View event details,email,12,Aug,2,Open Day · Yr 12,Open Day – Brunswick,,,,,,cvent,,,,,,,,,
+,recruitment,RMIT Student For A Day registration confirmation,View event details,email,11,Sep,23,,RMIT Student For A Day,,,,,,cvent,,,,,,,,,
+,recruitment,Change of Preference event registration confirmation,View event details,email,12,Dec,4,Change of Preference,Change of Preference event,,,,,,cvent,,,,,,,,,
+,recruitment,Alumni Talk & Tours registration confirmation,View event details,email,11,Mar,8,,Alumni Talk & Tours,,,,,,cvent,,,,,,,,,
+,recruitment,Secondary School Events (off campus) registration confirmation,View event details,email,11,Apr,17,,Secondary School Events (off campus),,,,,,cvent,,,,,,,,,
+,recruitment,School Holiday Campus Tours registration confirmation,View event details,email,11,Apr,3,,School Holiday Campus Tours,,,,,,cvent,,,,,,,,,
+,recruitment,VCE and Careers Expo (MCEC) registration confirmation,View event details,email,12,Apr,29,,VCE and Careers Expo (MCEC),,,,,,cvent,,,,,,,,,
+,recruitment,Victorian Careers Show (Melbourne Showgrounds) registration confirmation,View event details,email,11,May,6,,Victorian Careers Show (Melbourne Showgrounds),,,,,,cvent,,,,,,,,,
+,recruitment,RMIT Study Expo registration confirmation,View event details,email,11,May,21,,RMIT Study Expo,,,,,,cvent,,,,,,,,,
+,recruitment,RMIT Study Expo (School Leaver) – October registration confirmation,View event details,email,11,Oct,8,,RMIT Study Expo (School Leaver) – October,,,,,,cvent,,,,,,,,,

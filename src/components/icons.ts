@@ -37,6 +37,7 @@ export const PLATFORM_LABELS: Record<Platform, string> = {
   marketo: "Marketo",
   cvent: "Cvent",
   clicksend: "ClickSend",
+  ras: "RAS",
 };
 
 // Channel icons (brand logos + generic fallbacks) live in ChannelIcon.tsx.

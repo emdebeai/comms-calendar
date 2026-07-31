@@ -46,11 +46,13 @@ import type { Comm, CommType, Platform, Team } from "../data/types";
 //               back-compat.
 // platform      optional — the system a comm is SENT out of: Marketo
 //               (marketing eDMs), Cvent (event confirmation emails),
-//               ClickSend (text messages). Leave blank and it's inferred
-//               from the channel — email→Marketo, sms→ClickSend — so only
-//               event-confirmation EMAILS (which go out of Cvent, not
-//               Marketo) need it set. In-person events aren't "sent" and get
-//               no platform unless one is stated.
+//               ClickSend (text messages), RAS (the RMIT Admission System —
+//               offer letters and the accept/enrol lifecycle). Leave blank and
+//               it's inferred from the channel — email→Marketo, sms→ClickSend
+//               — so only comms that break that norm need it set: an
+//               event-confirmation EMAIL (Cvent) or an Admissions offer email
+//               (RAS). In-person events aren't "sent" and get no platform
+//               unless one is stated.
 // time          optional — run time for in-person events, written however
 //               the source writes it (e.g. "10am – 4pm"). Free text: it's
 //               shown in the detail panel but never parsed, since the
@@ -75,11 +77,31 @@ export const COMMS_COLUMNS = [
   "click_rate",
   "platform",
   "time",
+  "audience",
+  "recipient",
+  "campaign",
+  "theme",
+  "preference",
+  "college",
+  "campus",
+  "event_state",
 ] as const;
 
 const TEAMS: Team[] = ["recruitment", "marketing", "admissions", "conversion"];
 const TYPES: CommType[] = ["email", "sms", "webinar", "call", "event"];
 const MONTH_NAMES = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
+
+// Equity cohort a send TARGETS, read from the audience label — but only when
+// the cohort is the target, not when it's excluded. "Year 12 SNAP (exc.
+// DDINTON)" → SNAP; "Year 12 (exc. DDINTON & SNAP)" → none. (DDINTON is a
+// program grouping, not an equity cohort, so it isn't surfaced here.)
+function resolveEquity(audience: string): string | undefined {
+  const excluded = (term: string) => new RegExp(`exc\\.[^)]*\\b${term}\\b`, "i").test(audience);
+  for (const term of ["SNAP"]) {
+    if (new RegExp(`\\b${term}\\b`, "i").test(audience) && !excluded(term)) return term;
+  }
+  return undefined;
+}
 
 export function slugify(text: string): string {
   return text
@@ -120,6 +142,9 @@ const PLATFORM_ALIASES: Record<string, Platform> = {
   cvent: "cvent",
   clicksend: "clicksend",
   "click send": "clicksend",
+  ras: "ras",
+  "rmit admission system": "ras",
+  "rmit admissions system": "ras",
 };
 
 /** Resolves the `platform` cell — the system a comm is *sent* out of. An
@@ -219,6 +244,13 @@ export function normalizeCommRow(
     clickRate: row.click_rate || undefined,
     platform: resolvePlatform(row.platform || "", matchType(row.type || "email")),
     time: row.time || undefined,
+    audience: row.audience || undefined,
+    recipient: row.recipient || undefined,
+    preference: row.preference || undefined,
+    college: row.college || undefined,
+    campus: row.campus || undefined,
+    eventState: row.event_state || undefined,
+    equity: resolveEquity(row.audience || ""),
   };
 }
 

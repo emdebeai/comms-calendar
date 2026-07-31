@@ -46,3 +46,24 @@ export const MOMENTS: Moment[] = [
   { id: "offers", label: "Offer Round", from: 35.55, to: 36.4, tier: "major" },
   { id: "oweek", label: "O-Week", from: 37.3, to: 38 },
 ];
+
+// Send embargoes — periods when outbound comms deliberately go quiet (no
+// marketing, no conversion sends). Distinct from moments-that-matter: a moment
+// is "something happens here", an embargo is "nothing sends here, on purpose".
+// Shown as a hatched band so the gap reads as intentional, not missing data.
+// Month floats: Year 12 = months 24–36, day d ≈ (d-1)/30 within the month.
+export interface Embargo {
+  from: number;
+  to: number;
+  label: string;
+}
+
+export const EMBARGOES: Embargo[] = [
+  {
+    // VCE exam period, Tue 27 Oct – Wed 18 Nov 2026 (Year 12). Marketing and
+    // Conversion both hold sends across it.
+    from: 24 + 9 + (27 - 1) / 30, // 27 Oct, Yr 12 ≈ 33.87
+    to: 24 + 10 + (18 - 1) / 30, //  18 Nov, Yr 12 ≈ 34.57
+    label: "Comms embargo · VCE exams (Marketing + Conversion)",
+  },
+];

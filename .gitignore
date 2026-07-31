@@ -5,3 +5,6 @@ server/data/feedback.json
 .DS_Store
 *.tsbuildinfo
 .claude/settings.local.json
+
+# Excel lock/temp files
+~$*.xlsx

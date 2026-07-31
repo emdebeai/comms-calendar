@@ -3,7 +3,7 @@ export type Team = "recruitment" | "marketing" | "admissions" | "conversion";
 /** Sending/management platform a comm goes out of. Marketing eDMs run out of
  *  Marketo (Adobe); event registration + confirmation emails out of Cvent;
  *  text messages out of ClickSend. */
-export type Platform = "marketo" | "cvent" | "clicksend";
+export type Platform = "marketo" | "cvent" | "clicksend" | "ras";
 
 export interface Comm {
   id: string;
@@ -35,6 +35,24 @@ export interface Comm {
    *  "10am – 4pm". Free text, not parsed — the timeline positions by date
    *  only, so this is for the detail panel to display. */
   time?: string;
+  // ── Segmentation (the tailoring axes) ──────────────────────────────────
+  // How a send is targeted. A blank field means "not tailored on this axis"
+  // (i.e. it goes to everyone), so the segment lens treats blanks as matching
+  // any selected value. Parsed from the marketing planner's Audience column.
+  /** raw audience label from the source, for display */
+  audience?: string;
+  /** "student" or "both" (student + parent). Parent-only sends aren't loaded. */
+  recipient?: string;
+  /** VTAC preference position this send targets: "#1", "#2-8", "none" */
+  preference?: string;
+  /** RMIT college: "COBL", "STEM", "DSC", "VE" */
+  college?: string;
+  /** campus: "bundoora", "city", "brunswick", "regional" */
+  campus?: string;
+  /** event lifecycle: "registered", "unregistered", "attended", "did-not-attend" */
+  eventState?: string;
+  /** equity cohort this send is tailored to, if any: "SNAP", "DDINTON" */
+  equity?: string;
 }
 
 export type CampaignChannel =
