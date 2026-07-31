@@ -39,6 +39,7 @@ export const MOMENTS: Moment[] = [
   // Open Day 2026 runs across two Sundays — Bundoora on 2 August, City and
   // Brunswick on 9 August — so each band brackets 1–10 August (month 19/31 =
   // August, day d = (d-1)/30) rather than trailing off through September.
+  { id: "openday-y10", label: "Open Day · Yr 10", from: 7.0, to: 7.3, tier: "major" },
   { id: "openday-y11", label: "Open Day · Yr 11", from: 19.0, to: 19.3, tier: "major" },
   { id: "openday-y12", label: "Open Day · Yr 12", from: 31.0, to: 31.3, tier: "major" },
   { id: "vtac-close", label: "VTAC Timely Close", from: 32.4, to: 33 },
