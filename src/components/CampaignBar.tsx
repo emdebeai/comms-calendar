@@ -98,7 +98,7 @@ export function CampaignBar({ campaign, index, expanded, dimmed, onToggle, onOpe
   // meets it) + rounded-r-md right corner. Channels stay single-line pills.
   // Raise on hover so the flight-date tooltip clears any comm card stacked
   // above the bar (which would otherwise clip it).
-  const dim = dimmed ? "opacity-[0.05]" : "";
+  const dim = `transition-opacity duration-300 ${dimmed ? "opacity-[0.05]" : ""}`;
   const barBase = `absolute ${hovered ? "z-30" : "z-10"} flex cursor-pointer items-center bg-tint-amber text-left text-xs text-amber ${
     isToggle ? "rounded-l-none rounded-r-md" : "rounded-full"
   } ${narrow ? "justify-center px-1" : "px-2.5"} ${dim} ${FOCUS_RING}`;

@@ -147,7 +147,7 @@ export function ControlDock({
             <div
               role="dialog"
               aria-label="Legend and tips"
-              className="absolute right-0 bottom-full mb-3 w-72 rounded-xl border border-grey-30 bg-card p-3.5 text-xs text-grey-70 shadow-xl"
+              className="animate-pop-in absolute right-0 bottom-full mb-3 w-72 rounded-xl border border-grey-30 bg-card p-3.5 text-xs text-grey-70 shadow-xl"
             >
               <div className="flex flex-col gap-2.5">
                 <span className="flex items-start gap-2">

@@ -229,7 +229,7 @@ export function Timeline({
                 onResetZoom();
               }}
               title="Collapse all zoomed months"
-              className={`rounded-full bg-grey-20 px-2 py-0.5 font-medium text-grey-90 hover:bg-grey-30 ${FOCUS_RING}`}
+              className={`animate-pop-in rounded-full bg-grey-20 px-2 py-0.5 font-medium text-grey-90 hover:bg-grey-30 ${FOCUS_RING}`}
             >
               Reset zoom
             </button>
@@ -432,7 +432,7 @@ export function Timeline({
                 }}
                 title="Expand this month to see it"
                 aria-label={`This ${COMM_LABELS[c.type].toLowerCase()} is folded here — expand this month to see it`}
-                className={`absolute z-10 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 transition-all ${accent.replace(
+                className={`absolute z-10 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 transition-all duration-300 ${accent.replace(
                   "bg-",
                   "border-",
                 )} ${FOCUS_RING} ${
@@ -450,7 +450,7 @@ export function Timeline({
             <span
               key={`dot-${c.id}`}
               aria-hidden
-              className={`absolute z-10 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full ring-2 ring-card transition-opacity ${accent} ${
+              className={`absolute z-10 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full ring-2 ring-card transition-opacity duration-300 ${accent} ${
                 dotDimmed ? "opacity-[0.05]" : ""
               }`}
               style={pos}
@@ -477,7 +477,7 @@ export function Timeline({
               <span
                 key={`stem-${c.id}`}
                 aria-hidden
-                className={`absolute w-[1.25px] transition-opacity ${markerAccent(
+                className={`absolute w-[1.25px] transition-opacity duration-300 ${markerAccent(
                   COMM_COLORS[c.type].accent,
                   "line",
                 )} ${stemDimmed ? "opacity-[0.05]" : ""}`}
@@ -529,7 +529,7 @@ export function Timeline({
               e.stopPropagation();
               onToggleMonth(chip.monthIndex);
             }}
-            className={`absolute z-10 flex items-center rounded-full border border-grey-30 bg-card px-2 text-xs font-medium whitespace-nowrap text-rmit-blue-interactive ${FOCUS_RING} ${
+            className={`absolute z-10 flex items-center rounded-full border border-grey-30 bg-card px-2 text-xs font-medium whitespace-nowrap text-rmit-blue-interactive transition-opacity duration-300 ${FOCUS_RING} ${
               dimBackground ? "opacity-[0.05]" : "hover:border-rmit-blue-interactive"
             }`}
             style={{

@@ -84,7 +84,7 @@ export function CommCard({
       disabled={filteredOut}
       aria-hidden={filteredOut || undefined}
       aria-label={`${comm.title}, ${dateLabel} — details and comments`}
-      className={`absolute flex items-start gap-1.5 rounded-l-none rounded-r-md px-2 py-1.5 text-left transition-opacity ${
+      className={`absolute flex items-start gap-1.5 rounded-l-none rounded-r-md px-2 py-1.5 text-left transition-[opacity,box-shadow] duration-300 ${
         colors.chip
       } ${filteredOut ? "cursor-default" : "cursor-pointer"} ${stateClass} ${
         dimmed ? "opacity-[0.05]" : ""

@@ -79,7 +79,12 @@ export default function App() {
   const toggleTheme = () =>
     setTheme((prev) => {
       const next = prev === "dark" ? "light" : "dark";
-      document.documentElement.dataset.theme = next;
+      // Cross-fade the palette swap: a temporary class turns on colour
+      // transitions for one beat, then comes off so repaints stay cheap.
+      const root = document.documentElement;
+      root.classList.add("theme-switching");
+      window.setTimeout(() => root.classList.remove("theme-switching"), 350);
+      root.dataset.theme = next;
       try {
         localStorage.setItem(THEME_KEY, next);
       } catch {
@@ -497,7 +502,7 @@ export default function App() {
           back). Doubles as the empty state when nothing matches. */}
       {layout && filterActive && (
         <div className="fixed bottom-[4.75rem] left-1/2 z-40 -translate-x-1/2" role="status">
-          <div className="flex items-center gap-2.5 rounded-full border border-grey-30 bg-card/90 py-1.5 pr-1.5 pl-3.5 text-xs shadow-xl backdrop-blur-md">
+          <div className="animate-pop-in flex items-center gap-2.5 rounded-full border border-grey-30 bg-card/90 py-1.5 pr-1.5 pl-3.5 text-xs shadow-xl backdrop-blur-md">
             {shownCount === 0 ? (
               <span className="font-medium text-danger">No comms match these filters</span>
             ) : (

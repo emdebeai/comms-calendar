@@ -122,7 +122,7 @@ export function PersonaDock({
           <div
             role="dialog"
             aria-label="Segment filters"
-            className="absolute bottom-full right-0 mb-3 w-max max-w-[min(42rem,90vw)]"
+            className="animate-pop-in absolute bottom-full right-0 mb-3 w-max max-w-[min(42rem,90vw)]"
           >
             <SegmentToggles
               axes={axes}

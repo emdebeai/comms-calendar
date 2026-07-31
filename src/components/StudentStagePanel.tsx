@@ -31,7 +31,7 @@ export function StudentStagePanel({ stageLabel, onClose }: Props) {
     <aside
       role="complementary"
       aria-label={`Student experience — ${stageLabel}`}
-      className="fixed inset-y-0 right-0 z-50 flex w-96 max-w-full flex-col border-l border-grey-30 bg-card shadow-xl"
+      className="animate-panel-in fixed inset-y-0 right-0 z-50 flex w-96 max-w-full flex-col border-l border-grey-30 bg-card shadow-xl"
       onKeyDown={(e) => {
         if (e.key === "Escape") onClose();
       }}

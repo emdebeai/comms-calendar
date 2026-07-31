@@ -116,6 +116,54 @@ html {
   color-scheme: dark;
 }
 
+/* ── Motion ──────────────────────────────────────────────────────────────
+   Enter-only animations (exits stay instant — unmount animation isn't worth
+   the orchestration). All are neutralised by the reduced-motion block below. */
+
+/* Right-hand detail panels: slide in from the right edge. */
+@keyframes panel-in {
+  from { transform: translateX(2.5rem); opacity: 0; }
+  to   { transform: translateX(0);      opacity: 1; }
+}
+.animate-panel-in {
+  animation: panel-in 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Scrims and other simple fades. */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.animate-fade-in {
+  animation: fade-in 0.18s ease-out;
+}
+
+/* Popovers anchored above their trigger (legend, segment toggles): rise a few
+   px into place so they feel attached to the button that opened them. Also
+   used for the filter pill and reset-zoom chip. */
+@keyframes pop-in {
+  from { opacity: 0; transform: translateY(5px) scale(0.98); }
+  to   { opacity: 1; transform: none; }
+}
+.animate-pop-in {
+  animation: pop-in 0.15s ease-out;
+  transform-origin: bottom center;
+}
+
+/* Theme switch: applied for one beat while the palette swaps, then removed —
+   a permanent global transition would tax every repaint. */
+.theme-switching,
+.theme-switching *,
+.theme-switching *::before,
+.theme-switching *::after {
+  transition:
+    background-color 0.25s ease,
+    border-color 0.25s ease,
+    color 0.25s ease,
+    fill 0.25s ease,
+    stroke 0.25s ease !important;
+}
+
 /* Respect users who ask for reduced motion — WCAG 2.3.3. */
 @media (prefers-reduced-motion: reduce) {
   *,
