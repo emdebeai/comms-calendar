@@ -610,6 +610,10 @@ export function Timeline({
             >
               {body}
             </div>
+          ) : lane.kind === "divider" ? (
+            // Divider strips are shorter than the standard padding allows —
+            // centre the single-line label instead so it can't clip.
+            <div className="flex h-full w-full items-center whitespace-nowrap">{body}</div>
           ) : (
             <div className="flex w-full flex-col py-2.5">{body}</div>
           );

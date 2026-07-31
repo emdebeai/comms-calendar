@@ -63,7 +63,9 @@ export function Minimap({ comms, scrollerRef }: Props) {
   };
 
   return (
-    <div className="fixed bottom-5 left-5 z-40">
+    // Hidden below ~1160px — narrower than that and the centred control dock
+    // would sit on top of it.
+    <div className="fixed bottom-5 left-5 z-40 hidden min-[1160px]:block">
       <div className="rounded-xl border border-grey-30 bg-card/70 px-2.5 pt-2 pb-1.5 shadow-xl backdrop-blur-md">
         <div
           role="scrollbar"
