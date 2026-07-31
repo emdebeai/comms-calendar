@@ -127,7 +127,10 @@ export function CommCard({
         <span className={`block text-xs font-semibold leading-tight line-clamp-2 ${colors.text}`}>
           {comm.title}
         </span>
-        {!isEvent && (
+        {/* CTA line only when one is actually recorded — most Marketing sends
+            have none (the planner doesn't capture CTAs), and that absence is a
+            finding the map must not paper over with a made-up default. */}
+        {!isEvent && comm.cta && (
           <span className="mt-0.5 block truncate text-xs leading-tight text-grey-80">
             {comm.cta}
             <ArrowRight size={11} strokeWidth={2} className="ml-1 inline-block align-middle" aria-hidden />

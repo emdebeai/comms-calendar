@@ -229,7 +229,11 @@ export function normalizeCommRow(
     id,
     team: matchTeam(row.team),
     title: row.title,
-    cta: row.cta || "Learn more",
+    // No fallback: the 2026 eDM planner has no CTA column, so most Marketing
+    // sends genuinely have no recorded CTA. Fabricating one ("Learn more")
+    // would present made-up evidence — a blank stays blank and the card/panel
+    // surface the gap instead.
+    cta: row.cta || "",
     secondaryCta1: row.secondary_cta_1 || undefined,
     secondaryCta2: row.secondary_cta_2 || undefined,
     type: matchType(row.type || "email"),

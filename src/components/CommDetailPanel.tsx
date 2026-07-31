@@ -80,13 +80,21 @@ export function CommDetailPanel({ comm, allComms, entries, onClose, onAdd }: Pro
           <AttributeRow label="Team" value={teamLabel} />
           <AttributeRow label="Journey stage" value={stage} />
           <AttributeRow label="Moment" value={moment} />
-          {comm.type !== "event" && (
-            <>
-              <AttributeRow label="Primary CTA" value={comm.cta} />
-              <AttributeRow label="Secondary 1" value={comm.secondaryCta1} />
-              <AttributeRow label="Secondary 2" value={comm.secondaryCta2} />
-            </>
-          )}
+          {comm.type !== "event" &&
+            (comm.cta ? (
+              <>
+                <AttributeRow label="Primary CTA" value={comm.cta} />
+                <AttributeRow label="Secondary 1" value={comm.secondaryCta1} />
+                <AttributeRow label="Secondary 2" value={comm.secondaryCta2} />
+              </>
+            ) : (
+              /* explicit, not omitted — "we don't know the CTA" is a data gap
+                 worth surfacing to the sending team, not hiding */
+              <div className="flex gap-3 py-1">
+                <dt className="w-28 shrink-0 text-sm text-grey-70">Primary CTA</dt>
+                <dd className="min-w-0 text-sm text-grey-70 italic">Not recorded</dd>
+              </div>
+            ))}
           <AttributeRow label="Related comms" value={relatedTitles} />
           <AttributeRow
             label="Student question"
