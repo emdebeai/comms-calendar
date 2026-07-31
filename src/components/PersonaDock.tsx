@@ -7,10 +7,14 @@ import { FOCUS_RING } from "../lib/styles";
 interface Props {
   axes: { axis: SegmentAxis; values: string[] }[];
   selection: SegmentSelection;
+  /** comms explicitly tagged per axis value — passed through to the toggles */
+  counts: Record<string, Record<string, number>>;
   onSelect: (key: SegmentAxis["key"], value: string | null) => void;
   onClearAll: () => void;
-  /** equity cohorts present in the data (e.g. SNAP, DDINTON) */
+  /** equity cohorts present in the data (e.g. SNAP) */
   equityCohorts: string[];
+  /** comms tailored to each cohort */
+  equityCounts: Record<string, number>;
   equity: string | null;
   onSelectEquity: (cohort: string | null) => void;
 }
@@ -22,9 +26,11 @@ interface Props {
 export function PersonaDock({
   axes,
   selection,
+  counts,
   onSelect,
   onClearAll,
   equityCohorts,
+  equityCounts,
   equity,
   onSelectEquity,
 }: Props) {
@@ -101,6 +107,11 @@ export function PersonaDock({
                   }`}
                 >
                   {c}
+                  {equityCounts[c] !== undefined && (
+                    <span className={`ml-1 ${on ? "text-white/60" : "text-rmit-blue/60"}`}>
+                      {equityCounts[c]}
+                    </span>
+                  )}
                 </button>
               );
             })}
@@ -116,6 +127,7 @@ export function PersonaDock({
             <SegmentToggles
               axes={axes}
               selection={selection}
+              counts={counts}
               onSelect={onSelect}
               onClearAll={onClearAll}
             />

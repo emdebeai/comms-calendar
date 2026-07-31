@@ -17,6 +17,7 @@ import { allCampaignChannels } from "./data/comms";
 import { linkedCommIds } from "./data/studentExperience";
 import type { CommType, FeedbackEntry, Comm } from "./data/types";
 import { addFeedbackEntry, loadFeedback, type FeedbackStore } from "./lib/feedback";
+import { FOCUS_RING } from "./lib/styles";
 import { loadComms } from "./lib/loadComms";
 import { commDateLabel, commPos, layoutTimeline, scaleX, type ExpandedMonths } from "./lib/scale";
 import { COMM_LABELS } from "./components/icons";
@@ -203,15 +204,24 @@ export default function App() {
     [rawComms, effectiveExpanded, cardHeights, openCampaigns, collapsedLanes, showStudentLayer],
   );
 
-  // Toggling the lane also drops any question focus — otherwise a pinned
-  // question could keep the canvas dimmed with the lane (its only "clear"
-  // affordance) hidden.
+  // How many comms the active lenses leave lit — feeds the "N of M shown"
+  // summary pill so filtering always says what it did.
+  const shownCount = useMemo(
+    () => (layout ? layout.comms.filter((c) => !isFilteredOut(c)).length : 0),
+    [layout, isFilteredOut],
+  );
+  const clearAllFilters = () => {
+    setActiveTypes(new Set(ALL_TYPES));
+    setSegments({});
+    setEquity(null);
+  };
+
   // Which tailoring axes actually have values in the loaded data.
   const segmentAxes = useMemo(
     () => (rawComms ? availableSegments(rawComms) : []),
     [rawComms],
   );
-  // Equity cohorts present in the data (e.g. SNAP, DDINTON).
+  // Equity cohorts present in the data (e.g. SNAP).
   const equityCohorts = useMemo(
     () =>
       rawComms
@@ -219,6 +229,30 @@ export default function App() {
         : [],
     [rawComms],
   ) as string[];
+
+  // Comms explicitly tagged with each segment value / equity cohort — shown as
+  // counts on the toggle chips (a mini-report on where tailoring effort goes).
+  const segmentCounts = useMemo(() => {
+    const m: Record<string, Record<string, number>> = {};
+    if (!rawComms) return m;
+    for (const { axis } of segmentAxes) m[axis.key] = {};
+    for (const c of rawComms) {
+      for (const { axis } of segmentAxes) {
+        const v = c[axis.key];
+        if (v) m[axis.key][v] = (m[axis.key][v] ?? 0) + 1;
+      }
+    }
+    return m;
+  }, [rawComms, segmentAxes]);
+  const equityCounts = useMemo(() => {
+    const m: Record<string, number> = {};
+    for (const c of rawComms ?? []) if (c.equity) m[c.equity] = (m[c.equity] ?? 0) + 1;
+    return m;
+  }, [rawComms]);
+
+  // Stage names in the header band double as jump links.
+  const jumpToStage = (from: number) =>
+    scrollerRef.current?.scrollTo({ left: Math.max(0, scaleX(from) - 40), behavior: "smooth" });
 
   // When an equity cohort is focused, jump the map to its (often only) comm.
   useLayoutEffect(() => {
@@ -377,6 +411,7 @@ export default function App() {
                   p?.stage === q.stage && p?.question === q.question ? null : q,
                 )
               }
+              onJumpStage={jumpToStage}
               onOpenStage={(stage) => {
                 // One right-hand panel at a time; ⓘ on the open stage closes it.
                 setOpenCommId(null);
@@ -438,6 +473,31 @@ export default function App() {
         )}
       </main>
 
+      {/* Filter summary — floats just above the control dock whenever a lens
+          is engaged, so filtering always says what it did (and offers the way
+          back). Doubles as the empty state when nothing matches. */}
+      {layout && filterActive && (
+        <div className="fixed bottom-[4.75rem] left-1/2 z-40 -translate-x-1/2" role="status">
+          <div className="flex items-center gap-2.5 rounded-full border border-grey-30 bg-card/90 py-1.5 pr-1.5 pl-3.5 text-xs shadow-xl backdrop-blur-md">
+            {shownCount === 0 ? (
+              <span className="font-medium text-danger">No comms match these filters</span>
+            ) : (
+              <span className="text-grey-80">
+                Showing <span className="font-semibold text-grey-90">{shownCount}</span> of{" "}
+                {layout.comms.length} comms
+              </span>
+            )}
+            <button
+              type="button"
+              onClick={clearAllFilters}
+              className={`rounded-full bg-grey-20 px-2.5 py-1 font-medium text-grey-90 hover:bg-grey-30 ${FOCUS_RING}`}
+            >
+              Clear
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Sleek floating control dock — filters, trigger lines, legend, theme.
           Fixed bottom-centre so it stays reachable while scrolling and never
           clashes with the sticky header bands or the right-hand panels. */}
@@ -458,7 +518,9 @@ export default function App() {
       <PersonaDock
         axes={segmentAxes}
         selection={segments}
+        counts={segmentCounts}
         equityCohorts={equityCohorts}
+        equityCounts={equityCounts}
         equity={equity}
         onSelectEquity={(c) => setEquity((prev) => (prev === c ? null : c))}
         onSelect={(key, value) =>

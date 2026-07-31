@@ -62,6 +62,8 @@ interface Props {
   onHoverQuestion: (q: QuestionRef | null) => void;
   onPinQuestion: (q: QuestionRef) => void;
   onOpenStage: (stageLabel: string) => void;
+  /** click a stage name in the header band → scroll the map there */
+  onJumpStage: (from: number) => void;
   /** ids of the media schedules currently expanded to their placements */
   openCampaigns: Set<string>;
   onToggleCampaigns: (groupId: string) => void;
@@ -100,6 +102,7 @@ export function Timeline({
   onHoverQuestion,
   onPinQuestion,
   onOpenStage,
+  onJumpStage,
   openCampaigns,
   onToggleCampaigns,
   onOpenCampaign,
@@ -160,7 +163,7 @@ export function Timeline({
           full student-experience deep-dive. Scrolls away; month row sticks. ── */}
       <div className="relative z-30" style={{ height: STAGE_H }}>
         <div className="absolute top-0" style={{ left: LABEL_W, width: TOTAL_W }}>
-          <StageBand onOpenStage={onOpenStage} />
+          <StageBand onOpenStage={onOpenStage} onJumpStage={onJumpStage} />
         </div>
         <div
           className={`sticky left-0 flex h-full items-center border-r border-grey-30 bg-header px-4 text-white ${EYEBROW}`}

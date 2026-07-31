@@ -5,6 +5,9 @@ interface Props {
   /** axes that actually have values in the loaded data */
   axes: { axis: SegmentAxis; values: string[] }[];
   selection: SegmentSelection;
+  /** comms explicitly tagged with each value (axis key → value → count) —
+   *  shows where tailoring effort is actually going before you click */
+  counts: Record<string, Record<string, number>>;
   onSelect: (key: SegmentAxis["key"], value: string | null) => void;
   onClearAll: () => void;
 }
@@ -15,7 +18,7 @@ interface Props {
  *  untailored ("goes to everyone") sends stay lit. This is also what untangles
  *  the look-alike stacks: pick College → only that college's variant of a
  *  split send stays up. */
-export function SegmentToggles({ axes, selection, onSelect, onClearAll }: Props) {
+export function SegmentToggles({ axes, selection, counts, onSelect, onClearAll }: Props) {
   const anyActive = Object.values(selection).some(Boolean);
   const chip =
     "rounded-full px-2.5 py-1 text-xs font-medium transition-colors " + FOCUS_RING;
@@ -57,6 +60,7 @@ export function SegmentToggles({ axes, selection, onSelect, onClearAll }: Props)
               </button>
               {values.map((v) => {
                 const on = active.includes(v);
+                const count = counts[axis.key]?.[v];
                 return (
                   <button
                     key={v}
@@ -70,6 +74,11 @@ export function SegmentToggles({ axes, selection, onSelect, onClearAll }: Props)
                     }`}
                   >
                     {axis.labels[v] ?? v}
+                    {count !== undefined && (
+                      <span className={`ml-1 ${on ? "text-rmit-blue/60" : "text-grey-60"}`}>
+                        {count}
+                      </span>
+                    )}
                   </button>
                 );
               })}

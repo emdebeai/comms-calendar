@@ -33,11 +33,31 @@ const WEEKS = [
 // Keeps wide band labels (e.g. Consider, Year 11) in view while scrolling.
 const stickyLabel = { position: "sticky", left: LABEL_W + 8 } as const;
 
-/** Journey stages — the CX lens across the top. Each stage carries an ⓘ that
- *  opens its full student-experience deep-dive (voice, needs, decisions,
- *  actions); the Student Journey lane just below shows the questions inline.
+// Which year band / journey stage a month sits in — the tiny context line the
+// sticky month row carries, so "where am I?" survives any scroll depth (the
+// stage and year bands themselves scroll away). Short forms keep it inside a
+// collapsed month's width ("Year 12 · 2026" → "Yr 12").
+function monthYearShort(m: number): string {
+  const y = YEARS.find((y) => m >= y.from && m < y.to);
+  return y ? y.label.split(" · ")[0].replace("Year ", "Yr ") : "";
+}
+function monthStage(m: number): string {
+  const mid = m + 0.5; // stage owning most of the month
+  return STAGES.find((s) => mid >= s.from && mid < s.to)?.label ?? "";
+}
+
+interface StageBandProps {
+  onOpenStage: (stageLabel: string) => void;
+  /** click a stage name to scroll the map to that stage's start */
+  onJumpStage: (from: number) => void;
+}
+
+/** Journey stages — the CX lens across the top. The stage name is a jump
+ *  link (scrolls the map to the stage); the ⓘ opens its full
+ *  student-experience deep-dive (voice, needs, decisions, actions); the
+ *  Student Journey lane just below shows the questions inline.
  *  Scrolls away normally. */
-export function StageBand({ onOpenStage }: { onOpenStage: (stageLabel: string) => void }) {
+export function StageBand({ onOpenStage, onJumpStage }: StageBandProps) {
   return (
     <div className="absolute top-0 left-0" style={{ width: TOTAL_W }}>
       <div className="relative bg-header" style={{ height: STAGE_H }}>
@@ -50,9 +70,17 @@ export function StageBand({ onOpenStage }: { onOpenStage: (stageLabel: string) =
             style={{ left: scaleX(s.from), width: scaleX(s.to) - scaleX(s.from) }}
           >
             <span className="flex items-center gap-1 px-1" style={stickyLabel}>
-              <span className="truncate text-xs font-semibold tracking-wide text-white">
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onJumpStage(s.from);
+                }}
+                title={`Jump to ${s.label}`}
+                className={`cursor-pointer truncate rounded-sm text-xs font-semibold tracking-wide text-white underline-offset-2 hover:underline ${FOCUS_RING}`}
+              >
                 {s.label}
-              </span>
+              </button>
               <button
                 type="button"
                 onClick={(e) => {
@@ -172,9 +200,14 @@ export function MonthBand({ expandedMonths, onToggleMonth }: MonthBandProps) {
                       </span>
                     ))}
                 {/* Month name — solid chip pinned left, above the day numbers so
-                    it cleanly occludes the day-1 label beneath it. */}
-                <span className="absolute top-1/2 left-0 z-10 -translate-y-1/2 bg-header py-0.5 pr-2 pl-2 font-semibold">
+                    it cleanly occludes the day-1 label beneath it. Carries the
+                    year/stage context the collapsed cells show, since an
+                    expanded month replaces its cell entirely. */}
+                <span className="absolute top-1/2 left-0 z-10 -translate-y-1/2 bg-header py-0.5 pr-2 pl-2 font-semibold whitespace-nowrap">
                   {monthLabel(m)}
+                  <span className="ml-1.5 font-normal text-white/70">
+                    {monthYearShort(m)} · {monthStage(m)}
+                  </span>
                 </span>
                 {level === 2 && (
                   <X
@@ -186,7 +219,15 @@ export function MonthBand({ expandedMonths, onToggleMonth }: MonthBandProps) {
                 )}
               </>
             ) : (
-              <span className="flex h-full items-center justify-center">{monthLabel(m)}</span>
+              /* Collapsed cell — month name plus a tiny "Yr 12 · Consider"
+                 context line. The month row is the sticky one, so this is what
+                 keeps stage + year readable when the big bands scroll away. */
+              <span className="flex h-full flex-col items-center justify-center leading-tight">
+                <span>{monthLabel(m)}</span>
+                <span className="text-[10px] whitespace-nowrap text-grey-60">
+                  {monthYearShort(m)} · {monthStage(m)}
+                </span>
+              </span>
             )}
           </button>
         );
