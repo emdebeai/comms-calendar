@@ -1,5 +1,5 @@
 import { useLayoutEffect, useRef, useState } from "react";
-import { ArrowRight, Link2, MessageCircle } from "lucide-react";
+import { ArrowRight, Link2, MessageCircle, Users } from "lucide-react";
 import type { Comm } from "../data/types";
 import { CARD_W, PILL_H, commPos, monthLabel } from "../lib/scale";
 import { markerAccent } from "../lib/designConfig";
@@ -8,6 +8,9 @@ import { COMM_COLORS, COMM_ICONS } from "./icons";
 
 interface Props {
   comm: Comm;
+  /** audience label shown when this card is one of several sharing a title
+   *  (an audience-split send) — says WHO this copy goes to */
+  variant?: string;
   dimmed: boolean;
   active: boolean;
   /** true when hidden by the type filter — kept off the pointer/tab path */
@@ -26,6 +29,7 @@ interface Props {
  *  the CTA. Full date lives in the tooltip + panel. */
 export function CommCard({
   comm,
+  variant,
   dimmed,
   active,
   filteredOut,
@@ -83,7 +87,7 @@ export function CommCard({
       // the filter is hiding.
       disabled={filteredOut}
       aria-hidden={filteredOut || undefined}
-      aria-label={`${comm.title}, ${dateLabel} — details and comments`}
+      aria-label={`${comm.title}${variant ? ` (to ${variant})` : ""}, ${dateLabel} — details and comments`}
       className={`absolute flex items-start gap-1.5 rounded-l-none rounded-r-md px-2 py-1.5 text-left transition-[opacity,box-shadow] duration-300 ${
         colors.chip
       } ${filteredOut ? "cursor-default" : "cursor-pointer"} ${stateClass} ${
@@ -127,6 +131,14 @@ export function CommCard({
         <span className={`block text-xs font-semibold leading-tight line-clamp-2 ${colors.text}`}>
           {comm.title}
         </span>
+        {/* audience variant — only on look-alike stacks, so "COP Explained"
+            ×3 reads as three audience splits, not a triple-send */}
+        {variant && (
+          <span className="mt-0.5 flex items-center gap-1 text-[11px] leading-tight text-grey-70">
+            <Users size={10} strokeWidth={2} className="shrink-0" aria-hidden />
+            <span className="truncate">{variant}</span>
+          </span>
+        )}
         {/* CTA line only when one is recorded. An unrecorded CTA is ONE fact
             about the planner, not a per-email finding — repeating "not
             recorded" on ~78 cards is noise, so the gap lives in the detail

@@ -128,6 +128,24 @@ export function Timeline({
   // passed in, so the auto-expand pass and the per-comm dimming agree on which
   // comms are lit.
 
+  // Look-alike stacks: an audience-split send appears as several cards with
+  // the SAME subject line ("COP Explained" ×3 = Year 12 / SNAP / DDINTON
+  // variants), which reads as inexplicable duplication. When a title repeats
+  // within a team, each copy carries its audience so the split is legible;
+  // unique titles stay clean.
+  const titleCounts = new Map<string, number>();
+  for (const c of comms) {
+    const k = `${c.team}|${c.title}`;
+    titleCounts.set(k, (titleCounts.get(k) ?? 0) + 1);
+  }
+  const variantFor = (c: Comm): string | undefined => {
+    if ((titleCounts.get(`${c.team}|${c.title}`) ?? 0) < 2) return undefined;
+    const fromAxes = [c.campus, c.eventState, c.preference, c.college]
+      .filter(Boolean)
+      .join(" · ");
+    return c.audience?.replace(/\s+/g, " ") || fromAxes || undefined;
+  };
+
   // Which outbound lanes have no comms at all — so we can label them "none
   // mapped yet" instead of leaving a blank stripe that reads as a load error.
   const teamsWithComms = new Set(comms.map((c) => c.team));
@@ -505,6 +523,7 @@ export function Timeline({
               <CommCard
                 key={c.id}
                 comm={c}
+                variant={variantFor(c)}
                 dimmed={dimmed}
                 active={inFocus}
                 filteredOut={filteredOut}
