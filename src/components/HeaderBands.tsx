@@ -140,6 +140,19 @@ interface MonthBandProps {
  *  shows date-range ticks; day view shows day-number ticks, both aligned
  *  with the canvas gridlines. */
 export function MonthBand({ expandedMonths, onToggleMonth }: MonthBandProps) {
+  // Context runs — one label per contiguous stretch sharing a year band and
+  // stage ("Yr 12 · Consider" once across Jan–Aug, not stamped under every
+  // month). The label is sticky within its span, so it follows the scroll
+  // like the stage-band labels do. Expanded months break the run — their
+  // pinned name chip carries its own context.
+  const runs: { start: number; end: number; label: string }[] = [];
+  for (let m = 0; m < MONTHS; m++) {
+    if (expandedMonths.has(m)) continue;
+    const label = `${monthYearShort(m)} · ${monthStage(m)}`;
+    const prev = runs[runs.length - 1];
+    if (prev && prev.end === m && prev.label === label) prev.end = m + 1;
+    else runs.push({ start: m, end: m + 1, label });
+  }
   return (
     <div
       className="absolute top-0 left-0 border-b border-grey-30 bg-card"
@@ -226,19 +239,32 @@ export function MonthBand({ expandedMonths, onToggleMonth }: MonthBandProps) {
                 )}
               </>
             ) : (
-              /* Collapsed cell — month name plus a tiny "Yr 12 · Consider"
-                 context line. The month row is the sticky one, so this is what
-                 keeps stage + year readable when the big bands scroll away. */
-              <span className="flex h-full flex-col items-center justify-center leading-tight">
-                <span>{monthLabel(m)}</span>
-                <span className="text-[10px] whitespace-nowrap text-grey-60">
-                  {monthYearShort(m)} · {monthStage(m)}
-                </span>
+              /* Collapsed cell — month name up top; the year/stage context
+                 line below comes from the run layer, one label per span. */
+              <span className="flex h-full items-start justify-center pt-1">
+                {monthLabel(m)}
               </span>
             )}
           </button>
         );
       })}
+      {/* Year/stage context runs — painted above the collapsed cells (clicks
+          pass through), one sticky label per span. */}
+      {runs.map((r) => (
+        <div
+          key={r.start}
+          aria-hidden
+          className="pointer-events-none absolute bottom-0 flex h-[15px] items-start justify-center border-l border-grey-20"
+          style={{ left: scaleX(r.start), width: scaleX(r.end) - scaleX(r.start) }}
+        >
+          <span
+            className="px-1 text-[10px] leading-none whitespace-nowrap text-grey-60"
+            style={stickyLabel}
+          >
+            {r.label}
+          </span>
+        </div>
+      ))}
     </div>
   );
 }
