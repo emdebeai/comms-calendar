@@ -18,6 +18,9 @@ interface Props {
   index: number;
   /** present on the group summary bar — makes it a toggle for its channels */
   expanded?: boolean;
+  /** recede into the background — a lens is dimming the map, and these
+   *  always-on media buys aren't part of what's being focused */
+  dimmed?: boolean;
   onToggle?: () => void;
   /** present on channel bars — click opens the channel's detail panel */
   onOpen?: (id: string) => void;
@@ -30,7 +33,7 @@ interface Props {
 // useless "Bundoora…", which reads as several identical bars.
 const NARROW_PX = 150;
 
-export function CampaignBar({ campaign, index, expanded, onToggle, onOpen }: Props) {
+export function CampaignBar({ campaign, index, expanded, dimmed, onToggle, onOpen }: Props) {
   const left = scaleX(campaign.from);
   const width = scaleX(campaign.to) - scaleX(campaign.from);
   const range = campaignRangeLabel(campaign.from, campaign.to);
@@ -95,9 +98,10 @@ export function CampaignBar({ campaign, index, expanded, onToggle, onOpen }: Pro
   // meets it) + rounded-r-md right corner. Channels stay single-line pills.
   // Raise on hover so the flight-date tooltip clears any comm card stacked
   // above the bar (which would otherwise clip it).
+  const dim = dimmed ? "opacity-[0.05]" : "";
   const barBase = `absolute ${hovered ? "z-30" : "z-10"} flex cursor-pointer items-center bg-tint-amber text-left text-xs text-amber ${
     isToggle ? "rounded-l-none rounded-r-md" : "rounded-full"
-  } ${narrow ? "justify-center px-1" : "px-2.5"} ${FOCUS_RING}`;
+  } ${narrow ? "justify-center px-1" : "px-2.5"} ${dim} ${FOCUS_RING}`;
   const barStyle = {
     left,
     top: campaignY(index),
@@ -121,12 +125,12 @@ export function CampaignBar({ campaign, index, expanded, onToggle, onOpen }: Pro
       <>
         <span
           aria-hidden
-          className="absolute z-10 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-amber ring-2 ring-card"
+          className={`absolute z-10 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-amber ring-2 ring-card ${dim}`}
           style={{ left: left + 0.75, top: baseY }}
         />
         <span
           aria-hidden
-          className="absolute w-[1.5px] bg-amber"
+          className={`absolute w-[1.25px] bg-amber ${dim}`}
           style={{ left, top: baseY + 5, height: Math.max(barTop - (baseY + 5), 0) }}
         />
         <button
@@ -143,7 +147,7 @@ export function CampaignBar({ campaign, index, expanded, onToggle, onOpen }: Pro
           style={barStyle}
           {...hoverHandlers}
         >
-          <span aria-hidden className="absolute inset-y-0 left-0 w-[1.5px] bg-amber" />
+          <span aria-hidden className="absolute inset-y-0 left-0 w-[1.25px] bg-amber" />
           {inner}
         </button>
       </>
@@ -171,7 +175,7 @@ export function CampaignBar({ campaign, index, expanded, onToggle, onOpen }: Pro
            aria-label); non-interactive so it never blocks a click. */
         <span
           aria-hidden
-          className="pointer-events-none absolute z-10 flex items-center whitespace-nowrap text-xs font-medium text-amber"
+          className={`pointer-events-none absolute z-10 flex items-center whitespace-nowrap text-xs font-medium text-amber ${dim}`}
           style={{ left: left + width + 6, top: campaignY(index), height: CAMPAIGN_H }}
         >
           {campaign.title}

@@ -2,7 +2,12 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
 import { ControlDock } from "./components/ControlDock";
 import { PersonaDock } from "./components/PersonaDock";
 import { Timeline } from "./components/Timeline";
-import { availableSegments, type SegmentSelection } from "./lib/segments";
+import {
+  availableSegments,
+  matchesSegment,
+  segmentCount,
+  type SegmentSelection,
+} from "./lib/segments";
 import { connectedIds } from "./components/TriggerLayer";
 import { CommDetailPanel } from "./components/CommDetailPanel";
 import { CampaignDetailPanel } from "./components/CampaignDetailPanel";
@@ -103,10 +108,13 @@ export default function App() {
       .catch(() => setFeedback({}));
   }, []);
 
-  // Re-lays the timeline out whenever the data or the expanded month
-  // changes (this also updates the module-level scale/lane state that the
-  // timeline components read while rendering).
-  const layout = useMemo(
+  // The timeline lays out in two passes. Pass 1 (baseLayout) uses only the
+  // months the user manually expanded; from it we can see which comms got
+  // folded into "+N more" chips. Pass 2 (layout, below) additionally
+  // auto-expands any month that hides a comm still LIT under the active filter,
+  // so a match is never trapped inside a folded chip. The RENDERED layout is
+  // pass 2 (and, being computed last, it owns the module-level scale state).
+  const baseLayout = useMemo(
     () =>
       rawComms
         ? layoutTimeline(
@@ -119,6 +127,80 @@ export default function App() {
           )
         : null,
     [rawComms, expandedMonths, cardHeights, openCampaigns, collapsedLanes, showStudentLayer],
+  );
+
+  // ── Focus + filter state (drives what dims) ──────────────────────────────
+  // Tracing is hover-only now; clicking a comm opens its detail panel.
+  const activeId = hovered;
+  const connected = baseLayout ? connectedIds(baseLayout.comms, activeId) : new Set<string>();
+  const activeMomentId = pinnedMoment ?? hoveredMoment;
+  const activeQuestion = hoveredQuestion ?? pinnedQuestion;
+  const questionCommIds = activeQuestion
+    ? new Set(linkedCommIds(activeQuestion.stage, activeQuestion.question))
+    : null;
+  const momentCommIds =
+    activeMomentId && baseLayout
+      ? new Set(baseLayout.comms.filter((c) => c.momentId === activeMomentId).map((c) => c.id))
+      : null;
+  const triggerFocusActive = activeId !== null && connected.size > 0;
+  // Focus precedence: an explicit student-question focus wins, then a moment,
+  // then a hovered comm's trigger web. (An empty question set is meaningful —
+  // it dims everything, the coverage gap made visible.)
+  const focusSet =
+    questionCommIds ??
+    momentCommIds ??
+    (triggerFocusActive ? new Set<string>([activeId as string, ...connected]) : null);
+
+  // Whether a comm is hidden by the persistent type/segment/equity lenses
+  // (independent of the transient hover/moment focus).
+  const isFilteredOut = useCallback(
+    (c: Comm) =>
+      !activeTypes.has(c.type) ||
+      !matchesSegment(c, segments) ||
+      (equity !== null && c.equity !== equity),
+    [activeTypes, segments, equity],
+  );
+  const filterActive =
+    activeTypes.size < ALL_TYPES.length || segmentCount(segments) > 0 || equity !== null;
+  // Any lens that dims part of the map — the always-on media campaigns and the
+  // "+N more" chips recede into the background whenever one is engaged, so they
+  // don't stay bright while the comms around them fade.
+  const dimBackground = filterActive || focusSet !== null;
+
+  // Auto-expand pass: expand any month holding a folded comm that's still lit
+  // under the persistent filter, so the match surfaces instead of hiding inside
+  // a "+N more" chip. Keyed off the filter lenses only (not transient hover),
+  // so the map doesn't reflow as the mouse moves.
+  const autoExpandMonths = useMemo(() => {
+    if (!baseLayout || !filterActive) return null;
+    const months = new Set<number>();
+    for (const c of baseLayout.comms) {
+      if (!baseLayout.hiddenIds.has(c.id) || collapsedLanes.has(c.team)) continue;
+      if (!isFilteredOut(c)) months.add(Math.floor(c.month));
+    }
+    return months.size ? months : null;
+  }, [baseLayout, filterActive, collapsedLanes, isFilteredOut]);
+
+  const effectiveExpanded = useMemo(() => {
+    if (!autoExpandMonths) return expandedMonths;
+    const m = new Map(expandedMonths);
+    for (const mo of autoExpandMonths) if (!m.has(mo)) m.set(mo, 2); // day view reveals all
+    return m;
+  }, [expandedMonths, autoExpandMonths]);
+
+  const layout = useMemo(
+    () =>
+      rawComms
+        ? layoutTimeline(
+            rawComms,
+            effectiveExpanded,
+            cardHeights,
+            openCampaigns,
+            collapsedLanes,
+            showStudentLayer,
+          )
+        : null,
+    [rawComms, effectiveExpanded, cardHeights, openCampaigns, collapsedLanes, showStudentLayer],
   );
 
   // Toggling the lane also drops any question focus — otherwise a pinned
@@ -170,18 +252,6 @@ export default function App() {
     didInitialScroll.current = true;
     scrollerRef.current.scrollLeft = Math.max(0, scaleX(24) - 40); // Jan, Year 12
   }, [layout]);
-
-  // Tracing is hover-only now; clicking a comm opens its detail panel.
-  const activeId = hovered;
-  const connected = layout ? connectedIds(layout.comms, activeId) : new Set<string>();
-  const activeMomentId = pinnedMoment ?? hoveredMoment;
-  // Question focus (hover in the lane wins over a pin) — resolves to the
-  // linked comm ids. Only linked questions are interactive in the lane, so
-  // the set is never empty in practice.
-  const activeQuestion = hoveredQuestion ?? pinnedQuestion;
-  const questionCommIds = activeQuestion
-    ? new Set(linkedCommIds(activeQuestion.stage, activeQuestion.question))
-    : null;
 
   const toggleType = (t: CommType) => {
     setActiveTypes((prev) => {
@@ -278,7 +348,7 @@ export default function App() {
               comms={layout.comms}
               hiddenIds={layout.hiddenIds}
               chips={layout.chips}
-              expandedMonths={expandedMonths}
+              expandedMonths={effectiveExpanded}
               onToggleMonth={(m) =>
                 setExpandedMonths((prev) => {
                   const next = new Map(prev);
@@ -294,8 +364,9 @@ export default function App() {
               activeTypes={activeTypes}
               segments={segments}
               equity={equity}
+              focusSet={focusSet}
+              dimBackground={dimBackground}
               activeId={activeId}
-              connected={connected}
               showLines={showLines}
               activeMomentId={activeMomentId}
               showStudentLayer={showStudentLayer}
@@ -312,7 +383,6 @@ export default function App() {
                 setOpenCampaignId(null);
                 setOpenStage((p) => (p === stage ? null : stage));
               }}
-              questionCommIds={questionCommIds}
               openCampaigns={openCampaigns}
               onToggleCampaigns={(groupId) =>
                 setOpenCampaigns((prev) => {

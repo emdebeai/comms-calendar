@@ -46,8 +46,13 @@ interface Props {
   /** equity cohort focus — when set, EVERYTHING except comms tailored to it
    *  dims (exclusive, unlike the segment lens which keeps generic sends lit) */
   equity: string | null;
+  /** ids in focus (question/moment/trigger); null = no focus. Computed in App
+   *  so the auto-expand pass and the dimming share one source of truth. */
+  focusSet: Set<string> | null;
+  /** true when any lens (filter or focus) is dimming the map — the always-on
+   *  media campaigns and "+N more" chips recede with it. */
+  dimBackground: boolean;
   activeId: string | null;
-  connected: Set<string>;
   showLines: boolean;
   activeMomentId: string | null;
   /** whether the student-journey lane is shown (dock toggle, off by default) */
@@ -57,8 +62,6 @@ interface Props {
   onHoverQuestion: (q: QuestionRef | null) => void;
   onPinQuestion: (q: QuestionRef) => void;
   onOpenStage: (stageLabel: string) => void;
-  /** comm ids linked to the focused student question; null = no focus */
-  questionCommIds: Set<string> | null;
   /** ids of the media schedules currently expanded to their placements */
   openCampaigns: Set<string>;
   onToggleCampaigns: (groupId: string) => void;
@@ -87,8 +90,9 @@ export function Timeline({
   activeTypes,
   segments,
   equity,
+  focusSet,
+  dimBackground,
   activeId,
-  connected,
   showLines,
   activeMomentId,
   showStudentLayer,
@@ -96,7 +100,6 @@ export function Timeline({
   onHoverQuestion,
   onPinQuestion,
   onOpenStage,
-  questionCommIds,
   openCampaigns,
   onToggleCampaigns,
   onOpenCampaign,
@@ -110,20 +113,9 @@ export function Timeline({
   collapsedLanes,
   onToggleLane,
 }: Props) {
-  // Focus priority: student-question > moment > trigger. A focused question
-  // wins because it's driven from the open stage panel — the user is
-  // explicitly asking "which comms answer this?". (An EMPTY question set is
-  // meaningful: it dims everything — the coverage gap made visible.) Trigger
-  // focus only kicks in when the hovered comm actually has connections —
-  // otherwise hovering an unconnected comm would needlessly dim everything.
-  const momentCommIds = activeMomentId
-    ? new Set(comms.filter((c) => c.momentId === activeMomentId).map((c) => c.id))
-    : null;
-  const triggerFocusActive = activeId !== null && connected.size > 0;
-  const focusSet =
-    questionCommIds ??
-    momentCommIds ??
-    (triggerFocusActive ? new Set([activeId as string, ...connected]) : null);
+  // focusSet (question > moment > trigger precedence) is computed in App and
+  // passed in, so the auto-expand pass and the per-comm dimming agree on which
+  // comms are lit.
 
   // Which outbound lanes have no comms at all — so we can label them "none
   // mapped yet" instead of leaving a blank stripe that reads as a load error.
@@ -349,6 +341,7 @@ export function Timeline({
                     }}
                     index={summaryRow}
                     expanded={expanded}
+                    dimmed={dimBackground}
                     onToggle={() => onToggleCampaigns(group.id)}
                   />
                   {expanded &&
@@ -357,6 +350,7 @@ export function Timeline({
                         key={c.id}
                         campaign={c}
                         index={channelRows[i]}
+                        dimmed={dimBackground}
                         onOpen={onOpenCampaign}
                       />
                     ))}
@@ -413,7 +407,7 @@ export function Timeline({
                   "border-",
                 )} ${FOCUS_RING} ${
                   dotDimmed
-                    ? "cursor-default opacity-[0.07]"
+                    ? "cursor-default opacity-[0.05]"
                     : "cursor-pointer opacity-70 hover:scale-125 hover:opacity-100"
                 }`}
                 style={pos}
@@ -427,7 +421,7 @@ export function Timeline({
               key={`dot-${c.id}`}
               aria-hidden
               className={`absolute z-10 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full ring-2 ring-card transition-opacity ${accent} ${
-                dotDimmed ? "opacity-[0.07]" : ""
+                dotDimmed ? "opacity-[0.05]" : ""
               }`}
               style={pos}
             />
@@ -453,10 +447,10 @@ export function Timeline({
               <span
                 key={`stem-${c.id}`}
                 aria-hidden
-                className={`absolute w-[1.5px] transition-opacity ${markerAccent(
+                className={`absolute w-[1.25px] transition-opacity ${markerAccent(
                   COMM_COLORS[c.type].accent,
                   "line",
-                )} ${stemDimmed ? "opacity-[0.07]" : ""}`}
+                )} ${stemDimmed ? "opacity-[0.05]" : ""}`}
                 style={{ left: cx, top, height: Math.max(y - top + 2, 0) }}
               />
             );
@@ -488,18 +482,26 @@ export function Timeline({
           })}
 
         {/* "+N more" overflow chips — clicking one expands that month to
-            day view, which shows everything it holds */}
+            day view, which shows everything it holds. While a lens is dimming
+            the map, any lit comm folded inside a chip has already forced its
+            month open (the auto-expand pass in App), so every remaining chip
+            holds only dimmed comms — it recedes with them and stops taking
+            clicks. */}
         {chips
           .filter((chip) => !collapsedLanes.has(chip.team))
           .map((chip) => (
           <button
             key={`${chip.team}-${chip.monthIndex}`}
             type="button"
+            disabled={dimBackground}
+            aria-hidden={dimBackground || undefined}
             onClick={(e) => {
               e.stopPropagation();
               onToggleMonth(chip.monthIndex);
             }}
-            className={`absolute z-10 flex items-center rounded-full border border-grey-30 bg-card px-2 text-xs font-medium whitespace-nowrap text-rmit-blue-interactive hover:border-rmit-blue-interactive ${FOCUS_RING}`}
+            className={`absolute z-10 flex items-center rounded-full border border-grey-30 bg-card px-2 text-xs font-medium whitespace-nowrap text-rmit-blue-interactive ${FOCUS_RING} ${
+              dimBackground ? "opacity-[0.05]" : "hover:border-rmit-blue-interactive"
+            }`}
             style={{
               left: Math.min(scaleX(chip.monthIndex) + 4, TOTAL_W - 80),
               top: chipY(chip.team, chip.monthIndex),

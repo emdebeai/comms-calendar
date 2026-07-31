@@ -87,7 +87,7 @@ export function CommCard({
       className={`absolute flex items-start gap-1.5 rounded-l-none rounded-r-md px-2 py-1.5 text-left transition-opacity ${
         colors.chip
       } ${filteredOut ? "cursor-default" : "cursor-pointer"} ${stateClass} ${
-        dimmed ? "opacity-[0.07]" : ""
+        dimmed ? "opacity-[0.05]" : ""
       } ${FOCUS_RING}`}
       style={{ left: x, top: y, width: CARD_W, minHeight: PILL_H, zIndex }}
       onMouseEnter={() => {
@@ -118,7 +118,7 @@ export function CommCard({
           (no border now, so left-0) that the stem continues into seamlessly */}
       <span
         aria-hidden
-        className={`absolute inset-y-0 left-0 w-[1.5px] ${markerAccent(colors.accent, "line")}`}
+        className={`absolute inset-y-0 left-0 w-[1.25px] ${markerAccent(colors.accent, "line")}`}
       />
       <span className={`mt-px shrink-0 ${colors.text}`}>
         <Icon size={13} strokeWidth={2} aria-hidden />
