@@ -127,15 +127,22 @@ export function CommCard({
         <span className={`block text-xs font-semibold leading-tight line-clamp-2 ${colors.text}`}>
           {comm.title}
         </span>
-        {/* CTA line only when one is actually recorded — most Marketing sends
-            have none (the planner doesn't capture CTAs), and that absence is a
-            finding the map must not paper over with a made-up default. */}
-        {!isEvent && comm.cta && (
-          <span className="mt-0.5 block truncate text-xs leading-tight text-grey-80">
-            {comm.cta}
-            <ArrowRight size={11} strokeWidth={2} className="ml-1 inline-block align-middle" aria-hidden />
-          </span>
-        )}
+        {/* The CTA line is the map's evidence layer, so it never disappears:
+            a recorded CTA shows with its arrow; a missing one shows an
+            explicit muted gap (no arrow — nothing to act on). Most Marketing
+            sends are gaps — the planner doesn't capture CTAs, and that
+            pattern is a finding, not noise. */}
+        {!isEvent &&
+          (comm.cta ? (
+            <span className="mt-0.5 block truncate text-xs leading-tight text-grey-80">
+              {comm.cta}
+              <ArrowRight size={11} strokeWidth={2} className="ml-1 inline-block align-middle" aria-hidden />
+            </span>
+          ) : (
+            <span className="mt-0.5 block truncate text-xs leading-tight text-grey-60 italic">
+              No CTA recorded
+            </span>
+          ))}
       </span>
       {(hasTriggers || feedbackCount > 0) && (
         <span className="mt-px flex shrink-0 flex-col items-end gap-0.5">
