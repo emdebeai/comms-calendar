@@ -161,10 +161,15 @@ export function Timeline({
     return map;
   })();
 
+  // Extra scrollable space below the last lane so it can clear the floating
+  // docks (control/persona docks + filter pill sit ~110px off the viewport
+  // bottom) — without it the bottom inbound curve is permanently covered.
+  const DOCK_CLEARANCE = 112;
+
   return (
     <div
       className="relative"
-      style={{ width: LABEL_W + TOTAL_W, height: TOTAL_H }}
+      style={{ width: LABEL_W + TOTAL_W, height: TOTAL_H + DOCK_CLEARANCE }}
       onClick={onClearFocus}
     >
       {/* ── Journey Stage row — the CX lens. The ⓘ on each stage opens its
