@@ -41,6 +41,10 @@ export interface Comm {
   // any selected value. Parsed from the marketing planner's Audience column.
   /** raw audience label from the source, for display */
   audience?: string;
+  /** source campaign the send belongs to (e.g. "Open Day", "Nurture SL") */
+  campaign?: string;
+  /** internal creative theme/summary from the planner */
+  theme?: string;
   /** "student" or "both" (student + parent). Parent-only sends aren't loaded. */
   recipient?: string;
   /** VTAC preference position this send targets: "#1", "#2-8", "none" */

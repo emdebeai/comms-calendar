@@ -40,6 +40,11 @@ interface Props {
   chips: OverflowChip[];
   expandedMonths: ExpandedMonths;
   onToggleMonth: (monthIndex: number) => void;
+  /** true when the user has months zoomed — shows the reset-zoom chip */
+  canResetZoom: boolean;
+  onResetZoom: () => void;
+  /** comms per journey stage, shown in the stage band */
+  stageCounts: Record<string, number>;
   activeTypes: Set<CommType>;
   /** segment lens — comms not matching a selected segment dim out */
   segments: SegmentSelection;
@@ -89,6 +94,9 @@ export function Timeline({
   chips,
   expandedMonths,
   onToggleMonth,
+  canResetZoom,
+  onResetZoom,
+  stageCounts,
   activeTypes,
   segments,
   equity,
@@ -163,7 +171,11 @@ export function Timeline({
           full student-experience deep-dive. Scrolls away; month row sticks. ── */}
       <div className="relative z-30" style={{ height: STAGE_H }}>
         <div className="absolute top-0" style={{ left: LABEL_W, width: TOTAL_W }}>
-          <StageBand onOpenStage={onOpenStage} onJumpStage={onJumpStage} />
+          <StageBand
+            onOpenStage={onOpenStage}
+            onJumpStage={onJumpStage}
+            stageCounts={stageCounts}
+          />
         </div>
         <div
           className={`sticky left-0 flex h-full items-center border-r border-grey-30 bg-header px-4 text-white ${EYEBROW}`}
@@ -203,10 +215,25 @@ export function Timeline({
           <MonthBand expandedMonths={expandedMonths} onToggleMonth={onToggleMonth} />
         </div>
         <div
-          className="sticky left-0 flex h-full items-center border-r border-b border-grey-30 bg-card px-4 text-xs text-grey-70"
+          className="sticky left-0 flex h-full items-center justify-between gap-2 border-r border-b border-grey-30 bg-card px-4 text-xs text-grey-70"
           style={{ width: LABEL_W }}
         >
           Month
+          {/* One-click escape from any number of zoomed months — lives in the
+              sticky gutter so it's reachable however wide the map has grown. */}
+          {canResetZoom && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onResetZoom();
+              }}
+              title="Collapse all zoomed months"
+              className={`rounded-full bg-grey-20 px-2 py-0.5 font-medium text-grey-90 hover:bg-grey-30 ${FOCUS_RING}`}
+            >
+              Reset zoom
+            </button>
+          )}
         </div>
       </div>
 
@@ -550,6 +577,11 @@ export function Timeline({
                 <span className={`${EYEBROW} ${lane.kind === "divider" ? "text-grey-70" : "text-grey-90"}`}>
                   {lane.label}
                 </span>
+                {/* comm count — the "how much does each team send" number,
+                    visible while the lane is open (collapsed shows "N hidden") */}
+                {!collapsed && lane.kind === "outbound" && count > 0 && (
+                  <span className="text-xs font-normal text-grey-60">· {count}</span>
+                )}
               </span>
               {!collapsed && lane.sub && (
                 <span className="mt-0.5 pl-[19px] text-xs text-grey-70">{lane.sub}</span>

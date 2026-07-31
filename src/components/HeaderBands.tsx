@@ -50,6 +50,8 @@ interface StageBandProps {
   onOpenStage: (stageLabel: string) => void;
   /** click a stage name to scroll the map to that stage's start */
   onJumpStage: (from: number) => void;
+  /** comms falling inside each stage's span — quantifies coverage per stage */
+  stageCounts: Record<string, number>;
 }
 
 /** Journey stages — the CX lens across the top. The stage name is a jump
@@ -57,7 +59,7 @@ interface StageBandProps {
  *  student-experience deep-dive (voice, needs, decisions, actions); the
  *  Student Journey lane just below shows the questions inline.
  *  Scrolls away normally. */
-export function StageBand({ onOpenStage, onJumpStage }: StageBandProps) {
+export function StageBand({ onOpenStage, onJumpStage, stageCounts }: StageBandProps) {
   return (
     <div className="absolute top-0 left-0" style={{ width: TOTAL_W }}>
       <div className="relative bg-header" style={{ height: STAGE_H }}>
@@ -80,6 +82,11 @@ export function StageBand({ onOpenStage, onJumpStage }: StageBandProps) {
                 className={`cursor-pointer truncate rounded-sm text-xs font-semibold tracking-wide text-white underline-offset-2 hover:underline ${FOCUS_RING}`}
               >
                 {s.label}
+                {stageCounts[s.label] !== undefined && (
+                  <span className="ml-1 font-normal text-white/60">
+                    {stageCounts[s.label]}
+                  </span>
+                )}
               </button>
               <button
                 type="button"

@@ -2,6 +2,7 @@ import { MOMENTS, STAGES } from "../data/journey";
 import { linkedQuestions } from "../data/studentExperience";
 import type { Comm, FeedbackEntry } from "../data/types";
 import { commDateLabel } from "../lib/scale";
+import { SEGMENT_AXES } from "../lib/segments";
 import { EYEBROW } from "../lib/styles";
 import { DetailPanelShell } from "./DetailPanelShell";
 import { FeedbackComposer, FeedbackThread } from "./FeedbackSection";
@@ -51,6 +52,15 @@ export function CommDetailPanel({ comm, allComms, entries, onClose, onAdd }: Pro
       ...allComms.filter((c) => c.triggers?.includes(comm.id)).map((c) => c.title),
     ]),
   ].join("; ");
+  // The tailoring axes the segment lens parsed out of the audience label,
+  // shown as chips (pretty labels shared with the persona-dock toggles).
+  const tailoringChips = [
+    ...SEGMENT_AXES.flatMap((axis) => {
+      const v = comm[axis.key];
+      return v ? [{ axis: axis.label, value: axis.labels[v] ?? v }] : [];
+    }),
+    ...(comm.equity ? [{ axis: "Equity", value: comm.equity }] : []),
+  ];
 
   return (
     <DetailPanelShell
@@ -89,6 +99,34 @@ export function CommDetailPanel({ comm, allComms, entries, onClose, onAdd }: Pro
           <AttributeRow label="Sent from" value={comm.platform ? PLATFORM_LABELS[comm.platform] : undefined} />
           {comm.platform === "marketo" && <AttributeRow label="Marketo ID" value={comm.marketoId} />}
         </dl>
+
+        {/* ── Audience & tailoring — who this send goes to and how it's cut.
+            The raw audience label is the messy source of truth (verbatim from
+            the planner); the chips are what the segment lens parsed out of it,
+            so this section doubles as a key for the persona-dock toggles. */}
+        {(comm.audience || comm.campaign || comm.theme || tailoringChips.length > 0) && (
+          <>
+            <h3 className={`mt-6 text-grey-70 ${EYEBROW}`}>Audience & Tailoring</h3>
+            <dl className="mt-2">
+              <AttributeRow label="Audience" value={comm.audience} />
+              <AttributeRow label="Campaign" value={comm.campaign} />
+              <AttributeRow label="Theme" value={comm.theme} />
+            </dl>
+            {tailoringChips.length > 0 && (
+              <div className="mt-1.5 flex flex-wrap gap-1.5">
+                {tailoringChips.map((chip) => (
+                  <span
+                    key={chip.axis + chip.value}
+                    className="rounded-full bg-grey-10 px-2 py-0.5 text-xs text-grey-80"
+                  >
+                    <span className="text-grey-60">{chip.axis} · </span>
+                    <span className="font-medium text-grey-90">{chip.value}</span>
+                  </span>
+                ))}
+              </div>
+            )}
+          </>
+        )}
 
         {/* ── Send performance — plain stats, whitespace does the work ── */}
         {comm.type !== "event" && (

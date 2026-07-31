@@ -245,6 +245,8 @@ export function normalizeCommRow(
     platform: resolvePlatform(row.platform || "", matchType(row.type || "email")),
     time: row.time || undefined,
     audience: row.audience || undefined,
+    campaign: row.campaign || undefined,
+    theme: row.theme || undefined,
     recipient: row.recipient || undefined,
     preference: row.preference || undefined,
     college: row.college || undefined,

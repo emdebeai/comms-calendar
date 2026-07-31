@@ -151,6 +151,18 @@ export function ControlDock({
             >
               <div className="flex flex-col gap-2.5">
                 <span className="flex items-start gap-2">
+                  {/* the dot grammar — solid = placed card, hollow = folded */}
+                  <span className="mt-1 flex w-6 shrink-0 items-center justify-center gap-1.5">
+                    <span className="h-2.5 w-2.5 rounded-full bg-rmit-blue" />
+                    <span className="h-2.5 w-2.5 rounded-full border-2 border-rmit-blue" />
+                  </span>
+                  <span>
+                    <span className="font-medium text-grey-90">Date dots</span> — solid marks a
+                    card&rsquo;s send date; hollow means it&rsquo;s folded into &ldquo;+N
+                    more&rdquo;. Click a hollow dot to expand its month.
+                  </span>
+                </span>
+                <span className="flex items-start gap-2">
                   <span className="mt-0.5 h-3.5 w-6 shrink-0 rounded-sm border border-dashed border-grey-40 bg-card" />
                   <span>
                     <span className="font-medium text-grey-90">Moment that matters</span> — hover

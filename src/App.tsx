@@ -14,6 +14,8 @@ import { CampaignDetailPanel } from "./components/CampaignDetailPanel";
 import { StudentStagePanel } from "./components/StudentStagePanel";
 import type { QuestionRef } from "./components/StudentJourneyLane";
 import { allCampaignChannels } from "./data/comms";
+import { STAGES } from "./data/journey";
+import { Minimap } from "./components/Minimap";
 import { linkedCommIds } from "./data/studentExperience";
 import type { CommType, FeedbackEntry, Comm } from "./data/types";
 import { addFeedbackEntry, loadFeedback, type FeedbackStore } from "./lib/feedback";
@@ -254,6 +256,17 @@ export default function App() {
   const jumpToStage = (from: number) =>
     scrollerRef.current?.scrollTo({ left: Math.max(0, scaleX(from) - 40), behavior: "smooth" });
 
+  // Comms per journey stage — the coverage number on each stage label (this is
+  // where "most comms sit in Consider" becomes visible on the map itself).
+  const stageCounts = useMemo(() => {
+    const m: Record<string, number> = {};
+    if (!layout) return m;
+    for (const s of STAGES) {
+      m[s.label] = layout.comms.filter((c) => c.month >= s.from && c.month < s.to).length;
+    }
+    return m;
+  }, [layout]);
+
   // When an equity cohort is focused, jump the map to its (often only) comm.
   useLayoutEffect(() => {
     if (!equity || !layout || !scrollerRef.current) return;
@@ -395,6 +408,9 @@ export default function App() {
                   return next;
                 })
               }
+              canResetZoom={expandedMonths.size > 0}
+              onResetZoom={() => setExpandedMonths(new Map())}
+              stageCounts={stageCounts}
               activeTypes={activeTypes}
               segments={segments}
               equity={equity}
@@ -472,6 +488,9 @@ export default function App() {
           </>
         )}
       </main>
+
+      {/* Overview scrubber — the whole 3-year map in 300px, bottom-left. */}
+      {layout && <Minimap comms={layout.comms} scrollerRef={scrollerRef} />}
 
       {/* Filter summary — floats just above the control dock whenever a lens
           is engaged, so filtering always says what it did (and offers the way
