@@ -1,8 +1,9 @@
 import { Fragment } from "react";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { Ban, ChevronDown, ChevronRight } from "lucide-react";
 import { campaignGroups, inbound } from "../data/comms";
-import { MOMENTS } from "../data/journey";
+import { EMBARGOES, MOMENTS } from "../data/journey";
 import type { Comm, CommType, Team } from "../data/types";
+import { matchesSegment, type SegmentSelection } from "../lib/segments";
 import {
   CHIP_H,
   HEADER_H,
@@ -20,7 +21,7 @@ import {
   dotY,
   monthLabel,
   scaleX,
-  type ExpandedMonth,
+  type ExpandedMonths,
   type OverflowChip,
 } from "../lib/scale";
 import { markerAccent } from "../lib/designConfig";
@@ -28,7 +29,7 @@ import { EYEBROW, FOCUS_RING } from "../lib/styles";
 import { COMM_COLORS, COMM_LABELS } from "./icons";
 import { CampaignBar } from "./CampaignBar";
 import { CommCard } from "./CommCard";
-import { MomentsBand, MonthBand, StageYearBands } from "./HeaderBands";
+import { MomentsBand, MonthBand, StageBand, YearBand } from "./HeaderBands";
 import { InboundLane } from "./InboundLane";
 import { StudentJourneyLane, type QuestionRef } from "./StudentJourneyLane";
 import { TriggerLayer } from "./TriggerLayer";
@@ -37,9 +38,14 @@ interface Props {
   comms: Comm[];
   hiddenIds: Set<string>;
   chips: OverflowChip[];
-  expandedMonth: ExpandedMonth | null;
+  expandedMonths: ExpandedMonths;
   onToggleMonth: (monthIndex: number) => void;
   activeTypes: Set<CommType>;
+  /** segment lens — comms not matching a selected segment dim out */
+  segments: SegmentSelection;
+  /** equity cohort focus — when set, EVERYTHING except comms tailored to it
+   *  dims (exclusive, unlike the segment lens which keeps generic sends lit) */
+  equity: string | null;
   activeId: string | null;
   connected: Set<string>;
   showLines: boolean;
@@ -76,9 +82,11 @@ export function Timeline({
   comms,
   hiddenIds,
   chips,
-  expandedMonth,
+  expandedMonths,
   onToggleMonth,
   activeTypes,
+  segments,
+  equity,
   activeId,
   connected,
   showLines,
@@ -156,42 +164,48 @@ export function Timeline({
       style={{ width: LABEL_W + TOTAL_W, height: TOTAL_H }}
       onClick={onClearFocus}
     >
-      {/* ── Header rows: stages + years scroll away, month row sticks ── */}
-      <div className="relative z-30" style={{ height: STAGE_H + YEAR_H }}>
+      {/* ── Journey Stage row — the CX lens. The ⓘ on each stage opens its
+          full student-experience deep-dive. Scrolls away; month row sticks. ── */}
+      <div className="relative z-30" style={{ height: STAGE_H }}>
         <div className="absolute top-0" style={{ left: LABEL_W, width: TOTAL_W }}>
-          <StageYearBands />
+          <StageBand onOpenStage={onOpenStage} />
         </div>
-        <div className="sticky left-0 h-full border-r border-grey-30" style={{ width: LABEL_W }}>
-          <div
-            className={`flex items-center bg-header px-4 text-white ${EYEBROW}`}
-            style={{ height: STAGE_H }}
-          >
-            Journey Stage
-          </div>
-          <div
-            className="flex items-center border-b border-grey-30 bg-grey-20 px-4 text-xs text-grey-70"
-            style={{ height: YEAR_H }}
-          >
-            School year
-          </div>
+        <div
+          className={`sticky left-0 flex h-full items-center border-r border-grey-30 bg-header px-4 text-white ${EYEBROW}`}
+          style={{ width: LABEL_W }}
+        >
+          Journey Stage
         </div>
       </div>
 
-      {/* ── Student journey lane — optional, toggled from the control dock.
-          When hidden, HEADER_H shrinks by STUDENT_LANE_H (see layoutTimeline)
-          so the canvas below closes the gap rather than leaving an empty band. ── */}
+      {/* ── Student Journey — the questions behind each stage, the same CX lens
+          as the stage row, so it sits directly under it (above School year).
+          Optional; toggled from the control dock. When hidden, HEADER_H shrinks
+          by STUDENT_LANE_H (see layoutTimeline) so the canvas closes the gap. ── */}
       {showStudentLayer && (
         <StudentJourneyLane
           activeQuestion={activeQuestion}
           onHoverQuestion={onHoverQuestion}
           onPinQuestion={onPinQuestion}
-          onOpenStage={onOpenStage}
         />
       )}
 
+      {/* ── School year row — parallel audience bands ── */}
+      <div className="relative z-30" style={{ height: YEAR_H }}>
+        <div className="absolute top-0" style={{ left: LABEL_W, width: TOTAL_W }}>
+          <YearBand />
+        </div>
+        <div
+          className="sticky left-0 flex h-full items-center border-r border-b border-grey-30 bg-grey-20 px-4 text-xs text-grey-70"
+          style={{ width: LABEL_W }}
+        >
+          School year
+        </div>
+      </div>
+
       <div className="sticky top-0 z-40" style={{ height: MONTH_H }}>
         <div className="absolute top-0" style={{ left: LABEL_W, width: TOTAL_W }}>
-          <MonthBand expandedMonth={expandedMonth} onToggleMonth={onToggleMonth} />
+          <MonthBand expandedMonths={expandedMonths} onToggleMonth={onToggleMonth} />
         </div>
         <div
           className="sticky left-0 flex h-full items-center border-r border-b border-grey-30 bg-card px-4 text-xs text-grey-70"
@@ -238,24 +252,24 @@ export function Timeline({
           />
         ))}
 
-        {/* Week (level 1) or day (level 2) gridlines inside the expanded month.
+        {/* Week (level 1) or day (level 2) gridlines inside each expanded month.
             Day view draws a line for EVERY day (2..30 — day 1 already sits on
             the month boundary line) so each comm reads against its own day. */}
-        {expandedMonth !== null &&
-          (expandedMonth.level === 1
-            ? [8, 15, 22, 29]
-            : Array.from({ length: 29 }, (_, i) => i + 2)
-          ).map((d) => (
-            <div
-              key={`tick-${d}`}
-              className="absolute w-px bg-grey-20"
-              style={{
-                left: scaleX(expandedMonth.month + (d - 1) / 30),
-                top: HEADER_H,
-                height: TOTAL_H - HEADER_H,
-              }}
-            />
-          ))}
+        {[...expandedMonths].flatMap(([month, level]) =>
+          (level === 1 ? [8, 15, 22] : Array.from({ length: 29 }, (_, i) => i + 2)).map(
+            (d) => (
+              <div
+                key={`tick-${month}-${d}`}
+                className="absolute w-px bg-grey-30"
+                style={{
+                  left: scaleX(month + (d - 1) / 30),
+                  top: HEADER_H,
+                  height: TOTAL_H - HEADER_H,
+                }}
+              />
+            ),
+          ),
+        )}
 
         {/* Moments that matter — a quiet shaded window (no heavy rules), with
             a faint dashed left edge marking its start. Lights up red while
@@ -272,6 +286,43 @@ export function Timeline({
               }`}
               style={{ left, width, top: HEADER_H, height: TOTAL_H - HEADER_H }}
             />
+          );
+        })}
+
+        {/* Send embargoes — a diagonal-hatched band (reads as "no-go", unlike
+            the moment windows) marking periods when outbound comms hold. The
+            label sticks under the header so it stays legible down a tall map. */}
+        {EMBARGOES.map((e) => {
+          const left = scaleX(e.from);
+          const width = scaleX(e.to) - left;
+          return (
+            <Fragment key={e.label}>
+              <div
+                aria-hidden
+                className="pointer-events-none absolute z-10 border-x border-dashed border-grey-40"
+                style={{
+                  left,
+                  width,
+                  top: HEADER_H,
+                  height: TOTAL_H - HEADER_H,
+                  backgroundImage:
+                    "repeating-linear-gradient(45deg, var(--color-grey-50) 0 1.5px, transparent 1.5px 9px)",
+                }}
+              />
+              <div
+                className="pointer-events-none absolute z-40 flex justify-center items-start"
+                style={{ left, width, top: HEADER_H, height: TOTAL_H - HEADER_H }}
+              >
+                <span
+                  className="pointer-events-auto sticky flex items-center gap-1 rounded-md border border-grey-40 bg-card px-2 py-0.5 text-[10px] font-semibold whitespace-nowrap text-grey-80 shadow-sm"
+                  style={{ top: MONTH_H + MOMENT_H + 8 }}
+                  title={`${e.label} — 27 Oct to 18 Nov 2026`}
+                >
+                  <Ban size={11} strokeWidth={2} aria-hidden />
+                  Embargo
+                </span>
+              </div>
+            </Fragment>
           );
         })}
 
@@ -330,7 +381,10 @@ export function Timeline({
         {comms
           .filter((c) => !collapsedLanes.has(c.team))
           .map((c) => {
-          const filteredOut = !activeTypes.has(c.type);
+          const filteredOut =
+            !activeTypes.has(c.type) ||
+            !matchesSegment(c, segments) ||
+            (equity !== null && c.equity !== equity);
           const inFocus = focusSet ? focusSet.has(c.id) : false;
           const dotDimmed = filteredOut || (focusSet !== null && !inFocus);
           const folded = hiddenIds.has(c.id);
@@ -359,7 +413,7 @@ export function Timeline({
                   "border-",
                 )} ${FOCUS_RING} ${
                   dotDimmed
-                    ? "cursor-default opacity-15"
+                    ? "cursor-default opacity-[0.07]"
                     : "cursor-pointer opacity-70 hover:scale-125 hover:opacity-100"
                 }`}
                 style={pos}
@@ -373,7 +427,7 @@ export function Timeline({
               key={`dot-${c.id}`}
               aria-hidden
               className={`absolute z-10 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full ring-2 ring-card transition-opacity ${accent} ${
-                dotDimmed ? "opacity-15" : ""
+                dotDimmed ? "opacity-[0.07]" : ""
               }`}
               style={pos}
             />
@@ -384,7 +438,10 @@ export function Timeline({
         {comms
           .filter((c) => !hiddenIds.has(c.id) && !collapsedLanes.has(c.team))
           .map((c) => {
-            const filteredOut = !activeTypes.has(c.type);
+            const filteredOut =
+            !activeTypes.has(c.type) ||
+            !matchesSegment(c, segments) ||
+            (equity !== null && c.equity !== equity);
             const inFocus = focusSet ? focusSet.has(c.id) : false;
             const stemDimmed = filteredOut || (focusSet !== null && !inFocus);
             const { x: cx, y } = commPos(c);
@@ -399,7 +456,7 @@ export function Timeline({
                 className={`absolute w-[1.5px] transition-opacity ${markerAccent(
                   COMM_COLORS[c.type].accent,
                   "line",
-                )} ${stemDimmed ? "opacity-15" : ""}`}
+                )} ${stemDimmed ? "opacity-[0.07]" : ""}`}
                 style={{ left: cx, top, height: Math.max(y - top + 2, 0) }}
               />
             );
@@ -409,7 +466,10 @@ export function Timeline({
         {comms
           .filter((c) => !hiddenIds.has(c.id) && !collapsedLanes.has(c.team))
           .map((c) => {
-            const filteredOut = !activeTypes.has(c.type);
+            const filteredOut =
+            !activeTypes.has(c.type) ||
+            !matchesSegment(c, segments) ||
+            (equity !== null && c.equity !== equity);
             const inFocus = focusSet ? focusSet.has(c.id) : false;
             const dimmed = filteredOut || (focusSet !== null && !inFocus);
             return (
@@ -442,7 +502,7 @@ export function Timeline({
             className={`absolute z-10 flex items-center rounded-full border border-grey-30 bg-card px-2 text-xs font-medium whitespace-nowrap text-rmit-blue-interactive hover:border-rmit-blue-interactive ${FOCUS_RING}`}
             style={{
               left: Math.min(scaleX(chip.monthIndex) + 4, TOTAL_W - 80),
-              top: chipY(chip.team),
+              top: chipY(chip.team, chip.monthIndex),
               height: CHIP_H,
             }}
             title="Expand this month to see them"
@@ -470,11 +530,6 @@ export function Timeline({
         {LANES.map((lane) => {
           const collapsible = lane.kind === "outbound" || lane.kind === "inbound";
           const collapsed = collapsedLanes.has(lane.id);
-          // Expanded outbound lanes can grow very tall, so their label anchors
-          // to the top (near the visible cards); collapsed strips and the
-          // fixed-height inbound/divider lanes centre instead.
-          const alignment =
-            !collapsed && lane.kind === "outbound" ? "justify-start pt-3.5" : "justify-center";
           const isEmpty = lane.kind === "outbound" && !teamsWithComms.has(lane.id as Team);
           const count = commCountByTeam[lane.id] ?? 0;
 
@@ -505,16 +560,33 @@ export function Timeline({
             </>
           );
 
+          // Every label is top-aligned with the SAME top/bottom padding, so
+          // labels line up regardless of lane height. Expanded outbound lanes
+          // pin their label just under the sticky month/moment header (the
+          // Marketing lane is ~80 comms deep) — and the pinned version keeps the
+          // same padding so it reads as a self-contained block when it floats.
+          const pinnable = !collapsed && lane.kind === "outbound";
+          const content = pinnable ? (
+            <div
+              className="sticky flex w-full flex-col py-2.5"
+              style={{ top: MONTH_H + MOMENT_H }}
+            >
+              {body}
+            </div>
+          ) : (
+            <div className="flex w-full flex-col py-2.5">{body}</div>
+          );
+
           const posStyle = { top: lane.top - HEADER_H, height: lane.height };
 
           if (!collapsible) {
             return (
               <div
                 key={lane.id}
-                className={`absolute left-0 flex w-full flex-col ${alignment} border-b border-grey-30 px-4 ${laneBg[lane.id]}`}
+                className={`absolute left-0 flex w-full flex-col border-b border-grey-30 px-4 ${laneBg[lane.id]}`}
                 style={posStyle}
               >
-                {body}
+                {content}
               </div>
             );
           }
@@ -528,10 +600,10 @@ export function Timeline({
               }}
               aria-expanded={!collapsed}
               aria-label={`${lane.label} lane — ${collapsed ? "expand" : "collapse"}`}
-              className={`absolute left-0 flex w-full flex-col ${alignment} border-b border-grey-30 px-4 text-left hover:bg-grey-20 ${laneBg[lane.id]} ${FOCUS_RING}`}
+              className={`absolute left-0 flex w-full flex-col border-b border-grey-30 px-4 text-left hover:bg-grey-20 ${laneBg[lane.id]} ${FOCUS_RING}`}
               style={posStyle}
             >
-              {body}
+              {content}
             </button>
           );
         })}

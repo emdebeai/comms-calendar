@@ -77,16 +77,17 @@ export function CommCard({
     <button
       ref={rootRef}
       type="button"
-      // Filtered-out chips are dimmed to ~0.3 and must not be reachable by
-      // pointer or keyboard, nor announced — otherwise they sit in the tab
-      // order at failing contrast and open panels the filter is hiding.
+      // Filtered-out chips fade almost out (a dense map stays overwhelming at
+      // 0.15) and must not be reachable by pointer or keyboard, nor announced —
+      // otherwise they sit in the tab order at failing contrast and open panels
+      // the filter is hiding.
       disabled={filteredOut}
       aria-hidden={filteredOut || undefined}
       aria-label={`${comm.title}, ${dateLabel} — details and comments`}
       className={`absolute flex items-start gap-1.5 rounded-l-none rounded-r-md px-2 py-1.5 text-left transition-opacity ${
         colors.chip
       } ${filteredOut ? "cursor-default" : "cursor-pointer"} ${stateClass} ${
-        dimmed ? "opacity-15" : ""
+        dimmed ? "opacity-[0.07]" : ""
       } ${FOCUS_RING}`}
       style={{ left: x, top: y, width: CARD_W, minHeight: PILL_H, zIndex }}
       onMouseEnter={() => {

@@ -1,4 +1,4 @@
-import { Info, Link2 } from "lucide-react";
+import { Link2 } from "lucide-react";
 import { STAGES } from "../data/journey";
 import { STUDENT_EXPERIENCE, linkedCommIds, stageQuestions } from "../data/studentExperience";
 import { LABEL_W, STUDENT_LANE_H, TOTAL_W, scaleX } from "../lib/scale";
@@ -14,8 +14,6 @@ interface Props {
   activeQuestion: QuestionRef | null;
   onHoverQuestion: (q: QuestionRef | null) => void;
   onPinQuestion: (q: QuestionRef) => void;
-  /** small info button per stage — opens the deep-dive panel */
-  onOpenStage: (stageLabel: string) => void;
 }
 
 /** The student journey lane — the map's spine. The student's QUESTIONS sit
@@ -29,7 +27,6 @@ export function StudentJourneyLane({
   activeQuestion,
   onHoverQuestion,
   onPinQuestion,
-  onOpenStage,
 }: Props) {
   return (
     <div className="relative z-30" style={{ height: STUDENT_LANE_H }}>
@@ -62,21 +59,6 @@ export function StudentJourneyLane({
                   }}
                 >
                   <div className="h-full overflow-y-auto px-2 pt-1.5 pb-4">
-                    {/* deep-dive affordance — quiet, top-right of the stage */}
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onOpenStage(stage.label);
-                      }}
-                      aria-haspopup="dialog"
-                      aria-label={`${stage.label} — full student experience (voice, needs, decisions, actions)`}
-                      title="Full student experience for this stage"
-                      className={`float-right ml-1 rounded-full p-1 text-grey-60 hover:bg-grey-10 hover:text-rmit-blue ${FOCUS_RING}`}
-                    >
-                      <Info size={13} strokeWidth={2} aria-hidden />
-                    </button>
-
                     <ul className="flex flex-col gap-1.5">
                       {questions.map((q) => {
                         const links = linkedCommIds(stage.label, q);

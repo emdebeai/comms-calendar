@@ -1,4 +1,4 @@
-import { X } from "lucide-react";
+import { Info, X } from "lucide-react";
 import { MOMENTS, STAGES, YEARS } from "../data/journey";
 import type { Moment } from "../data/types";
 import {
@@ -11,7 +11,7 @@ import {
   YEAR_H,
   monthLabel,
   scaleX,
-  type ExpandedMonth,
+  type ExpandedMonths,
 } from "../lib/scale";
 import { FOCUS_RING } from "../lib/styles";
 
@@ -19,37 +19,65 @@ import { FOCUS_RING } from "../lib/styles";
 // range — shown when a month is expanded to week view (level 1). `mid` is the
 // day the label centres on; the last bucket is only 3 days, so it centres on
 // day 30 (not start+3) to avoid overflowing the month's right edge.
+// The abstract 30/31-day month divides into an awkward 5th 2–3-day stub if you
+// use true calendar weeks, which bunches the labels. Instead: three even
+// buckets (7, 7, then the ~10-day remainder as "22–31"), so the markers read
+// evenly while staying on the real day-scale. Gridlines match (days 8, 15, 22).
 const WEEKS = [
   { start: 1, mid: 4, label: "1–7" },
   { start: 8, mid: 11, label: "8–14" },
   { start: 15, mid: 18, label: "15–21" },
-  { start: 22, mid: 25, label: "22–28" },
-  { start: 29, mid: 30, label: "29–31" },
+  { start: 22, mid: 26, label: "22–31" },
 ];
 
 // Keeps wide band labels (e.g. Consider, Year 11) in view while scrolling.
 const stickyLabel = { position: "sticky", left: LABEL_W + 8 } as const;
 
-/** Journey stages + school years — scrolls away normally. */
-export function StageYearBands() {
+/** Journey stages — the CX lens across the top. Each stage carries an ⓘ that
+ *  opens its full student-experience deep-dive (voice, needs, decisions,
+ *  actions); the Student Journey lane just below shows the questions inline.
+ *  Scrolls away normally. */
+export function StageBand({ onOpenStage }: { onOpenStage: (stageLabel: string) => void }) {
   return (
     <div className="absolute top-0 left-0" style={{ width: TOTAL_W }}>
       <div className="relative bg-header" style={{ height: STAGE_H }}>
         {STAGES.map((s, i) => (
           <div
             key={s.label}
-            className={`absolute flex h-full items-center justify-center text-xs font-semibold tracking-wide text-white ${
+            className={`absolute flex h-full items-center justify-center ${
               i > 0 ? "border-l border-white/30" : ""
             }`}
             style={{ left: scaleX(s.from), width: scaleX(s.to) - scaleX(s.from) }}
           >
-            <span className="truncate px-1" style={stickyLabel}>
-              {s.label}
+            <span className="flex items-center gap-1 px-1" style={stickyLabel}>
+              <span className="truncate text-xs font-semibold tracking-wide text-white">
+                {s.label}
+              </span>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onOpenStage(s.label);
+                }}
+                aria-haspopup="dialog"
+                aria-label={`${s.label} — full student experience (voice, needs, decisions, actions)`}
+                title="Full student experience for this stage"
+                className={`shrink-0 rounded-full p-0.5 text-white/70 hover:bg-white/20 hover:text-white ${FOCUS_RING}`}
+              >
+                <Info size={12} strokeWidth={2} aria-hidden />
+              </button>
             </span>
           </div>
         ))}
       </div>
+    </div>
+  );
+}
 
+/** School years — the parallel audience bands. Scrolls away with the stages. */
+export function YearBand() {
+  return (
+    <div className="absolute top-0 left-0" style={{ width: TOTAL_W }}>
       <div className="relative border-b border-grey-30 bg-grey-20" style={{ height: YEAR_H }}>
         {YEARS.map((y, i) => (
           <div
@@ -68,7 +96,7 @@ export function StageYearBands() {
 }
 
 interface MonthBandProps {
-  expandedMonth: ExpandedMonth | null;
+  expandedMonths: ExpandedMonths;
   onToggleMonth: (monthIndex: number) => void;
 }
 
@@ -76,7 +104,7 @@ interface MonthBandProps {
  *  that cycles collapsed → week view → day-by-day → collapsed. Week view
  *  shows date-range ticks; day view shows day-number ticks, both aligned
  *  with the canvas gridlines. */
-export function MonthBand({ expandedMonth, onToggleMonth }: MonthBandProps) {
+export function MonthBand({ expandedMonths, onToggleMonth }: MonthBandProps) {
   return (
     <div
       className="absolute top-0 left-0 border-b border-grey-30 bg-card"
@@ -85,7 +113,7 @@ export function MonthBand({ expandedMonth, onToggleMonth }: MonthBandProps) {
       {Array.from({ length: MONTHS }, (_, m) => {
         const left = scaleX(m);
         const width = scaleX(m + 1) - left;
-        const level = expandedMonth?.month === m ? expandedMonth.level : 0;
+        const level = expandedMonths.get(m) ?? 0;
         const title =
           level === 0
             ? "Expand to week view"

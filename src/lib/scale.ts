@@ -35,6 +35,10 @@ export interface ExpandedMonth {
   level: 1 | 2;
 }
 
+/** Which months are expanded, and to what level — month index → 1 (weeks) or
+ *  2 (days). Multiple can be open at once. */
+export type ExpandedMonths = Map<number, 1 | 2>;
+
 /** Widths of the one expanded month: week view (~105px/week) and day view
  *  (~30px/day). */
 export const WEEK_MONTH_PX = 460;
@@ -54,7 +58,7 @@ export const ROW_CAP = 6;
 // Which month is currently expanded, and to what level. Module state, set by
 // layoutTimeline — components re-render via React state in App, then read
 // the updated scale during that render.
-let expandedMonthState: ExpandedMonth | null = null;
+let expandedMonthsState: ExpandedMonths = new Map();
 
 function baseScaleX(month: number): number {
   let x = 0;
@@ -74,10 +78,14 @@ function basePxPerMonth(month: number): number {
 
 export function scaleX(month: number): number {
   let x = baseScaleX(month);
-  const e = expandedMonthState;
-  if (e !== null && month > e.month) {
-    const extraPerMonth = expandedMonthWidth(e.level) - basePxPerMonth(e.month);
-    x += Math.min(month - e.month, 1) * extraPerMonth;
+  // Every expanded month before `month` shifts it right by that month's extra
+  // width; a month sitting INSIDE an expanded one gets a partial share (its
+  // day/week offset within the widened span). Summed across all of them, so any
+  // number of months can be open at once.
+  for (const [m, level] of expandedMonthsState) {
+    if (month <= m) continue;
+    const extraPerMonth = expandedMonthWidth(level) - basePxPerMonth(m);
+    x += Math.min(month - m, 1) * extraPerMonth;
   }
   return x;
 }
@@ -172,7 +180,7 @@ function laneBlockHeight(cardArea: number, chipStrip: boolean): number {
 
 /** Collapsed lanes shrink to just their gutter label strip; their comms /
  *  campaigns / curves aren't rendered. */
-export const COLLAPSED_LANE_H = 40;
+export const COLLAPSED_LANE_H = 54;
 
 function buildLanes(
   cardAreaPerTeam: Record<Team, number>,
@@ -240,6 +248,29 @@ let cardAreaByTeam: Record<Team, number> = {
 // Keeps the campaign block tucked under its local cards instead of the lane
 // bottom. Set by layoutTimeline; used by campaignY and buildLanes.
 let marketingCampaignArea = DEFAULT_CARD_H;
+// Placed-card rectangles per team (card-area-relative bottoms), so a "+N more"
+// chip can sit below the deepest card that actually overlaps its x — hugging
+// its column without colliding with a taller neighbour. Set by layoutTimeline.
+type PlacedRect = { x1: number; x2: number; bottom: number };
+let placedByTeam: Record<Team, PlacedRect[]> = {
+  recruitment: [],
+  marketing: [],
+  admissions: [],
+  conversion: [],
+};
+
+/** Deepest placed-card bottom (card-area-relative) among cards overlapping the
+ *  horizontal band [x, x+w] in a team's lane. */
+function deepestBottomAt(team: Team, x: number, w: number): number {
+  let d = 0;
+  for (const p of placedByTeam[team]) {
+    if (p.x1 < x + w && x < p.x2) d = Math.max(d, p.bottom);
+  }
+  return d;
+}
+
+/** Approx width of a "+N more" chip, for overlap tests. */
+const CHIP_W = 90;
 
 // Measured card heights by comm id (from layoutTimeline's `heights` arg).
 // Exposed so connectors can anchor to a card's real bottom/centre instead of
@@ -272,16 +303,21 @@ export function dotY(team: Team): number {
   return laneById(team).top + DOT_Y;
 }
 
-/** y of a team lane's "+N more" chip strip (below the last card row). */
-export function chipY(team: Team): number {
+/** y of a "+N more" chip — tucked directly under its OWN month's card column
+ *  (ROW_GAP below the deepest visible card in that month), so it reads as part
+ *  of that stack rather than a lane-wide band. Falls back to a single card's
+ *  depth for a month with nothing placed. */
+export function chipY(team: Team, monthIndex: number): number {
   const lane = laneById(team);
-  return lane.top + DOT_STRIP_H + LANE_PAD + cardAreaByTeam[team] + 8;
+  const x = scaleX(monthIndex) + 4;
+  const depth = deepestBottomAt(team, x, CHIP_W) || DEFAULT_CARD_H;
+  return lane.top + DOT_STRIP_H + LANE_PAD + depth + ROW_GAP;
 }
 
 /** Top of the campaign block, measured from the marketing lane's top. Sits
- *  ROW_GAP below the deepest card in its own column — same tight gap the comm
- *  cards have between each other. No "+N more" chip-strip reservation: the
- *  chips live at the lane-wide depth off to the sides, not in this column. */
+ *  ROW_GAP below the deepest content in its OWN x-span — cards, and any chip
+ *  that tucks under a column in that span (see marketingCampaignArea). Tight,
+ *  no lane-wide wasted space. */
 function campaignBlockTop(): number {
   return DOT_STRIP_H + LANE_PAD + marketingCampaignArea + ROW_GAP + 2;
 }
@@ -325,7 +361,7 @@ export interface TimelineLayout {
 // them all, spread day by day.
 export function layoutTimeline(
   raw: Comm[],
-  expandedMonth: ExpandedMonth | null,
+  expandedMonths: ExpandedMonths = new Map(),
   heights: Record<string, number> = {},
   openCampaigns: Set<string> = new Set(),
   collapsedLanes: Set<string> = new Set(),
@@ -335,7 +371,7 @@ export function layoutTimeline(
   // lane's `top` to HEADER_H).
   studentLayerVisible = studentLayer;
   HEADER_H = headerHeight();
-  expandedMonthState = expandedMonth;
+  expandedMonthsState = expandedMonths;
   cardHeightById = heights;
   campaignRowHeights = campaignGroups.flatMap((g) => [
     CAMPAIGN_SUMMARY_H,
@@ -344,9 +380,10 @@ export function layoutTimeline(
   TOTAL_W =
     baseScaleX(MONTHS) +
     140 +
-    (expandedMonth !== null
-      ? expandedMonthWidth(expandedMonth.level) - basePxPerMonth(expandedMonth.month)
-      : 0);
+    [...expandedMonths].reduce(
+      (sum, [m, level]) => sum + expandedMonthWidth(level) - basePxPerMonth(m),
+      0,
+    );
 
   const GAP = 8;
   const chipCounts = new Map<string, number>(); // "team:monthIndex" -> hidden count
@@ -362,6 +399,12 @@ export function layoutTimeline(
   // the expanded month, where everything shows.
   const PACK_CAP_PX = ROW_CAP * DEFAULT_CARD_H + (ROW_CAP - 1) * ROW_GAP;
   const nextY = new Map<string, number>();
+  const nextPlaced: Record<Team, PlacedRect[]> = {
+    recruitment: [],
+    marketing: [],
+    admissions: [],
+    conversion: [],
+  };
   const nextCardArea: Record<Team, number> = {
     recruitment: DEFAULT_CARD_H,
     marketing: DEFAULT_CARD_H,
@@ -399,7 +442,7 @@ export function layoutTimeline(
         ) ?? 0;
 
       const monthIndex = Math.floor(c.month);
-      const inExpanded = expandedMonth !== null && monthIndex === expandedMonth.month;
+      const inExpanded = expandedMonthsState.has(monthIndex);
       if (y + h > PACK_CAP_PX && !inExpanded) {
         hiddenIds.add(c.id);
         const key = `${team}:${monthIndex}`;
@@ -414,15 +457,28 @@ export function layoutTimeline(
       }
     }
     nextCardArea[team] = Math.max(area, DEFAULT_CARD_H);
+    nextPlaced[team] = placed;
   }
   yOffsetById = nextY;
   cardAreaByTeam = nextCardArea;
-  marketingCampaignArea = campArea;
+  placedByTeam = nextPlaced;
 
   const chips: OverflowChip[] = [...chipCounts].map(([key, count]) => {
     const [team, mi] = key.split(":");
     return { team: team as Team, monthIndex: Number(mi), count };
   });
+  // A marketing chip inside the campaign's x-span tucks under whatever cards
+  // overlap its x, so the campaign block must clear that chip too. Chips
+  // outside the span don't move the campaigns (they hug their own column).
+  for (const chip of chips) {
+    if (chip.team !== "marketing") continue;
+    const cx = scaleX(chip.monthIndex) + 4;
+    if (cx < campTo && campFrom < cx + CHIP_W) {
+      const depth = deepestBottomAt("marketing", cx, CHIP_W) || DEFAULT_CARD_H;
+      campArea = Math.max(campArea, depth + ROW_GAP + CHIP_H);
+    }
+  }
+  marketingCampaignArea = campArea;
 
   LANES = buildLanes(nextCardArea, new Set(chips.map((c) => c.team)), collapsedLanes);
   TOTAL_H = LANES[LANES.length - 1].top + LANES[LANES.length - 1].height;

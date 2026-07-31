@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { ControlDock } from "./components/ControlDock";
+import { PersonaDock } from "./components/PersonaDock";
 import { Timeline } from "./components/Timeline";
+import { availableSegments, type SegmentSelection } from "./lib/segments";
 import { connectedIds } from "./components/TriggerLayer";
 import { CommDetailPanel } from "./components/CommDetailPanel";
 import { CampaignDetailPanel } from "./components/CampaignDetailPanel";
@@ -11,7 +13,7 @@ import { linkedCommIds } from "./data/studentExperience";
 import type { CommType, FeedbackEntry, Comm } from "./data/types";
 import { addFeedbackEntry, loadFeedback, type FeedbackStore } from "./lib/feedback";
 import { loadComms } from "./lib/loadComms";
-import { commDateLabel, layoutTimeline, scaleX, type ExpandedMonth } from "./lib/scale";
+import { commDateLabel, commPos, layoutTimeline, scaleX, type ExpandedMonths } from "./lib/scale";
 import { COMM_LABELS } from "./components/icons";
 
 const THEME_KEY = "comms-calendar-theme";
@@ -27,8 +29,9 @@ export default function App() {
   const [showLines, setShowLines] = useState(false);
   const [hoveredMoment, setHoveredMoment] = useState<string | null>(null);
   const [pinnedMoment, setPinnedMoment] = useState<string | null>(null);
-  // Month zoom cycles collapsed → week view → day-by-day → collapsed.
-  const [expandedMonth, setExpandedMonth] = useState<ExpandedMonth | null>(null);
+  // Month zoom — each month independently cycles collapsed → week → day →
+  // collapsed. Multiple can be open at once (month index → level).
+  const [expandedMonths, setExpandedMonths] = useState<ExpandedMonths>(new Map());
   // Student journey — question focus comes straight from the lane (hover is
   // transient, pin sticks) and drives the cross-highlight: the linked comms
   // light up, everything else dims. openStage is the optional deep-dive
@@ -39,6 +42,12 @@ export default function App() {
   // The student-journey lane is off by default — the comms map stays clean
   // until you opt into the student view from the control dock.
   const [showStudentLayer, setShowStudentLayer] = useState(false);
+  // Segment lens — opened from the persona dock. Focuses the map on comms
+  // tailored to a chosen segment (college, campus, preference, event stage).
+  const [segments, setSegments] = useState<SegmentSelection>({});
+  // Equity cohort focus (e.g. SNAP) — exclusive: dims everything except comms
+  // tailored to it, and jumps the map to the match.
+  const [equity, setEquity] = useState<string | null>(null);
   // Media-schedule summary bars — expanding one shows its per-placement bars,
   // which grows the Marketing lane, so it also feeds into layoutTimeline.
   const [openCampaigns, setOpenCampaigns] = useState<Set<string>>(new Set());
@@ -102,19 +111,46 @@ export default function App() {
       rawComms
         ? layoutTimeline(
             rawComms,
-            expandedMonth,
+            expandedMonths,
             cardHeights,
             openCampaigns,
             collapsedLanes,
             showStudentLayer,
           )
         : null,
-    [rawComms, expandedMonth, cardHeights, openCampaigns, collapsedLanes, showStudentLayer],
+    [rawComms, expandedMonths, cardHeights, openCampaigns, collapsedLanes, showStudentLayer],
   );
 
   // Toggling the lane also drops any question focus — otherwise a pinned
   // question could keep the canvas dimmed with the lane (its only "clear"
   // affordance) hidden.
+  // Which tailoring axes actually have values in the loaded data.
+  const segmentAxes = useMemo(
+    () => (rawComms ? availableSegments(rawComms) : []),
+    [rawComms],
+  );
+  // Equity cohorts present in the data (e.g. SNAP, DDINTON).
+  const equityCohorts = useMemo(
+    () =>
+      rawComms
+        ? [...new Set(rawComms.map((c) => c.equity).filter(Boolean))].sort()
+        : [],
+    [rawComms],
+  ) as string[];
+
+  // When an equity cohort is focused, jump the map to its (often only) comm.
+  useLayoutEffect(() => {
+    if (!equity || !layout || !scrollerRef.current) return;
+    const target = layout.comms.find((c) => c.equity === equity);
+    if (!target) return;
+    const { x, y } = commPos(target);
+    scrollerRef.current.scrollTo({
+      left: Math.max(0, x - 80),
+      top: Math.max(0, y - 140),
+      behavior: "smooth",
+    });
+  }, [equity, layout]);
+
   const toggleStudentLayer = () => {
     setShowStudentLayer((s) => !s);
     setHoveredQuestion(null);
@@ -242,17 +278,22 @@ export default function App() {
               comms={layout.comms}
               hiddenIds={layout.hiddenIds}
               chips={layout.chips}
-              expandedMonth={expandedMonth}
+              expandedMonths={expandedMonths}
               onToggleMonth={(m) =>
-                setExpandedMonth((p) =>
-                  p?.month !== m
-                    ? { month: m, level: 1 } // collapsed (or other month) → weeks
-                    : p.level === 1
-                      ? { month: m, level: 2 } // weeks → days
-                      : null, // days → collapsed
-                )
+                setExpandedMonths((prev) => {
+                  const next = new Map(prev);
+                  const level = next.get(m);
+                  if (!level)
+                    next.set(m, 1); // collapsed → weeks
+                  else if (level === 1)
+                    next.set(m, 2); // weeks → days
+                  else next.delete(m); // days → collapsed
+                  return next;
+                })
               }
               activeTypes={activeTypes}
+              segments={segments}
+              equity={equity}
               activeId={activeId}
               connected={connected}
               showLines={showLines}
@@ -340,6 +381,33 @@ export default function App() {
         onToggleStudentLayer={toggleStudentLayer}
         theme={theme}
         onToggleTheme={toggleTheme}
+      />
+
+      {/* Persona dock — bottom-left, names the persona and opens the segment
+          toggles as a popover. */}
+      <PersonaDock
+        axes={segmentAxes}
+        selection={segments}
+        equityCohorts={equityCohorts}
+        equity={equity}
+        onSelectEquity={(c) => setEquity((prev) => (prev === c ? null : c))}
+        onSelect={(key, value) =>
+          setSegments((prev) => {
+            const next = { ...prev };
+            if (value === null) {
+              delete next[key]; // "All" — clear the axis
+            } else {
+              const cur = next[key] ?? [];
+              const arr = cur.includes(value)
+                ? cur.filter((v) => v !== value)
+                : [...cur, value];
+              if (arr.length) next[key] = arr;
+              else delete next[key];
+            }
+            return next;
+          })
+        }
+        onClearAll={() => setSegments({})}
       />
 
       {openComm && layout && (
