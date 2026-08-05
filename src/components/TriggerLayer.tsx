@@ -45,33 +45,21 @@ function routePath(byId: Map<string, Comm>, aId: string, bId: string): Route | n
     };
   }
 
+  // Stacked / overlapping cards — the gap between them is often just a few
+  // pixels, far too tight to route through. Swing out the LEFT side instead:
+  // exit the source's left edge near its target-facing corner, bow out into
+  // the open space beside the cards, and land on the target's left edge at
+  // mid-height. Both tangents are horizontal, so it reads as one calm
+  // bracket rather than a squiggle squeezed between the cards.
   const goingDown = b.y > a.y;
-  const y1 = goingDown ? a.y + hFrom : a.y;
-  const r = 10;
-  // Vertical drop lane just left of the target's edge, clamped onto the
-  // source card so the line visibly leaves it.
-  const xDrop = Math.min(Math.max(b.x - 22, a.x + 16), a.x + CARD_W - 10);
-
-  if (xDrop <= xTarget - r) {
-    const dir = goingDown ? 1 : -1;
-    return {
-      d:
-        `M${xDrop},${y1} V${yTarget - r * dir} ` +
-        `Q${xDrop},${yTarget} ${xDrop + r},${yTarget} H${xTarget}`,
-      start: [xDrop, y1],
-      end: [xTarget, yTarget],
-    };
-  }
-
-  // No room to approach from the left — enter through the top/bottom instead.
-  const x2 = b.x + CARD_W * 0.4;
-  const y2 = goingDown ? b.y - 3 : b.y + hTo + 3;
-  const k = Math.max(18, Math.abs(y2 - y1) / 2);
-  const dir = goingDown ? 1 : -1;
+  const ySrc = goingDown ? a.y + hFrom - 9 : a.y + 9;
+  const xSrc = a.x - 1.5;
+  // Bulge past both left edges, scaled up a little for long vertical hops.
+  const bulge = Math.min(a.x, b.x) - (26 + Math.min(18, Math.abs(yTarget - ySrc) / 10));
   return {
-    d: `M${xDrop},${y1} C${xDrop},${y1 + k * dir} ${x2},${y2 - k * dir} ${x2},${y2}`,
-    start: [xDrop, y1],
-    end: [x2, y2],
+    d: `M${xSrc},${ySrc} C${bulge},${ySrc} ${bulge},${yTarget} ${xTarget},${yTarget}`,
+    start: [xSrc, ySrc],
+    end: [xTarget, yTarget],
   };
 }
 
