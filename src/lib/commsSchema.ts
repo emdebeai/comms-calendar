@@ -221,8 +221,13 @@ export function normalizeCommRow(
   if (!row.school_year) throw new Error(`Row ${rowNumberForErrors}: missing school_year`);
   if (!row.month) throw new Error(`Row ${rowNumberForErrors}: missing month`);
 
-  let id = slugify(row.title);
-  while (usedIds.has(id)) id = `${id}-2`;
+  // An explicit id wins (it's how triggers target ONE comm when several share
+  // a title — e.g. the City Open Day event vs the Marketing "Open Day — City"
+  // survey email, which slugify identically). Otherwise slug the title and
+  // dedupe with a counter.
+  const base = slugify(row.id || row.title);
+  let id = base;
+  for (let n = 2; usedIds.has(id); n++) id = `${base}-${n}`;
   usedIds.add(id);
 
   return {
