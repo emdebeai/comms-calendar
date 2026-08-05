@@ -150,6 +150,17 @@ html {
   transform-origin: bottom center;
 }
 
+/* Trigger connectors draw in on hover-reveal (path normalised to length 1
+   via the pathLength attribute, so one rule fits every curve). */
+@keyframes draw-line {
+  from { stroke-dashoffset: 1; }
+  to   { stroke-dashoffset: 0; }
+}
+.animate-draw-line {
+  stroke-dasharray: 1;
+  animation: draw-line 0.3s ease-out;
+}
+
 /* Theme switch: applied for one beat while the palette swaps, then removed —
    a permanent global transition would tax every repaint. */
 .theme-switching,

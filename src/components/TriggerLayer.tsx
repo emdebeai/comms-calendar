@@ -11,12 +11,19 @@ function buildLinks(comms: Comm[]): Link[] {
   return comms.flatMap((c) => c.triggers?.map((t) => ({ from: c.id, to: t })) ?? []);
 }
 
+interface Route {
+  d: string;
+  /** endpoints, for the anchor dots */
+  start: [number, number];
+  end: [number, number];
+}
+
 // Route a connector between two cards, always arriving at the target's left
 // edge. Cards far enough apart horizontally get a gentle S-curve; close or
 // overlapping cards get a rounded elbow — out of the source's bottom (or
 // top), straight down (or up), then a quarter-turn into the target's left
 // side at mid-height.
-function routePath(byId: Map<string, Comm>, aId: string, bId: string): string | null {
+function routePath(byId: Map<string, Comm>, aId: string, bId: string): Route | null {
   const from = byId.get(aId);
   const to = byId.get(bId);
   if (!from || !to) return null;
@@ -30,8 +37,12 @@ function routePath(byId: Map<string, Comm>, aId: string, bId: string): string | 
   if (b.x >= a.x + CARD_W + 32) {
     const x1 = a.x + CARD_W;
     const y1 = a.y + hFrom / 2;
-    const k = Math.min(70, (xTarget - x1) / 2);
-    return `M${x1},${y1} C${x1 + k},${y1} ${xTarget - k},${yTarget} ${xTarget},${yTarget}`;
+    const k = Math.min(70, Math.max(28, (xTarget - x1) / 2));
+    return {
+      d: `M${x1},${y1} C${x1 + k},${y1} ${xTarget - k},${yTarget} ${xTarget},${yTarget}`,
+      start: [x1, y1],
+      end: [xTarget, yTarget],
+    };
   }
 
   const goingDown = b.y > a.y;
@@ -43,10 +54,13 @@ function routePath(byId: Map<string, Comm>, aId: string, bId: string): string | 
 
   if (xDrop <= xTarget - r) {
     const dir = goingDown ? 1 : -1;
-    return (
-      `M${xDrop},${y1} V${yTarget - r * dir} ` +
-      `Q${xDrop},${yTarget} ${xDrop + r},${yTarget} H${xTarget}`
-    );
+    return {
+      d:
+        `M${xDrop},${y1} V${yTarget - r * dir} ` +
+        `Q${xDrop},${yTarget} ${xDrop + r},${yTarget} H${xTarget}`,
+      start: [xDrop, y1],
+      end: [xTarget, yTarget],
+    };
   }
 
   // No room to approach from the left — enter through the top/bottom instead.
@@ -54,7 +68,11 @@ function routePath(byId: Map<string, Comm>, aId: string, bId: string): string | 
   const y2 = goingDown ? b.y - 3 : b.y + hTo + 3;
   const k = Math.max(18, Math.abs(y2 - y1) / 2);
   const dir = goingDown ? 1 : -1;
-  return `M${xDrop},${y1} C${xDrop},${y1 + k * dir} ${x2},${y2 - k * dir} ${x2},${y2}`;
+  return {
+    d: `M${xDrop},${y1} C${xDrop},${y1 + k * dir} ${x2},${y2 - k * dir} ${x2},${y2}`,
+    start: [xDrop, y1],
+    end: [x2, y2],
+  };
 }
 
 interface Props {
@@ -89,22 +107,49 @@ export function TriggerLayer({ comms, hiddenIds, activeId, showAll }: Props) {
     >
       {/* Plain connectors, no arrowheads — these show that two comms are
           RELATED without asserting a direction of causality, which keeps the
-          "what triggers what" conversation lighter. */}
+          "what triggers what" conversation lighter. Each line sits on a soft
+          card-coloured casing so it reads OVER the cards it crosses instead
+          of colliding with their text, and both ends are anchored with a
+          small dot. Hover-revealed lines draw in; the show-all overlay keeps
+          non-hovered links dashed and quiet. */}
       {visible.map((l) => {
-        const d = routePath(byId, l.from, l.to);
-        if (!d) return null;
-        const emphasised =
-          !showAll || l.from === activeId || l.to === activeId;
+        const route = routePath(byId, l.from, l.to);
+        if (!route) return null;
+        const emphasised = !showAll || l.from === activeId || l.to === activeId;
+        const drawIn = emphasised && !showAll; // hover reveal only
+        const stroke = "var(--color-rmit-blue-interactive)";
         return (
-          <path
-            key={`${l.from}-${l.to}`}
-            d={d}
-            fill="none"
-            stroke="var(--color-rmit-blue-interactive)"
-            strokeWidth={emphasised ? 1.75 : 1.25}
-            strokeLinecap="round"
-            opacity={emphasised ? 1 : 0.45}
-          />
+          <g key={`${l.from}-${l.to}`} opacity={emphasised ? 1 : 0.5}>
+            {/* casing — separates the line from whatever it crosses */}
+            <path
+              d={route.d}
+              fill="none"
+              stroke="var(--color-card)"
+              strokeWidth={emphasised ? 4.5 : 3.5}
+              strokeLinecap="round"
+              opacity={0.85}
+            />
+            <path
+              d={route.d}
+              fill="none"
+              stroke={stroke}
+              strokeWidth={emphasised ? 1.75 : 1.25}
+              strokeLinecap="round"
+              strokeDasharray={emphasised ? undefined : "3 5"}
+              pathLength={drawIn ? 1 : undefined}
+              className={drawIn ? "animate-draw-line" : undefined}
+            />
+            {/* endpoint anchors */}
+            <circle cx={route.start[0]} cy={route.start[1]} r={2.5} fill={stroke} />
+            <circle
+              cx={route.end[0]}
+              cy={route.end[1]}
+              r={2.5}
+              fill="var(--color-card)"
+              stroke={stroke}
+              strokeWidth={1.5}
+            />
+          </g>
         );
       })}
     </svg>
