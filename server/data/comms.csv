@@ -125,3 +125,8 @@ exc. Bundoora IAs + Brunswick IAs",student,Open Day,Register now for a chance to
 ,recruitment,Victorian Careers Show (Melbourne Showgrounds) registration confirmation,View event details,email,11,May,6,,Victorian Careers Show (Melbourne Showgrounds),,,,,,cvent,,,,,,,,,
 ,recruitment,RMIT Study Expo registration confirmation,View event details,email,11,May,21,,RMIT Study Expo,,,,,,cvent,,,,,,,,,
 ,recruitment,RMIT Study Expo (School Leaver) – October registration confirmation,View event details,email,11,Oct,8,,RMIT Study Expo (School Leaver) – October,,,,,,cvent,,,,,,,,,
+,Admissions,"Congratulations (name), you're in!",Go to your Enrolment Guide,email,12,Dec,23,offers,vtac-post-offer-sms,Defer your offer,Contact Student Connect,,,,marketo,,VTAC applicants (DOM SL),student,,"Offer Round 1 offer letter. Admissions sends Conversion the VTAC offers file, which sets off the post-offer sequence.",,,,
+,Conversion,VTAC Post-Offer SMS,,sms,12,Dec,23,,edm1-enrolment-reminder-he,,,,,,clicksend,After 2pm,VTAC offer holders (DOM SL),student,,Same day as the offer letters. Sent off the VTAC offers file provided by Admissions.,,,,
+,Conversion,EDM1 — Enrolment Reminder (HE),,email,Post,Jan,6,,sms2-do-you-need-enrolment-support,,,,,,marketo,,VTAC offer holders (HE),student,,Two weeks after the post-offer SMS.,,,,
+,Conversion,SMS2 — Do you need enrolment support?,,sms,Post,Jan,20,,last-day-to-enrol-edm,,,,,,clicksend,,VTAC offer holders (HE),student,,Two weeks after the enrolment reminder.,,,,
+,Conversion,Last Day to Enrol EDM,,email,Post,Feb,24,,,,,,,,marketo,,VTAC offer holders (HE),student,,Five days before Semester 1 classes start (1 March 2027).,,,,
