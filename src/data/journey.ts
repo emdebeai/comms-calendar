@@ -43,6 +43,15 @@ export const MOMENTS: Moment[] = [
   { id: "openday-y11", label: "Open Day · Yr 11", from: 19.0, to: 19.3, tier: "major", dates: "Bundoora 2 Aug · City & Brunswick 9 Aug" },
   { id: "openday-y12", label: "Open Day · Yr 12", from: 31.0, to: 31.3, tier: "major", dates: "Bundoora 2 Aug · City & Brunswick 9 Aug" },
   { id: "vtac-close", label: "VTAC Timely Close", from: 32.4, to: 33 },
+  // Same span as the comms embargo below it — the exams ARE the reason the
+  // embargo exists, so the moments band names them right above the hatch.
+  {
+    id: "vce-exams",
+    label: "VCE written exams",
+    from: 24 + 9 + (27 - 1) / 30, // Tue 27 Oct
+    to: 24 + 10 + (18 - 1) / 30, // Wed 18 Nov
+    dates: "Tue 27 Oct – Wed 18 Nov",
+  },
   // VTAC's Change of Preference technically opens 3 Aug (9am), but at RMIT
   // "CoP" means the sprint from the end of VCE exams (18 Nov, where the
   // embargo lifts) to the final change deadline, 12 Dec (12 noon). VCE
