@@ -52,11 +52,13 @@ export const MOMENTS: Moment[] = [
     to: 24 + 10 + (18 - 1) / 30, // Wed 18 Nov
     dates: "Tue 27 Oct – Wed 18 Nov",
   },
+  // Results land first, CoP follows from them — so results sit on the line
+  // ABOVE CoP in the band (array order decides at an equal anchor).
+  { id: "results", label: "VCE results and ATARs released", from: 35.3, to: 35.34, dates: "10 Dec · 7am" },
   // VTAC's Change of Preference technically opens 3 Aug (9am), but at RMIT
   // "CoP" means the two-day sprint from ATAR results landing (10 Dec, 7am)
   // to the final change deadline, 12 Dec (12 noon).
   { id: "cop", label: "Change of Preference", from: 35.3, to: 35.38, dates: "10 – 12 Dec · closes 12 noon" },
-  { id: "results", label: "VCE results and ATARs released", from: 35.3, to: 35.34, dates: "10 Dec · 7am" },
   // December offer round — a single day: offers released 23 Dec at 10am.
   // The whole Conversion post-offer sequence hangs off this round, so those
   // comms are tagged to it.
