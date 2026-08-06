@@ -93,8 +93,10 @@ const MONTH_NAMES = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "se
 
 // Equity cohort a send TARGETS, read from the audience label — but only when
 // the cohort is the target, not when it's excluded. "Year 12 SNAP (exc.
-// DDINTON)" → SNAP; "Year 12 (exc. DDINTON & SNAP)" → none. (DDINTON is a
-// program grouping, not an equity cohort, so it isn't surfaced here.)
+// DDINTON)" → SNAP; "Year 12 (exc. DDINTON & SNAP)" → none. (DDINTON =
+// domestic-domiciled international students — a different persona entirely,
+// so DDINTON-targeted sends aren't in this map's data at all; the "exc."
+// clauses remain in audience labels verbatim.)
 function resolveEquity(audience: string): string | undefined {
   const excluded = (term: string) => new RegExp(`exc\\.[^)]*\\b${term}\\b`, "i").test(audience);
   for (const term of ["SNAP"]) {
