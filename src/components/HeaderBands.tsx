@@ -269,34 +269,37 @@ export function MonthBand({ expandedMonths, onToggleMonth }: MonthBandProps) {
   );
 }
 
-// Assign each moment label to one of two mini-lines so close-together
-// moments (e.g. Change of Preference + Offer Round) never collide. A label
-// may nudge a little to the RIGHT of its band's start (staying inside the
-// band) when that lets it fit a line — the shaded band on the canvas still
-// marks the true start, so a small offset beats an overlap (the December
-// crunch packs three moments into ~1.5 months).
-function momentLines(): Array<{ moment: Moment; line: number; x: number }> {
+// Assign each moment label to one of three mini-lines so close-together
+// moments (the December crunch packs three into ~1.5 months) never collide.
+// The tick ALWAYS sits on the moment's true date; each label takes the line
+// where its text drifts least from the tick (usually not at all — three
+// lines give plenty of room), bridged by a dotted leader if it must slide.
+function momentLines(): Array<{ moment: Moment; line: number; x: number; nudge: number }> {
   const estWidth = (moment: Moment) => moment.label.length * 6.8 + 14;
-  const lineEnds = [-Infinity, -Infinity];
+  const lineEnds = [-Infinity, -Infinity, -Infinity];
   return [...MOMENTS]
     .sort((a, b) => a.from - b.from)
     .map((moment) => {
       const x = scaleX(moment.from);
-      // Flat allowance — band-relative capping would forbid nudging the
-      // single-day moments (results, offer round) that need it most. The
-      // shaded band still marks the true date; 80px ≈ 12 days at base scale.
+      // Least-drift line wins (ties → higher line). Cap how far text may
+      // drift from its tick; beyond that, overlap on the emptiest line.
       const maxNudge = 80;
+      let best = -1;
+      let bestNudge = Infinity;
       for (let line = 0; line < lineEnds.length; line++) {
-        const start = Math.max(x, lineEnds[line] + 12);
-        if (start - x <= maxNudge) {
-          lineEnds[line] = start + estWidth(moment);
-          return { moment, line, x: start };
+        const nudge = Math.max(0, lineEnds[line] + 12 - x);
+        if (nudge < bestNudge) {
+          best = line;
+          bestNudge = nudge;
         }
       }
-      // Nowhere fits — take the least-loaded line at the true position.
-      const line = lineEnds[0] <= lineEnds[1] ? 0 : 1;
+      if (bestNudge <= maxNudge) {
+        lineEnds[best] = x + bestNudge + estWidth(moment);
+        return { moment, line: best, x, nudge: bestNudge };
+      }
+      const line = lineEnds.indexOf(Math.min(...lineEnds));
       lineEnds[line] = x + estWidth(moment);
-      return { moment, line, x };
+      return { moment, line, x, nudge: 0 };
     });
 }
 
@@ -315,7 +318,7 @@ export function MomentsBand({ activeMomentId, onHoverMoment, onPinMoment }: Mome
       className="absolute top-0 left-0 border-b border-grey-30 bg-card"
       style={{ width: TOTAL_W, height: MOMENT_H }}
     >
-      {momentLines().map(({ moment, line, x }) => {
+      {momentLines().map(({ moment, line, x, nudge }) => {
         const active = moment.id === activeMomentId;
         return (
           <button
@@ -335,13 +338,23 @@ export function MomentsBand({ activeMomentId, onHoverMoment, onPinMoment }: Mome
             }`}
             style={{ left: x, top: 4 + line * 21, zIndex: active ? 20 : undefined }}
           >
-            {moment.label}
+            {/* the tick (left border) marks the TRUE date; a slid label gets
+                a dotted leader back to it */}
+            {nudge > 10 && (
+              <span
+                aria-hidden
+                className="absolute top-1/2 left-0 border-t border-dashed border-grey-40"
+                style={{ width: nudge }}
+              />
+            )}
+            <span style={nudge ? { marginLeft: nudge } : undefined}>{moment.label}</span>
             {/* instant date tooltip — only moments with CONFIRMED dates carry
                 one (fabricating a date would be worse than no tooltip) */}
             {active && moment.dates && (
               <span
                 aria-hidden
-                className="absolute top-full left-0 z-30 mt-1 rounded-md bg-tooltip px-2 py-1 text-xs font-normal whitespace-nowrap text-white no-underline shadow-md"
+                className="absolute top-full z-30 mt-1 rounded-md bg-tooltip px-2 py-1 text-xs font-normal whitespace-nowrap text-white no-underline shadow-md"
+                style={{ left: nudge }}
               >
                 {moment.dates}
               </span>
