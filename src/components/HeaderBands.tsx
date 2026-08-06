@@ -270,17 +270,30 @@ export function MonthBand({ expandedMonths, onToggleMonth }: MonthBandProps) {
 }
 
 // Assign each moment label to one of two mini-lines so close-together
-// moments (e.g. Change of Preference + Offer Round) never collide.
-function momentLines(): Array<{ moment: Moment; line: number }> {
+// moments (e.g. Change of Preference + Offer Round) never collide. A label
+// may nudge a little to the RIGHT of its band's start (staying inside the
+// band) when that lets it fit a line — the shaded band on the canvas still
+// marks the true start, so a small offset beats an overlap (the December
+// crunch packs three moments into ~1.5 months).
+function momentLines(): Array<{ moment: Moment; line: number; x: number }> {
   const estWidth = (moment: Moment) => moment.label.length * 6.8 + 14;
   const lineEnds = [-Infinity, -Infinity];
   return [...MOMENTS]
     .sort((a, b) => a.from - b.from)
     .map((moment) => {
       const x = scaleX(moment.from);
-      const line = x >= lineEnds[0] + 12 ? 0 : 1;
+      const maxNudge = Math.min(44, Math.max(0, (scaleX(moment.to) - x) / 2));
+      for (let line = 0; line < lineEnds.length; line++) {
+        const start = Math.max(x, lineEnds[line] + 12);
+        if (start - x <= maxNudge) {
+          lineEnds[line] = start + estWidth(moment);
+          return { moment, line, x: start };
+        }
+      }
+      // Nowhere fits — take the least-loaded line at the true position.
+      const line = lineEnds[0] <= lineEnds[1] ? 0 : 1;
       lineEnds[line] = x + estWidth(moment);
-      return { moment, line };
+      return { moment, line, x };
     });
 }
 
@@ -299,7 +312,7 @@ export function MomentsBand({ activeMomentId, onHoverMoment, onPinMoment }: Mome
       className="absolute top-0 left-0 border-b border-grey-30 bg-card"
       style={{ width: TOTAL_W, height: MOMENT_H }}
     >
-      {momentLines().map(({ moment, line }) => {
+      {momentLines().map(({ moment, line, x }) => {
         const active = moment.id === activeMomentId;
         return (
           <button
@@ -317,7 +330,7 @@ export function MomentsBand({ activeMomentId, onHoverMoment, onPinMoment }: Mome
                 ? "border-rmit-red text-rmit-red underline decoration-2 underline-offset-2"
                 : "border-grey-40 text-grey-90 hover:text-rmit-blue"
             }`}
-            style={{ left: scaleX(moment.from), top: 4 + line * 21 }}
+            style={{ left: x, top: 4 + line * 21 }}
           >
             {moment.label}
           </button>
