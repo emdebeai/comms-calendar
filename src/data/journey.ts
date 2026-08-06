@@ -52,10 +52,10 @@ export const MOMENTS: Moment[] = [
   // December offer round — offers released 23 Dec (10am); the band runs on
   // through the January rounds. The whole Conversion post-offer sequence
   // hangs off this round, so those comms are tagged to it.
-  { id: "offers", label: "Dec. Offer Round", from: 35.73, to: 36.4, tier: "major" },
+  { id: "offers", label: "December Offer Round", from: 35.73, to: 36.4, tier: "major" },
   // The journey's terminus — Semester 1 classes begin 1 March 2027 (the
   // Last Day to Enrol EDM goes five days before).
-  { id: "sem1", label: "Sem 1 Classes Begin", from: 38, to: 38.2 },
+  { id: "sem1", label: "Semester 1 Classes Begin", from: 38, to: 38.2 },
 ];
 
 // Send embargoes — periods when outbound comms deliberately go quiet (no
