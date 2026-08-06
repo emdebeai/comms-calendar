@@ -48,14 +48,14 @@ export const MOMENTS: Moment[] = [
   // embargo lifts) to the final change deadline, 12 Dec (12 noon). VCE
   // results + ATARs land inside it on 10 Dec (7am).
   { id: "cop", label: "Change of Preference", from: 34.6, to: 35.38 },
-  { id: "results", label: "VCE Results & ATARs", from: 35.3, to: 35.34 },
+  { id: "results", label: "VCE results and ATARs released", from: 35.3, to: 35.34 },
   // December offer round — offers released 23 Dec (10am); the band runs on
   // through the January rounds. The whole Conversion post-offer sequence
   // hangs off this round, so those comms are tagged to it.
-  { id: "offers", label: "December Offer Round", from: 35.73, to: 36.4, tier: "major" },
+  { id: "offers", label: "December offer round", from: 35.73, to: 36.4, tier: "major" },
   // The journey's terminus — Semester 1 classes begin 1 March 2027 (the
   // Last Day to Enrol EDM goes five days before).
-  { id: "sem1", label: "Semester 1 Classes Begin", from: 38, to: 38.2 },
+  { id: "sem1", label: "Semester 1 classes begin", from: 38, to: 38.2 },
 ];
 
 // Send embargoes — periods when outbound comms deliberately go quiet (no
