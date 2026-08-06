@@ -5,7 +5,9 @@ import { EYEBROW, FOCUS_RING } from "../lib/styles";
 interface Props {
   /** small uppercase line above the title, e.g. "Email · 2 Jul · Year 12" */
   overline: string;
-  title: string;
+  /** usually a string; the comm panel passes tokenised text so Marketo
+   *  personalisation tokens render in monospace */
+  title: ReactNode;
   /** classes for the round icon chip, e.g. "bg-tint-blue text-rmit-blue" */
   iconChipClass: string;
   icon: ReactNode;

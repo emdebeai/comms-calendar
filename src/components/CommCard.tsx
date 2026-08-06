@@ -5,6 +5,7 @@ import { CARD_W, PILL_H, commPos, monthLabel } from "../lib/scale";
 import { markerAccent } from "../lib/designConfig";
 import { FOCUS_RING } from "../lib/styles";
 import { COMM_COLORS, COMM_ICONS } from "./icons";
+import { TokenText } from "./TokenText";
 
 interface Props {
   comm: Comm;
@@ -129,7 +130,7 @@ export function CommCard({
       </span>
       <span className="min-w-0 flex-1">
         <span className={`block text-xs font-semibold leading-tight line-clamp-2 ${colors.text}`}>
-          {comm.title}
+          <TokenText text={comm.title} />
         </span>
         {/* audience variant — only on look-alike stacks, so "COP Explained"
             ×3 reads as three audience splits, not a triple-send */}

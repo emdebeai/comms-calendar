@@ -5,6 +5,7 @@ import { commDateLabel } from "../lib/scale";
 import { SEGMENT_AXES } from "../lib/segments";
 import { EYEBROW } from "../lib/styles";
 import { DetailPanelShell } from "./DetailPanelShell";
+import { TokenText } from "./TokenText";
 import { FeedbackComposer, FeedbackThread } from "./FeedbackSection";
 import { COMM_COLORS, COMM_ICONS, COMM_LABELS, PLATFORM_LABELS } from "./icons";
 
@@ -65,7 +66,7 @@ export function CommDetailPanel({ comm, allComms, entries, onClose, onAdd }: Pro
   return (
     <DetailPanelShell
       overline={`${COMM_LABELS[comm.type]} · ${dateLabel}`}
-      title={comm.title}
+      title={<TokenText text={comm.title} />}
       iconChipClass={`${colors.chip} ${colors.text}`}
       icon={<Icon size={16} strokeWidth={1.75} aria-hidden />}
       onClose={onClose}
