@@ -11,7 +11,7 @@ import { campaignGroups, campaignSpan } from "../data/comms";
 import { YEARS } from "../data/journey";
 import type { Comm, Team } from "../data/types";
 
-export const MONTHS = 38;
+export const MONTHS = 39; // through March 2027 — Sem 1 classes begin 1 Mar
 
 interface Segment {
   from: number;
@@ -24,7 +24,7 @@ export const SEGMENTS: Segment[] = [
   { from: 31.7, to: 33, pxPerMonth: 350 }, // Decide/Begin/Submit — widened so these
   //                                          short, distinct stages stay legible
   { from: 33, to: 36, pxPerMonth: 120 }, // Wait / Offer
-  { from: 36, to: 38, pxPerMonth: 96 }, // post-school tail (no comms yet)
+  { from: 36, to: 39, pxPerMonth: 96 }, // post-school tail (enrolment run-in)
 ];
 
 // One month at a time can be zoomed in two steps: level 1 spreads it into

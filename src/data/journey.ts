@@ -14,7 +14,7 @@ export const STAGES: StageSpan[] = [
   { label: "Submit", from: 32.6, to: 33 },
   { label: "Wait", from: 33, to: 35 },
   { label: "Offer", from: 35, to: 36.5 },
-  { label: "Enrol", from: 36.5, to: 38 },
+  { label: "Enrol", from: 36.5, to: 39 },
 ];
 
 // The three school-year bands run in PARALLEL, not sequence: this timeline
@@ -29,7 +29,7 @@ export const YEARS: YearSpan[] = [
   { label: `Year 10 · ${THIS_YEAR}`, from: 0, to: 12 },
   { label: `Year 11 · ${THIS_YEAR}`, from: 12, to: 24 },
   { label: `Year 12 · ${THIS_YEAR}`, from: 24, to: 36 },
-  { label: `Post-school · ${THIS_YEAR + 1}`, from: 36, to: 38 },
+  { label: `Post-school · ${THIS_YEAR + 1}`, from: 36, to: 39 },
 ];
 
 // Moments that matter — vertical bands across every swimlane. "major" gets
@@ -50,9 +50,12 @@ export const MOMENTS: Moment[] = [
   { id: "cop", label: "Change of Preference", from: 34.6, to: 35.38 },
   { id: "results", label: "VCE Results & ATARs", from: 35.3, to: 35.34 },
   // December offer round — offers released 23 Dec (10am); the band runs on
-  // through the January rounds.
-  { id: "offers", label: "Offer Round", from: 35.73, to: 36.4, tier: "major" },
-  { id: "oweek", label: "O-Week", from: 37.3, to: 38 },
+  // through the January rounds. The whole Conversion post-offer sequence
+  // hangs off this round, so those comms are tagged to it.
+  { id: "offers", label: "Dec. Offer Round", from: 35.73, to: 36.4, tier: "major" },
+  // The journey's terminus — Semester 1 classes begin 1 March 2027 (the
+  // Last Day to Enrol EDM goes five days before).
+  { id: "sem1", label: "Sem 1 Classes Begin", from: 38, to: 38.2 },
 ];
 
 // Send embargoes — periods when outbound comms deliberately go quiet (no
