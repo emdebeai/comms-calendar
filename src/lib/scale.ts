@@ -23,7 +23,10 @@ export const SEGMENTS: Segment[] = [
   { from: 0, to: 31.7, pxPerMonth: 120 }, // Years 10-12 up to the crunch — uniform
   { from: 31.7, to: 33, pxPerMonth: 350 }, // Decide/Begin/Submit — widened so these
   //                                          short, distinct stages stay legible
-  { from: 33, to: 36, pxPerMonth: 120 }, // Wait / Offer
+  { from: 33, to: 34.5, pxPerMonth: 120 }, // Oct – mid-Nov (Wait, exams)
+  { from: 34.5, to: 36, pxPerMonth: 200 }, // the December drama — CoP sprint,
+  //                                          results, offer round + post-offer
+  //                                          cascade all land in ~6 weeks
   { from: 36, to: 39, pxPerMonth: 96 }, // post-school tail (enrolment run-in)
 ];
 
