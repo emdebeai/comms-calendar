@@ -282,7 +282,10 @@ function momentLines(): Array<{ moment: Moment; line: number; x: number }> {
     .sort((a, b) => a.from - b.from)
     .map((moment) => {
       const x = scaleX(moment.from);
-      const maxNudge = Math.min(44, Math.max(0, (scaleX(moment.to) - x) / 2));
+      // Flat allowance — band-relative capping would forbid nudging the
+      // single-day moments (results, offer round) that need it most. The
+      // shaded band still marks the true date; 80px ≈ 12 days at base scale.
+      const maxNudge = 80;
       for (let line = 0; line < lineEnds.length; line++) {
         const start = Math.max(x, lineEnds[line] + 12);
         if (start - x <= maxNudge) {

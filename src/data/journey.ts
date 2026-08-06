@@ -53,10 +53,9 @@ export const MOMENTS: Moment[] = [
     dates: "Tue 27 Oct – Wed 18 Nov",
   },
   // VTAC's Change of Preference technically opens 3 Aug (9am), but at RMIT
-  // "CoP" means the sprint from the end of VCE exams (18 Nov, where the
-  // embargo lifts) to the final change deadline, 12 Dec (12 noon). VCE
-  // results + ATARs land inside it on 10 Dec (7am).
-  { id: "cop", label: "Change of Preference", from: 34.6, to: 35.38, dates: "18 Nov – 12 Dec · closes 12 noon" },
+  // "CoP" means the two-day sprint from ATAR results landing (10 Dec, 7am)
+  // to the final change deadline, 12 Dec (12 noon).
+  { id: "cop", label: "Change of Preference", from: 35.3, to: 35.38, dates: "10 – 12 Dec · closes 12 noon" },
   { id: "results", label: "VCE results and ATARs released", from: 35.3, to: 35.34, dates: "10 Dec · 7am" },
   // December offer round — a single day: offers released 23 Dec at 10am.
   // The whole Conversion post-offer sequence hangs off this round, so those
