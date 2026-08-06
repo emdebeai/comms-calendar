@@ -39,23 +39,23 @@ export const MOMENTS: Moment[] = [
   // Open Day 2026 runs across two Sundays — Bundoora on 2 August, City and
   // Brunswick on 9 August — so each band brackets 1–10 August (month 19/31 =
   // August, day d = (d-1)/30) rather than trailing off through September.
-  { id: "openday-y10", label: "Open Day · Yr 10", from: 7.0, to: 7.3, tier: "major" },
-  { id: "openday-y11", label: "Open Day · Yr 11", from: 19.0, to: 19.3, tier: "major" },
-  { id: "openday-y12", label: "Open Day · Yr 12", from: 31.0, to: 31.3, tier: "major" },
+  { id: "openday-y10", label: "Open Day · Yr 10", from: 7.0, to: 7.3, tier: "major", dates: "Bundoora 2 Aug · City & Brunswick 9 Aug" },
+  { id: "openday-y11", label: "Open Day · Yr 11", from: 19.0, to: 19.3, tier: "major", dates: "Bundoora 2 Aug · City & Brunswick 9 Aug" },
+  { id: "openday-y12", label: "Open Day · Yr 12", from: 31.0, to: 31.3, tier: "major", dates: "Bundoora 2 Aug · City & Brunswick 9 Aug" },
   { id: "vtac-close", label: "VTAC Timely Close", from: 32.4, to: 33 },
   // VTAC's Change of Preference technically opens 3 Aug (9am), but at RMIT
   // "CoP" means the sprint from the end of VCE exams (18 Nov, where the
   // embargo lifts) to the final change deadline, 12 Dec (12 noon). VCE
   // results + ATARs land inside it on 10 Dec (7am).
-  { id: "cop", label: "Change of Preference", from: 34.6, to: 35.38 },
-  { id: "results", label: "VCE results and ATARs released", from: 35.3, to: 35.34 },
-  // December offer round — offers released 23 Dec (10am); the band runs on
-  // through the January rounds. The whole Conversion post-offer sequence
-  // hangs off this round, so those comms are tagged to it.
-  { id: "offers", label: "December offer round", from: 35.73, to: 36.4, tier: "major" },
+  { id: "cop", label: "Change of Preference", from: 34.6, to: 35.38, dates: "18 Nov – 12 Dec · closes 12 noon" },
+  { id: "results", label: "VCE results and ATARs released", from: 35.3, to: 35.34, dates: "10 Dec · 7am" },
+  // December offer round — a single day: offers released 23 Dec at 10am.
+  // The whole Conversion post-offer sequence hangs off this round, so those
+  // comms are tagged to it.
+  { id: "offers", label: "December offer round", from: 35.733, to: 35.767, tier: "major", dates: "23 Dec · offers released 10am" },
   // The journey's terminus — Semester 1 classes begin 1 March 2027 (the
   // Last Day to Enrol EDM goes five days before).
-  { id: "sem1", label: "Semester 1 classes begin", from: 38, to: 38.2 },
+  { id: "sem1", label: "Semester 1 classes begin", from: 38, to: 38.2, dates: "1 Mar 2027" },
 ];
 
 // Send embargoes — periods when outbound comms deliberately go quiet (no

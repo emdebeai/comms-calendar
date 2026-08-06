@@ -330,9 +330,19 @@ export function MomentsBand({ activeMomentId, onHoverMoment, onPinMoment }: Mome
                 ? "border-rmit-red text-rmit-red underline decoration-2 underline-offset-2"
                 : "border-grey-40 text-grey-90 hover:text-rmit-blue"
             }`}
-            style={{ left: x, top: 4 + line * 21 }}
+            style={{ left: x, top: 4 + line * 21, zIndex: active ? 20 : undefined }}
           >
             {moment.label}
+            {/* instant date tooltip — only moments with CONFIRMED dates carry
+                one (fabricating a date would be worse than no tooltip) */}
+            {active && moment.dates && (
+              <span
+                aria-hidden
+                className="absolute top-full left-0 z-30 mt-1 rounded-md bg-tooltip px-2 py-1 text-xs font-normal whitespace-nowrap text-white no-underline shadow-md"
+              >
+                {moment.dates}
+              </span>
+            )}
           </button>
         );
       })}

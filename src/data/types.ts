@@ -110,6 +110,9 @@ export interface Moment {
   /** "major" gets a solid heavy border + filled badge — flagship events like
    *  Open Day. Omit (or "standard") for process deadlines. */
   tier?: "major" | "standard";
+  /** confirmed calendar dates/times, shown as a tooltip on hover — omit when
+   *  the exact date isn't confirmed (no tooltip beats a made-up one) */
+  dates?: string;
 }
 
 export interface StageSpan {
