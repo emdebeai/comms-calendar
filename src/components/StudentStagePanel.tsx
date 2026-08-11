@@ -81,7 +81,7 @@ export function StudentStagePanel({ stageLabel, onClose }: Props) {
                       >
                         {item}
                         {links.length > 0 && (
-                          <span className="ml-1.5 inline-flex translate-y-px items-center gap-0.5 text-[10px] font-semibold not-italic text-rmit-blue-interactive">
+                          <span className="ml-1.5 inline-flex translate-y-px items-center gap-0.5 text-xs font-semibold not-italic text-rmit-blue-interactive">
                             <Link2 size={10} strokeWidth={2} aria-hidden />
                             {links.length}
                           </span>

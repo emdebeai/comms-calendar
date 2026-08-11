@@ -76,13 +76,13 @@ export function StudentJourneyLane({
                         const cardBase =
                           "flex w-full items-start justify-between gap-2 rounded-md border px-2 py-1.5 text-left text-xs leading-snug transition-colors";
                         const pill = hasLinks ? (
-                          <span className="inline-flex shrink-0 translate-y-px items-center gap-0.5 rounded-full bg-tint-blue px-1.5 py-0.5 text-[10px] font-semibold whitespace-nowrap text-rmit-blue-interactive">
+                          <span className="inline-flex shrink-0 translate-y-px items-center gap-0.5 rounded-full bg-tint-blue px-1.5 py-0.5 text-xs font-semibold whitespace-nowrap text-rmit-blue-interactive">
                             <Link2 size={10} strokeWidth={2} aria-hidden />
                             {links.length}
                           </span>
                         ) : (
                           <span
-                            className="inline-flex shrink-0 translate-y-px items-center rounded-full bg-grey-20 px-1.5 py-0.5 text-[10px] font-medium whitespace-nowrap text-grey-60"
+                            className="inline-flex shrink-0 translate-y-px items-center rounded-full bg-grey-20 px-1.5 py-0.5 text-xs font-medium whitespace-nowrap text-grey-60"
                             title="No comms mapped to this question yet"
                           >
                             —
@@ -150,7 +150,7 @@ export function StudentJourneyLane({
         >
           <span className={`text-rmit-blue ${EYEBROW}`}>Student Journey</span>
           <span className="mt-0.5 text-xs text-grey-70">What students are asking</span>
-          <span className="mt-2 flex items-center gap-1 text-[10px] leading-snug text-grey-60">
+          <span className="mt-2 flex items-center gap-1 text-xs leading-snug text-grey-60">
             <Link2 size={10} strokeWidth={2} className="shrink-0" aria-hidden />
             hover to see the comms that answer it
           </span>

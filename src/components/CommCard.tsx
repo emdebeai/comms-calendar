@@ -146,7 +146,7 @@ export function CommCard({
         {/* audience variant — only on look-alike stacks, so "COP Explained"
             ×3 reads as three audience splits, not a triple-send */}
         {variant && (
-          <span className="mt-0.5 flex items-center gap-1 text-[11px] leading-tight text-grey-70">
+          <span className="mt-0.5 flex items-center gap-1 text-xs leading-tight text-grey-70">
             <Users size={10} strokeWidth={2} className="shrink-0" aria-hidden />
             <span className="truncate">{variant}</span>
           </span>

@@ -359,7 +359,7 @@ export function Timeline({
                 style={{ left, width, top: HEADER_H, height: TOTAL_H - HEADER_H }}
               >
                 <span
-                  className="pointer-events-auto sticky flex items-center gap-1 rounded-md border border-grey-40 bg-card px-2 py-0.5 text-[10px] font-semibold whitespace-nowrap text-grey-80 shadow-sm"
+                  className="pointer-events-auto sticky flex items-center gap-1 rounded-md border border-grey-40 bg-card px-2 py-0.5 text-xs font-semibold whitespace-nowrap text-grey-80 shadow-sm"
                   style={{ top: MONTH_H + MOMENT_H + 8 }}
                   title={`${e.label} — 27 Oct to 18 Nov 2026`}
                 >
@@ -676,7 +676,7 @@ export function Timeline({
                     {body}
                   </button>
                   {!collapsed && (
-                    <p className="mt-1.5 pr-1 pl-[19px] text-[11px] leading-snug text-grey-60">
+                    <p className="mt-1.5 pr-1 pl-[19px] text-xs leading-snug text-grey-60">
                       Source:{" "}
                       <a
                         href="https://vtac.edu.au/files/pdf/publications/VTAC_2024-25_Newsletter_schedule.pdf"

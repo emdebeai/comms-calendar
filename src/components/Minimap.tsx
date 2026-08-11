@@ -126,7 +126,7 @@ export function Minimap({ comms, scrollerRef }: Props) {
           ].map((b) => (
             <span
               key={b.label}
-              className="absolute top-0.5 -translate-x-1/2 text-[9px] leading-none text-grey-60"
+              className="absolute top-0.5 -translate-x-1/2 text-xs leading-none text-grey-60"
               style={{ left: (toMap(scaleX(b.from)) + toMap(scaleX(b.to))) / 2 }}
             >
               {b.label}

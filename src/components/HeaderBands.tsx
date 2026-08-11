@@ -178,7 +178,7 @@ export function MonthBand({ expandedMonths, onToggleMonth }: MonthBandProps) {
           >
             {!nextToExpanded && (
               <span
-                className="px-1 text-[10px] leading-none whitespace-nowrap text-grey-60"
+                className="px-1 text-xs leading-none whitespace-nowrap text-grey-60"
                 style={stickyLabel}
               >
                 {r.label}

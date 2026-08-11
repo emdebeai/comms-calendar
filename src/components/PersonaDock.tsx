@@ -77,7 +77,7 @@ export function PersonaDock({
           <GraduationCap size={14} strokeWidth={2} aria-hidden />
           DOM SL
           {count > 0 && (
-            <span className="rounded-full bg-white/25 px-1 text-[10px]">{count}</span>
+            <span className="rounded-full bg-white/25 px-1 text-xs">{count}</span>
           )}
           <ChevronUp
             size={13}
