@@ -649,6 +649,52 @@ export function Timeline({
 
           const posStyle = { top: lane.top - HEADER_H, height: lane.height };
 
+          // VTAC carries a provenance note + link under its label. A link can't
+          // live inside the collapse <button>, so this lane is a <div> with the
+          // toggle and the <a> as siblings in one (pinnable) column.
+          if (lane.id === "vtac") {
+            return (
+              <div
+                key={lane.id}
+                className={`absolute left-0 w-full border-b border-grey-30 px-4 ${laneBg[lane.id]}`}
+                style={posStyle}
+              >
+                <div
+                  className={pinnable ? "sticky flex w-full flex-col py-2.5" : "flex w-full flex-col py-2.5"}
+                  style={pinnable ? { top: MONTH_H + MOMENT_H } : undefined}
+                >
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onToggleLane(lane.id);
+                    }}
+                    aria-expanded={!collapsed}
+                    aria-label={`VTAC lane — ${collapsed ? "expand" : "collapse"}`}
+                    className={`flex w-full flex-col text-left ${FOCUS_RING}`}
+                  >
+                    {body}
+                  </button>
+                  {!collapsed && (
+                    <p className="mt-1.5 pr-1 pl-[19px] text-[11px] leading-snug text-grey-60">
+                      Source:{" "}
+                      <a
+                        href="https://vtac.edu.au/files/pdf/publications/VTAC_2024-25_Newsletter_schedule.pdf"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                        className={`text-rmit-blue-interactive underline decoration-dotted underline-offset-2 hover:decoration-solid ${FOCUS_RING}`}
+                      >
+                        VTAC 2024–25 newsletter
+                      </a>{" "}
+                      — indicative dates, not aligned to RMIT&rsquo;s 2026 comms.
+                    </p>
+                  )}
+                </div>
+              </div>
+            );
+          }
+
           if (!collapsible) {
             return (
               <div
