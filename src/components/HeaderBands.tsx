@@ -248,14 +248,24 @@ export function MonthBand({ expandedMonths, onToggleMonth }: MonthBandProps) {
                         {d}
                       </span>
                     ))}
-                {/* Month name — solid chip pinned left, above the day numbers so
-                    it cleanly occludes the day-1 label beneath it. Carries the
-                    year/stage context the collapsed cells show, since an
-                    expanded month replaces its cell entirely. */}
-                <span className="absolute top-1/2 left-0 z-10 -translate-y-1/2 bg-header py-0.5 pr-2 pl-2 font-semibold whitespace-nowrap">
-                  {monthLabel(m)}
-                  <span className="ml-1.5 font-normal text-white/70">
-                    {monthYearShort(m)} · {monthStage(m)}
+                {/* Month name — solid chip carrying the year/stage context (an
+                    expanded month replaces its collapsed cell, so it labels
+                    itself). Sticky to the gutter edge: it rides the month's left
+                    edge while the month is in view, but pins just past the
+                    gutter once you scroll into the month — so it can never slide
+                    over the gutter/Reset-zoom control. */}
+                <span
+                  aria-hidden
+                  className="pointer-events-none absolute inset-y-0 left-0 right-0 z-10 flex items-center"
+                >
+                  <span
+                    className="bg-header py-0.5 pr-2 pl-2 font-semibold whitespace-nowrap"
+                    style={stickyLabel}
+                  >
+                    {monthLabel(m)}
+                    <span className="ml-1.5 font-normal text-white/70">
+                      {monthYearShort(m)} · {monthStage(m)}
+                    </span>
                   </span>
                 </span>
                 {level === 2 && (
