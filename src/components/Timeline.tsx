@@ -201,7 +201,7 @@ export function Timeline({
           />
         </div>
         <div
-          className={`sticky left-0 flex h-full items-center border-r border-grey-30 bg-header px-4 text-white ${EYEBROW}`}
+          className={`sticky left-0 z-20 flex h-full items-center border-r border-grey-30 bg-header px-4 text-white ${EYEBROW}`}
           style={{ width: LABEL_W }}
         >
           Journey Stage
@@ -226,7 +226,7 @@ export function Timeline({
           <YearBand />
         </div>
         <div
-          className="sticky left-0 flex h-full items-center border-r border-b border-grey-30 bg-grey-20 px-4 text-xs text-grey-70"
+          className="sticky left-0 z-20 flex h-full items-center border-r border-b border-grey-30 bg-grey-20 px-4 text-xs text-grey-70"
           style={{ width: LABEL_W }}
         >
           School year
@@ -238,7 +238,7 @@ export function Timeline({
           <MonthBand expandedMonths={expandedMonths} onToggleMonth={onToggleMonth} />
         </div>
         <div
-          className="sticky left-0 flex h-full items-center justify-between gap-2 border-r border-b border-grey-30 bg-card px-4 text-xs text-grey-70"
+          className="sticky left-0 z-20 flex h-full items-center justify-between gap-2 border-r border-b border-grey-30 bg-card px-4 text-xs text-grey-70"
           style={{ width: LABEL_W }}
         >
           Month
@@ -269,7 +269,7 @@ export function Timeline({
           />
         </div>
         <div
-          className="sticky left-0 flex h-full items-center border-r border-b border-grey-30 bg-card px-4 text-xs text-grey-70"
+          className="sticky left-0 z-30 flex h-full items-center border-r border-b border-grey-30 bg-card px-4 text-xs text-grey-70"
           style={{ width: LABEL_W }}
         >
           Moments that matter
@@ -355,7 +355,7 @@ export function Timeline({
                 }}
               />
               <div
-                className="pointer-events-none absolute z-40 flex justify-center items-start"
+                className="pointer-events-none absolute z-20 flex justify-center items-start"
                 style={{ left, width, top: HEADER_H, height: TOTAL_H - HEADER_H }}
               >
                 <span
@@ -578,9 +578,12 @@ export function Timeline({
         />
       </div>
 
-      {/* ── Sticky team gutter ── */}
+      {/* ── Sticky team gutter — the whole left panel sits ABOVE the canvas
+          (cards, chips, embargo/moment labels all ≤ z-30) so nothing bleeds
+          over it while scrolling, but BELOW the sticky header bands (z-40) so
+          they still cover its top-left corner, and below the fixed docks. ── */}
       <div
-        className="sticky left-0 z-30 border-r border-grey-30 bg-surface"
+        className="sticky left-0 z-[35] border-r border-grey-30 bg-surface"
         style={{ width: LABEL_W, height: TOTAL_H - HEADER_H }}
       >
         {LANES.map((lane) => {
