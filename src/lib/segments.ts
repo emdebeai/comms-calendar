@@ -52,6 +52,38 @@ export const SEGMENT_AXES: SegmentAxis[] = [
  *  matches either. */
 export type SegmentSelection = Partial<Record<SegmentKey, string[]>>;
 
+/** Values shown greyed-out rather than hidden — the axis genuinely has this
+ *  option, it just doesn't apply (or has no data) for the current persona.
+ *  Showing it disabled tells the viewer the dimension exists. */
+export interface UnavailableValue {
+  value: string;
+  label: string;
+  /** why it's greyed — shown as the tooltip */
+  reason: string;
+}
+
+export const UNAVAILABLE_SEGMENTS: Partial<Record<SegmentKey, UnavailableValue[]>> = {
+  // Persona-01 is HE (undergraduate, non-pathway) — the VE/diploma route is a
+  // separate future persona, so VE shows but can't be selected.
+  college: [
+    { value: "VE", label: "VE", reason: "Not applicable — this persona is higher ed" },
+  ],
+};
+
+/** Equity cohorts: full program names (chip shows the short form, tooltip the
+ *  full name) and cohorts that exist but have no mapped data yet. */
+export const EQUITY_FULL_NAMES: Record<string, string> = {
+  SNAP: "Schools Network Access Program",
+};
+
+export const UNAVAILABLE_EQUITY: UnavailableValue[] = [
+  {
+    value: "IAP",
+    label: "Indigenous Access",
+    reason: "Indigenous Access Program — no data mapped yet",
+  },
+];
+
 /** Distinct values actually present in the data, per axis — so the toggles
  *  only ever offer segments that exist. Ordered by the axis's label map, then
  *  any extras. Axes with no values are dropped entirely. */

@@ -1,4 +1,4 @@
-import type { SegmentAxis, SegmentSelection } from "../lib/segments";
+import { UNAVAILABLE_SEGMENTS, type SegmentAxis, type SegmentSelection } from "../lib/segments";
 import { FOCUS_RING } from "../lib/styles";
 
 interface Props {
@@ -82,6 +82,22 @@ export function SegmentToggles({ axes, selection, counts, onSelect, onClearAll }
                   </button>
                 );
               })}
+              {/* Greyed options — the axis has this value, it just doesn't
+                  apply (or has no data) for the current persona. Skipped if
+                  real data for it ever lands (it becomes a normal chip). */}
+              {(UNAVAILABLE_SEGMENTS[axis.key] ?? [])
+                .filter((u) => !values.includes(u.value))
+                .map((u) => (
+                  <button
+                    key={u.value}
+                    type="button"
+                    disabled
+                    title={u.reason}
+                    className={`${chip} cursor-not-allowed border border-dashed border-grey-30 text-grey-60`}
+                  >
+                    {u.label}
+                  </button>
+                ))}
             </div>
           );
         })}

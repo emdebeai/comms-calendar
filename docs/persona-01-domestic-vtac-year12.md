@@ -10,7 +10,7 @@
 |---|---|:--:|
 | **Age** | 17–18 (99% are 19 or under) | ● |
 | **Route** | VTAC, straight from school, no gap | ● |
-| **Study type** | A degree *or* a diploma — ~72% / ~28% | ● |
+| **Level** | Undergraduate (HE, non-pathway) — the ~28% VE/diploma share is a future persona | ● |
 | **Field** | No typical one — biggest single course is 5% | ● |
 | **Commitment to RMIT** | A contender, not the favourite — RMIT is 1st choice only 15% of the time | ● |
 | **Motivation** | Employment — 82% study "to get a job" | ● |
@@ -20,6 +20,21 @@
 | **Location** | Metropolitan Melbourne | ○ |
 | **School** | Government or independent | ○ |
 | **ATAR band** | Unknown | ○ |
+
+## Definition — what this persona is
+
+- **Year 12**, applying **through VTAC** (not direct).
+- **Gender non-specific** and **VTAC-preference agnostic** — no assumption about where RMIT sits in their list.
+- **College / interest-area agnostic** — no faculty is assumed (use the map's College toggle to cut by one).
+- **No selection task** — a non-portfolio degree, so **no interaction with RAS** at any point.
+- **Undergraduate, non-pathway** (HE; the VE/diploma route is a separate future persona).
+- **Not an equity cohort** — SNAP / Indigenous Access journeys are toggles on the map, not this baseline.
+
+### Baseline consequences (why some comms don't exist for them)
+
+- **No offer acceptance step.** As a DOM/VTAC offer-holder they never "accept" — the course **appears automatically in Enrolment Online**. So there are **no "accept your offer" nudges**; what they get instead are **enrolment nudges from Conversion** (post-offer SMS → enrolment reminder → support SMS → last-day-to-enrol).
+- **No RAS-triggered comms** — registration confirmations, selection-task reminders and outcomes belong to portfolio/direct personas.
+- **User-triggered comms exist but start with the student:** a school leaver who reaches out contacts **Study@RMIT**, and is **triaged to a Conversion-team case manager** — the inbound lane at the bottom of the map is where that shows.
 
 ## What drives them
 
@@ -36,7 +51,7 @@ On top of that, four things drive *how* they navigate — and one flips:
 
 ## The journey
 
-Comm counts are from the 75-comm dataset. ⚠ = near-empty mostly because Admissions (RAS) comms aren't captured yet, not necessarily a real silence.
+Comm counts are from the v0.3 (75-comm) dataset; the map has since added the Admissions offer letter, the Conversion post-offer sequence and VTAC's own newsletters, which fill much of the Offer/Enrol tail. ⚠ = near-empty in that older count.
 
 | Stage | What they need | Comms |
 |---|---|:--:|
@@ -59,8 +74,8 @@ Comm counts are from the 75-comm dataset. ⚠ = near-empty mostly because Admiss
 
 - **Where they live — metro vs regional.** The one gap that could change the journey. Everything else is texture.
 - School type · ATAR band.
-- **Admissions comms** — will fill the near-empty Offer and Enrol stages (request is out).
-- SES/gender/study-load are *degree-student* figures; the ~28% vocational cohort may differ (likely lower SES).
+- ~~Admissions comms~~ — **resolved:** for this persona Admissions sends exactly one outbound comm (the Offer Round 1 letter); the rest of the tail is Conversion's.
+- SES/gender/study-load are *degree-student* figures; the ~28% vocational cohort (out of scope here) may differ.
 
 <details>
 <summary><strong>Evidence & workings</strong> — the numbers behind the claims, and their caveats</summary>
@@ -90,10 +105,10 @@ Broad **interest** clusters even though course doesn't: Business ~19%, Engineeri
 
 **Caveats to keep honest:** demographic figures are enrolled/commencing students (all ages), not SL applicants — directional, not SL-scoped. The metro/school/ATAR rows are unvalidated assumptions. "Unmapped question ≠ unanswered" — only Change of Preference has a mapped comms cluster so far, which reflects hand-mapping, not a coverage audit.
 
-**How it appears in the app (agreed):** an identity chip beside the `DOM SL` badge, opening the full profile in the existing right-hand panel. A "student view" lens (dim the map to this persona's comms) is held for later.
+**How it appears in the app (current):** the persona dock (bottom-right) names the persona (`DOM SL`) and opens the tailoring toggles — **all off by default**, since the baseline persona is agnostic on every axis. College toggles offer COBL / STEM / DSC with **VE greyed out** (this is an HE persona); the equity toggle offers **SNAP — Schools Network Access Program** (the one cohort with mapped data) with **Indigenous Access Program greyed out until data lands**.
 
 </details>
 
 ---
 
-*Changelog: v0.1 first draft · v0.2 added "get a job" motivation · v0.3 cut to one page, workings moved to the evidence drawer.*
+*Changelog: v0.1 first draft · v0.2 added "get a job" motivation · v0.3 cut to one page, workings moved to the evidence drawer · v0.4 pinned the definition & baseline (VTAC, no selection task, HE non-pathway, no offer-acceptance step, Study@RMIT → Conversion case manager) and the toggle defaults.*

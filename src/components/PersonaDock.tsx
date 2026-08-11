@@ -1,7 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { ChevronUp, GraduationCap } from "lucide-react";
 import { SegmentToggles } from "./SegmentToggles";
-import { segmentCount, type SegmentAxis, type SegmentSelection } from "../lib/segments";
+import {
+  EQUITY_FULL_NAMES,
+  UNAVAILABLE_EQUITY,
+  segmentCount,
+  type SegmentAxis,
+  type SegmentSelection,
+} from "../lib/segments";
 import { FOCUS_RING } from "../lib/styles";
 
 interface Props {
@@ -99,7 +105,7 @@ export function PersonaDock({
                   type="button"
                   onClick={() => onSelectEquity(on ? null : c)}
                   aria-pressed={on}
-                  title={`Show only comms tailored to the ${c} cohort`}
+                  title={`${EQUITY_FULL_NAMES[c] ?? c} — show only comms tailored to this cohort`}
                   className={`flex h-8 items-center rounded-full px-3 text-xs font-semibold uppercase tracking-wide transition-colors ${FOCUS_RING} ${
                     on
                       ? "bg-rmit-blue text-white"
@@ -115,6 +121,19 @@ export function PersonaDock({
                 </button>
               );
             })}
+            {/* Cohorts that exist but have no mapped comms yet — shown greyed
+                so the dimension is visible, selectable once data lands. */}
+            {UNAVAILABLE_EQUITY.filter((u) => !equityCohorts.includes(u.value)).map((u) => (
+              <button
+                key={u.value}
+                type="button"
+                disabled
+                title={u.reason}
+                className="flex h-8 cursor-not-allowed items-center rounded-full border border-dashed border-grey-30 px-3 text-xs font-semibold uppercase tracking-wide text-grey-60"
+              >
+                {u.label}
+              </button>
+            ))}
           </>
         )}
 
