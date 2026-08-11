@@ -21,12 +21,24 @@ import type { CommType, FeedbackEntry, Comm } from "./data/types";
 import { addFeedbackEntry, loadFeedback, type FeedbackStore } from "./lib/feedback";
 import { FOCUS_RING } from "./lib/styles";
 import { loadComms } from "./lib/loadComms";
-import { commDateLabel, commPos, layoutTimeline, scaleX, type ExpandedMonths } from "./lib/scale";
+import {
+  LABEL_W,
+  commDateLabel,
+  commPos,
+  dateAtX,
+  layoutTimeline,
+  monthLabel,
+  scaleX,
+  type ExpandedMonths,
+} from "./lib/scale";
 import { COMM_LABELS } from "./components/icons";
 
 const THEME_KEY = "comms-calendar-theme";
 
 const ALL_TYPES: CommType[] = ["email", "sms", "webinar", "call", "event"];
+
+// Spoken names for the three month-zoom levels (index = level).
+const ZOOM_LEVEL_NAME = ["month view", "week view", "day view"] as const;
 
 export default function App() {
   const [rawComms, setRawComms] = useState<Comm[] | null>(null);
@@ -94,6 +106,18 @@ export default function App() {
     });
 
   const scrollerRef = useRef<HTMLDivElement>(null);
+  // Semantic-zoom gesture state. pendingZoomAnchor holds the date under the
+  // cursor (or viewport centre) so the re-anchor effect can keep it fixed on
+  // screen after the layout widens/narrows. zoomAnnounce feeds an aria-live
+  // region so screen-reader users get the same "August — day view" feedback
+  // the sighted user gets visually.
+  const pendingZoomAnchor = useRef<{ clientX: number; date: number } | null>(null);
+  // One zoom step per animation frame — a trackpad fires many wheel events per
+  // gesture, and without this they'd all read the same (stale) render's zoom
+  // state, so a flick would jump at most one level or overshoot. Gated to a
+  // frame, each step reads the committed level and the zoom feels controllable.
+  const zoomFrameLock = useRef(false);
+  const [zoomAnnounce, setZoomAnnounce] = useState("");
 
   const handleMeasure = useCallback((id: string, height: number) => {
     setCardHeights((prev) => (prev[id] === height ? prev : { ...prev, [id]: height }));
@@ -330,6 +354,111 @@ export default function App() {
   // AT tree and tab order (belt-and-braces with the dialog's own focus trap).
   const bgInert = { inert: openComm || openCampaign ? true : undefined };
 
+  // ── Semantic zoom by gesture / keyboard ──────────────────────────────────
+  // Both paths drive the SAME month-level model as clicking a month header
+  // (collapsed → weeks → days), so a zoom expands the "+N more" chips in the
+  // month it targets while the toolbars, minimap and text all stay put.
+  const panelOpen = Boolean(openComm || openCampaign || openStage);
+
+  // Step one month's zoom by `dir` (+1 in / −1 out), anchoring `date` under
+  // `anchorClientX` so that point stays fixed on screen across the reflow.
+  const applyMonthZoom = (
+    month: number,
+    dir: 1 | -1,
+    anchorClientX: number,
+    date: number,
+  ) => {
+    if (zoomFrameLock.current) return; // one step per frame (see the ref)
+    const cur = expandedMonths.get(month) ?? 0;
+    const next = Math.max(0, Math.min(2, cur + dir));
+    if (next === cur) return; // already at the rail — nothing to do, no jump
+    zoomFrameLock.current = true;
+    requestAnimationFrame(() => {
+      zoomFrameLock.current = false;
+    });
+    pendingZoomAnchor.current = { clientX: anchorClientX, date };
+    setExpandedMonths((prev) => {
+      const m = new Map(prev);
+      if (next === 0) m.delete(month);
+      else m.set(month, next as 1 | 2);
+      return m;
+    });
+    setZoomAnnounce(`${monthLabel(month)} — ${ZOOM_LEVEL_NAME[next]}`);
+  };
+
+  // Latest-closure refs so the once-attached native listeners always see
+  // current state without re-binding on every render.
+  const wheelZoomRef = useRef<(e: WheelEvent) => void>(() => {});
+  wheelZoomRef.current = (e: WheelEvent) => {
+    // Ctrl+wheel (Win/Linux zoom idiom) and trackpad pinch (emits ctrlKey) and
+    // ⌘+wheel (Mac) — all mean "zoom this map". Scoped to the canvas, so the
+    // browser's own page zoom still works everywhere else.
+    if (!(e.ctrlKey || e.metaKey)) return;
+    const el = scrollerRef.current;
+    if (!el || !layout || panelOpen) return;
+    const rect = el.getBoundingClientRect();
+    const screenX = e.clientX - rect.left;
+    // The team-label gutter is a sticky overlay pinned over the left LABEL_W
+    // of the viewport at every scroll position — bail there so the browser
+    // keeps normal behaviour, and measure the date from screen, not content.
+    if (screenX < LABEL_W) return;
+    e.preventDefault();
+    const date = dateAtX(screenX + el.scrollLeft - LABEL_W);
+    applyMonthZoom(Math.floor(date), e.deltaY < 0 ? 1 : -1, e.clientX, date);
+  };
+
+  const keyZoomRef = useRef<(e: KeyboardEvent) => void>(() => {});
+  keyZoomRef.current = (e: KeyboardEvent) => {
+    // Plain +/−/0 only — never the modified combos, so Ctrl/⌘ +/− stays the
+    // browser's text-resize (WCAG 1.4.4).
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    const t = e.target as HTMLElement | null;
+    if (t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return;
+    const el = scrollerRef.current;
+    if (!el || !layout || panelOpen) return;
+    if (e.key === "0") {
+      if (expandedMonths.size === 0) return;
+      setExpandedMonths(new Map());
+      setZoomAnnounce("Zoom reset — all months in month view");
+      return;
+    }
+    const dir = e.key === "+" || e.key === "=" ? 1 : e.key === "-" || e.key === "_" ? -1 : 0;
+    if (!dir) return;
+    e.preventDefault();
+    // Zoom the month at the centre of the visible canvas.
+    const rect = el.getBoundingClientRect();
+    const centreContentX = el.scrollLeft + (el.clientWidth - LABEL_W) / 2;
+    const date = dateAtX(centreContentX);
+    applyMonthZoom(Math.floor(date), dir, rect.left + LABEL_W + (el.clientWidth - LABEL_W) / 2, date);
+  };
+
+  useEffect(() => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    const onWheel = (e: WheelEvent) => wheelZoomRef.current(e);
+    const onKey = (e: KeyboardEvent) => keyZoomRef.current(e);
+    // passive:false so preventDefault can suppress the browser's ctrl+wheel
+    // page zoom while over the canvas.
+    el.addEventListener("wheel", onWheel, { passive: false });
+    window.addEventListener("keydown", onKey);
+    return () => {
+      el.removeEventListener("wheel", onWheel);
+      window.removeEventListener("keydown", onKey);
+    };
+  }, []);
+
+  // After a zoom relays the canvas, put the anchored date back under the
+  // cursor (or viewport centre) so the map grows/shrinks around that point
+  // instead of jumping. Runs post-layout, when scaleX reflects the new widths.
+  useLayoutEffect(() => {
+    const a = pendingZoomAnchor.current;
+    if (!a || !layout || !scrollerRef.current) return;
+    pendingZoomAnchor.current = null;
+    const rect = scrollerRef.current.getBoundingClientRect();
+    const target = LABEL_W + scaleX(a.date) - (a.clientX - rect.left);
+    scrollerRef.current.scrollLeft = Math.max(0, target);
+  }, [layout]);
+
   return (
     <div ref={scrollerRef} className="h-screen overflow-auto bg-surface font-sans text-grey-90">
       {/* Bypass block for the 100+ tab stops on the canvas. Kept in the DOM
@@ -341,6 +470,11 @@ export default function App() {
       >
         Skip to communications list
       </a>
+      {/* Announces zoom-level changes (gesture or keyboard) to assistive tech,
+          matching the visual reflow sighted users see. */}
+      <div className="sr-only" role="status" aria-live="polite">
+        {zoomAnnounce}
+      </div>
       {/* Sticky left so the title stays put during horizontal scroll, but
           scrolls away vertically like normal page content. */}
       <header className="sticky left-0 w-screen px-6 pt-6 pb-5" {...bgInert}>

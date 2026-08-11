@@ -177,8 +177,15 @@ export function ControlDock({
                   </span>
                 </span>
                 <span className="border-t border-grey-30 pt-2.5 leading-relaxed">
-                  Hover a comm to trace links · click for details · click a month to zoom · hover a
-                  student question to light up the comms that answer it.
+                  Hover a comm to trace links · click for details · hover a student question to light
+                  up the comms that answer it.
+                </span>
+                <span className="leading-relaxed">
+                  <span className="font-medium text-grey-90">Zoom a month</span> — click its header,
+                  Ctrl/⌘ + scroll (or pinch) over it, or press{" "}
+                  <kbd className="rounded border border-grey-30 bg-grey-10 px-1 font-sans">+</kbd> /{" "}
+                  <kbd className="rounded border border-grey-30 bg-grey-10 px-1 font-sans">−</kbd> /{" "}
+                  <kbd className="rounded border border-grey-30 bg-grey-10 px-1 font-sans">0</kbd>.
                 </span>
               </div>
             </div>

@@ -93,6 +93,22 @@ export function scaleX(month: number): number {
   return x;
 }
 
+/** Inverse of scaleX: a content-x (in scaleX's coordinate space, i.e. already
+ *  past the LABEL_W gutter) → fractional month. Monotonic piecewise-linear, so
+ *  a linear scan over the ~39 months interpolates exactly. Used to anchor
+ *  cursor/centre-based zoom on the date under the pointer. */
+export function dateAtX(x: number): number {
+  if (x <= 0) return 0;
+  for (let m = 0; m < MONTHS; m++) {
+    const x1 = scaleX(m + 1);
+    if (x < x1) {
+      const x0 = scaleX(m);
+      return x1 === x0 ? m : m + (x - x0) / (x1 - x0);
+    }
+  }
+  return MONTHS;
+}
+
 // Trailing padding so late-February cards have room instead of clamping
 // onto each other at the right edge. Reassigned by layoutTimeline when a
 // month expands (live binding — importers see the update).
