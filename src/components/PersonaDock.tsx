@@ -129,7 +129,7 @@ export function PersonaDock({
                 type="button"
                 disabled
                 title={u.reason}
-                className="flex h-8 cursor-not-allowed items-center rounded-full border border-dashed border-grey-30 px-3 text-xs font-semibold uppercase tracking-wide text-grey-60"
+                className="flex h-8 cursor-not-allowed items-center rounded-full border border-dashed border-grey-30 px-3 text-xs font-semibold text-grey-60"
               >
                 {u.label}
               </button>
