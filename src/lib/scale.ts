@@ -241,7 +241,7 @@ function buildLanes(
     // VTAC — a third party, not an RMIT team: its own section, sending the
     // student the newsletter cadence directly.
     { id: "divider-vtac", label: "External sender", kind: "divider", height: DIVIDER_H, chipStrip: false },
-    outbound("vtac", "VTAC", "Direct to the student"),
+    outbound("vtac", "VTAC", "To the student · 2024–25 schedule"),
     { id: "divider-inbound", label: "Inbound Engagement", kind: "divider", height: DIVIDER_H, chipStrip: false },
     inbound("digital", "Digital"),
     inbound("study", "Study@RMIT"),

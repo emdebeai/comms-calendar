@@ -73,6 +73,24 @@ export function CommDetailPanel({ comm, allComms, entries, onClose, onAdd }: Pro
       onClose={onClose}
     >
       <div className="flex-1 overflow-y-auto p-5">
+        {/* Provenance for the external VTAC comms — these come from VTAC's
+            published newsletter schedule (a different cycle to RMIT's data),
+            so flag the source + the year mismatch wherever one is inspected. */}
+        {comm.team === "vtac" && (
+          <p className="mb-4 rounded-md border border-dashed border-grey-40 bg-grey-10 p-2.5 text-xs leading-relaxed text-grey-70">
+            From the{" "}
+            <a
+              href="https://vtac.edu.au/files/pdf/publications/VTAC_2024-25_Newsletter_schedule.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium text-rmit-blue-interactive underline"
+            >
+              VTAC 2024–25 Newsletter schedule
+            </a>
+            . Dates are VTAC&rsquo;s 2024–25 cycle and are indicative — they don&rsquo;t line up
+            exactly with RMIT&rsquo;s 2026 comms above.
+          </p>
+        )}
         {/* ── Attributes ── */}
         <h3 className={`text-grey-70 ${EYEBROW}`}>Details</h3>
         <dl className="mt-2">
