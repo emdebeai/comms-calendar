@@ -42,7 +42,8 @@ export function CommDetailPanel({ comm, allComms, entries, onClose, onAdd }: Pro
   const dateLabel = `${day} ${commDateLabel(comm.month)}`;
   const stage = STAGES.find((s) => comm.month >= s.from && comm.month < s.to)?.label;
   const moment = MOMENTS.find((m) => m.id === comm.momentId)?.label;
-  const teamLabel = comm.team.charAt(0).toUpperCase() + comm.team.slice(1);
+  const teamLabel =
+    comm.team === "vtac" ? "VTAC" : comm.team.charAt(0).toUpperCase() + comm.team.slice(1);
   // Related comms — both directions of the (now undirected) trigger links,
   // merged into one list so the panel doesn't assert who causes whom.
   const relatedTitles = [

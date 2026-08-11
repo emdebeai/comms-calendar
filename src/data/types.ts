@@ -1,9 +1,9 @@
 export type CommType = "email" | "sms" | "webinar" | "call" | "event";
-export type Team = "recruitment" | "marketing" | "admissions" | "conversion";
+export type Team = "recruitment" | "marketing" | "admissions" | "conversion" | "vtac";
 /** Sending/management platform a comm goes out of. Marketing eDMs run out of
  *  Marketo (Adobe); event registration + confirmation emails out of Cvent;
  *  text messages out of ClickSend. */
-export type Platform = "marketo" | "cvent" | "clicksend" | "ras";
+export type Platform = "marketo" | "cvent" | "clicksend" | "ras" | "vtac";
 
 export interface Comm {
   id: string;

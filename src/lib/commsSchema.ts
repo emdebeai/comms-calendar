@@ -87,7 +87,7 @@ export const COMMS_COLUMNS = [
   "event_state",
 ] as const;
 
-const TEAMS: Team[] = ["recruitment", "marketing", "admissions", "conversion"];
+const TEAMS: Team[] = ["recruitment", "marketing", "admissions", "conversion", "vtac"];
 const TYPES: CommType[] = ["email", "sms", "webinar", "call", "event"];
 const MONTH_NAMES = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
 
@@ -147,6 +147,7 @@ const PLATFORM_ALIASES: Record<string, Platform> = {
   ras: "ras",
   "rmit admission system": "ras",
   "rmit admissions system": "ras",
+  vtac: "vtac",
 };
 
 /** Resolves the `platform` cell — the system a comm is *sent* out of. An

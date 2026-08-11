@@ -435,7 +435,9 @@ export function Timeline({
           const inFocus = focusSet ? focusSet.has(c.id) : false;
           const dotDimmed = filteredOut || (focusSet !== null && !inFocus);
           const folded = hiddenIds.has(c.id);
-          const accent = markerAccent(COMM_COLORS[c.type].accent, "dot"); // bg-*
+          // VTAC (external) markers are muted grey, matching their dashed cards.
+          const accentBase = c.team === "vtac" ? "bg-grey-40" : COMM_COLORS[c.type].accent;
+          const accent = markerAccent(accentBase, "dot"); // bg-*
           // Centre the dot on the 3px spine (card left edge + accent strip),
           // so dot, stem and card edge share one axis.
           const pos = { left: commPos(c).x + 0.75, top: dotY(c.team) };
@@ -501,7 +503,7 @@ export function Timeline({
                 key={`stem-${c.id}`}
                 aria-hidden
                 className={`absolute w-[1.25px] transition-opacity duration-300 ${markerAccent(
-                  COMM_COLORS[c.type].accent,
+                  c.team === "vtac" ? "bg-grey-40" : COMM_COLORS[c.type].accent,
                   "line",
                 )} ${stemDimmed ? "opacity-[0.05]" : ""}`}
                 style={{ left: cx, top, height: Math.max(y - top + 2, 0) }}

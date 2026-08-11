@@ -170,7 +170,9 @@ export const CAMPAIGN_SUMMARY_H = 44;
 export const INBOUND_H = 96;
 export const DIVIDER_H = 32;
 
-const OUTBOUND_TEAMS: Team[] = ["recruitment", "marketing", "admissions", "conversion"];
+// VTAC is included so its comms pack + lay out like the RMIT lanes, but it's
+// kept last and rendered in its own "External sender" section (see buildLanes).
+const OUTBOUND_TEAMS: Team[] = ["recruitment", "marketing", "admissions", "conversion", "vtac"];
 
 // Campaign bars shown in the Marketing lane, in draw order: every media
 // schedule contributes a (taller) summary bar, plus one bar per placement
@@ -180,7 +182,7 @@ const OUTBOUND_TEAMS: Team[] = ["recruitment", "marketing", "admissions", "conve
 let campaignRowHeights: number[] = campaignGroups.map(() => CAMPAIGN_SUMMARY_H);
 
 export interface LaneDef {
-  id: Team | "digital" | "study" | "divider";
+  id: Team | "digital" | "study" | "divider-vtac" | "divider-inbound";
   label: string;
   sub?: string;
   top: number;
@@ -236,7 +238,11 @@ function buildLanes(
     outbound("marketing", "Marketing", "Outbound + always-on"),
     outbound("admissions", "Admissions", "Outbound"),
     outbound("conversion", "Conversion", "Outbound"),
-    { id: "divider", label: "Inbound Engagement", kind: "divider", height: DIVIDER_H, chipStrip: false },
+    // VTAC — a third party, not an RMIT team: its own section, sending the
+    // student the newsletter cadence directly.
+    { id: "divider-vtac", label: "External sender", kind: "divider", height: DIVIDER_H, chipStrip: false },
+    outbound("vtac", "VTAC", "Direct to the student"),
+    { id: "divider-inbound", label: "Inbound Engagement", kind: "divider", height: DIVIDER_H, chipStrip: false },
     inbound("digital", "Digital"),
     inbound("study", "Study@RMIT"),
   ];
@@ -261,6 +267,7 @@ let cardAreaByTeam: Record<Team, number> = {
   marketing: DEFAULT_CARD_H,
   admissions: DEFAULT_CARD_H,
   conversion: DEFAULT_CARD_H,
+  vtac: DEFAULT_CARD_H,
 };
 // Card depth (within the card area) that the media schedule must clear — the
 // deepest marketing card in the campaign's own x-span, NOT the lane-wide max.
@@ -276,6 +283,7 @@ let placedByTeam: Record<Team, PlacedRect[]> = {
   marketing: [],
   admissions: [],
   conversion: [],
+  vtac: [],
 };
 
 /** Deepest placed-card bottom (card-area-relative) among cards overlapping the
@@ -423,12 +431,14 @@ export function layoutTimeline(
     marketing: [],
     admissions: [],
     conversion: [],
+    vtac: [],
   };
   const nextCardArea: Record<Team, number> = {
     recruitment: DEFAULT_CARD_H,
     marketing: DEFAULT_CARD_H,
     admissions: DEFAULT_CARD_H,
     conversion: DEFAULT_CARD_H,
+    vtac: DEFAULT_CARD_H,
   };
   // The media schedule sits below the marketing cards, but only needs to
   // clear the cards in ITS OWN column (the campaign x-span) — not the lane's

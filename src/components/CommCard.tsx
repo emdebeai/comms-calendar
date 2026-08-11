@@ -58,6 +58,14 @@ export function CommCard({
   const colors = COMM_COLORS[comm.type];
   const hasTriggers = comm.triggers && comm.triggers.length > 0;
   const isEvent = comm.type === "event";
+  // VTAC is an external sender, not an RMIT team — style its cards as muted,
+  // dashed-outline chips (the "not us" motif shared with the embargo band)
+  // rather than the type-coloured RMIT fills.
+  const external = comm.team === "vtac";
+  const chipClass = external
+    ? "rounded-md border border-dashed border-grey-40 bg-grey-10"
+    : `rounded-l-none rounded-r-md ${colors.chip}`;
+  const textClass = external ? "text-grey-80" : colors.text;
 
   const day = Math.round((comm.month % 1) * 30) + 1;
   const dateLabel = `${day} ${monthLabel(Math.floor(comm.month))}`;
@@ -89,8 +97,8 @@ export function CommCard({
       disabled={filteredOut}
       aria-hidden={filteredOut || undefined}
       aria-label={`${comm.title}${variant ? ` (to ${variant})` : ""}, ${dateLabel} — details and comments`}
-      className={`absolute flex items-start gap-1.5 rounded-l-none rounded-r-md px-2 py-1.5 text-left transition-[opacity,box-shadow] duration-300 ${
-        colors.chip
+      className={`absolute flex items-start gap-1.5 px-2 py-1.5 text-left transition-[opacity,box-shadow] duration-300 ${
+        chipClass
       } ${filteredOut ? "cursor-default" : "cursor-pointer"} ${stateClass} ${
         dimmed ? "opacity-[0.05]" : ""
       } ${FOCUS_RING}`}
@@ -120,16 +128,19 @@ export function CommCard({
         {dateLabel}
       </span>
       {/* left-edge accent — full-colour strip flush on the flat left edge
-          (no border now, so left-0) that the stem continues into seamlessly */}
-      <span
-        aria-hidden
-        className={`absolute inset-y-0 left-0 w-[1.25px] ${markerAccent(colors.accent, "line")}`}
-      />
-      <span className={`mt-px shrink-0 ${colors.text}`}>
+          (no border now, so left-0) that the stem continues into seamlessly.
+          External (VTAC) cards drop it: the dashed outline is their marker. */}
+      {!external && (
+        <span
+          aria-hidden
+          className={`absolute inset-y-0 left-0 w-[1.25px] ${markerAccent(colors.accent, "line")}`}
+        />
+      )}
+      <span className={`mt-px shrink-0 ${textClass}`}>
         <Icon size={13} strokeWidth={2} aria-hidden />
       </span>
       <span className="min-w-0 flex-1">
-        <span className={`block text-xs font-semibold leading-tight line-clamp-2 ${colors.text}`}>
+        <span className={`block text-xs font-semibold leading-tight line-clamp-2 ${textClass}`}>
           <TokenText text={comm.title} />
         </span>
         {/* audience variant — only on look-alike stacks, so "COP Explained"

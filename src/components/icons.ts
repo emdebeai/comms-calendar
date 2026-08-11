@@ -38,6 +38,7 @@ export const PLATFORM_LABELS: Record<Platform, string> = {
   cvent: "Cvent",
   clicksend: "ClickSend",
   ras: "RAS",
+  vtac: "VTAC",
 };
 
 // Channel icons (brand logos + generic fallbacks) live in ChannelIcon.tsx.
