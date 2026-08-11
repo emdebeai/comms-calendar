@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 import { ControlDock } from "./components/ControlDock";
 import { PersonaDock } from "./components/PersonaDock";
 import { Timeline } from "./components/Timeline";
@@ -106,17 +107,11 @@ export default function App() {
     });
 
   const scrollerRef = useRef<HTMLDivElement>(null);
-  // Semantic-zoom gesture state. pendingZoomAnchor holds the date under the
-  // cursor (or viewport centre) so the re-anchor effect can keep it fixed on
-  // screen after the layout widens/narrows. zoomAnnounce feeds an aria-live
-  // region so screen-reader users get the same "August — day view" feedback
-  // the sighted user gets visually.
-  const pendingZoomAnchor = useRef<{ clientX: number; date: number } | null>(null);
   // One zoom step per animation frame — a trackpad fires many wheel events per
-  // gesture, and without this they'd all read the same (stale) render's zoom
-  // state, so a flick would jump at most one level or overshoot. Gated to a
-  // frame, each step reads the committed level and the zoom feels controllable.
+  // gesture, and without this a flick would rocket month→day or overshoot.
   const zoomFrameLock = useRef(false);
+  // zoomAnnounce feeds an aria-live region so screen-reader users get the same
+  // "August — day view" feedback the sighted user gets from the reflow.
   const [zoomAnnounce, setZoomAnnounce] = useState("");
 
   const handleMeasure = useCallback((id: string, height: number) => {
@@ -360,15 +355,12 @@ export default function App() {
   // month it targets while the toolbars, minimap and text all stay put.
   const panelOpen = Boolean(openComm || openCampaign || openStage);
 
-  // Step one month's zoom by `dir` (+1 in / −1 out), anchoring `date` under
-  // `anchorClientX` so that point stays fixed on screen across the reflow.
-  const applyMonthZoom = (
-    month: number,
-    dir: 1 | -1,
-    anchorClientX: number,
-    date: number,
-  ) => {
-    if (zoomFrameLock.current) return; // one step per frame (see the ref)
+  // Step one month's zoom by `dir` (+1 in / −1 out), keeping `date` fixed on
+  // screen. flushSync commits the level change and re-runs layout SYNCHRONOUSLY
+  // (so scaleX reflects the new widths immediately); we then shift scrollLeft by
+  // exactly how far `date` moved — one atomic reflow, no follow-up-frame jump.
+  const applyMonthZoom = (month: number, dir: 1 | -1, date: number) => {
+    if (zoomFrameLock.current) return; // one step per frame
     const cur = expandedMonths.get(month) ?? 0;
     const next = Math.max(0, Math.min(2, cur + dir));
     if (next === cur) return; // already at the rail — nothing to do, no jump
@@ -376,13 +368,17 @@ export default function App() {
     requestAnimationFrame(() => {
       zoomFrameLock.current = false;
     });
-    pendingZoomAnchor.current = { clientX: anchorClientX, date };
-    setExpandedMonths((prev) => {
-      const m = new Map(prev);
-      if (next === 0) m.delete(month);
-      else m.set(month, next as 1 | 2);
-      return m;
-    });
+    const el = scrollerRef.current;
+    const beforeX = scaleX(date);
+    flushSync(() =>
+      setExpandedMonths((prev) => {
+        const m = new Map(prev);
+        if (next === 0) m.delete(month);
+        else m.set(month, next as 1 | 2);
+        return m;
+      }),
+    );
+    if (el) el.scrollLeft += scaleX(date) - beforeX; // keep `date` under the pointer
     setZoomAnnounce(`${monthLabel(month)} — ${ZOOM_LEVEL_NAME[next]}`);
   };
 
@@ -404,7 +400,7 @@ export default function App() {
     if (screenX < LABEL_W) return;
     e.preventDefault();
     const date = dateAtX(screenX + el.scrollLeft - LABEL_W);
-    applyMonthZoom(Math.floor(date), e.deltaY < 0 ? 1 : -1, e.clientX, date);
+    applyMonthZoom(Math.floor(date), e.deltaY < 0 ? 1 : -1, date);
   };
 
   const keyZoomRef = useRef<(e: KeyboardEvent) => void>(() => {});
@@ -426,10 +422,8 @@ export default function App() {
     if (!dir) return;
     e.preventDefault();
     // Zoom the month at the centre of the visible canvas.
-    const rect = el.getBoundingClientRect();
-    const centreContentX = el.scrollLeft + (el.clientWidth - LABEL_W) / 2;
-    const date = dateAtX(centreContentX);
-    applyMonthZoom(Math.floor(date), dir, rect.left + LABEL_W + (el.clientWidth - LABEL_W) / 2, date);
+    const date = dateAtX(el.scrollLeft + (el.clientWidth - LABEL_W) / 2);
+    applyMonthZoom(Math.floor(date), dir, date);
   };
 
   useEffect(() => {
@@ -446,18 +440,6 @@ export default function App() {
       window.removeEventListener("keydown", onKey);
     };
   }, []);
-
-  // After a zoom relays the canvas, put the anchored date back under the
-  // cursor (or viewport centre) so the map grows/shrinks around that point
-  // instead of jumping. Runs post-layout, when scaleX reflects the new widths.
-  useLayoutEffect(() => {
-    const a = pendingZoomAnchor.current;
-    if (!a || !layout || !scrollerRef.current) return;
-    pendingZoomAnchor.current = null;
-    const rect = scrollerRef.current.getBoundingClientRect();
-    const target = LABEL_W + scaleX(a.date) - (a.clientX - rect.left);
-    scrollerRef.current.scrollLeft = Math.max(0, target);
-  }, [layout]);
 
   return (
     <div ref={scrollerRef} className="h-screen overflow-auto bg-surface font-sans text-grey-90">
