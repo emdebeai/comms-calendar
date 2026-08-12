@@ -63,7 +63,7 @@ exc. Bundoora IAs + Brunswick IAs",student,Open Day,Register now for a chance to
 ,Marketing,Open Day — SMS reminder - registered,,sms,12,Aug,2,openday-y12,,,,,,,clicksend,,SMS reminder - registered,student,Open Day,Reminder: Today is Bundoora Open Day!,,,,registered
 ,Marketing,Open Day — City registrants,,email,12,Aug,7,openday-y12,,,,701Od00000jr7eFIAQ,,,marketo,,City registrants,student,Open Day,Last reminder for Open Day City,,,city,registered
 ,Marketing,Open Day — Brunswick registrants,,email,12,Aug,7,openday-y12,,,,701Od00000jrBmmIAE,,,marketo,,Brunswick registrants,student,Open Day,Last reminder for Open Brunswick,,,brunswick,registered
-,Marketing,Open Day — Un-registered all,,email,12,Aug,7,openday-y12,,,,,,,marketo,,Un-registered all,student,Open Day,Last reminder for Open Day City & Brunswick,,,,registered
+,Marketing,Open Day — Un-registered all,,email,12,Aug,7,openday-y12,,,,,,,marketo,,Un-registered all,student,Open Day,Last reminder for Open Day City & Brunswick,,,,unregistered
 ,Marketing,Open Day — SMS reminder,,sms,12,Aug,9,openday-y12,,,,,,,clicksend,,SMS reminder,student,Open Day,Reminder: Today is the City and Brunswick Open Day!,,,,
 ,Marketing,Open Day — Bundoora / Brunswick,,email,12,Aug,10,openday-y12,,,,,,,marketo,,Bundoora / Brunswick,student,Open Day,Post event survey,,,bundoora,
 ,Marketing,Open Day — City,,email,12,Aug,10,openday-y12,,,,,,,marketo,,City,student,Open Day,Post event survey,,,city,
