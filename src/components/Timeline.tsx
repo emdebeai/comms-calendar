@@ -445,7 +445,6 @@ export function Timeline({
           // panel on click, like a card would.
           if (collapsedLanes.has(c.team)) {
             const Icon = COMM_ICONS[c.type];
-            const colors = COMM_COLORS[c.type];
             const day = Math.round((c.month % 1) * 30) + 1;
             return (
               <button
@@ -461,14 +460,15 @@ export function Timeline({
                 onMouseLeave={() => onHover(null)}
                 title={`${c.title} · ${day} ${monthLabel(Math.floor(c.month))}`}
                 aria-label={`${COMM_LABELS[c.type]} — ${c.title} — details`}
-                className={`absolute z-10 flex h-[18px] w-[18px] -translate-x-1/2 items-center justify-center rounded-full ring-2 ring-card transition-opacity duration-300 ${FOCUS_RING} ${
-                  external
-                    ? "border border-dashed border-grey-40 bg-grey-10 text-grey-70"
-                    : `${colors.chip} ${colors.text}`
-                } ${dotDimmed ? "opacity-[0.05]" : "cursor-pointer hover:z-30 hover:scale-110"}`}
+                // Solid fill in the type colour (grey for VTAC) with a white
+                // icon — the same solid marker language as the baseline dots,
+                // just big enough to carry the icon.
+                className={`absolute z-10 flex h-[18px] w-[18px] -translate-x-1/2 items-center justify-center rounded-full text-white ring-2 ring-card transition-opacity duration-300 ${accent} ${FOCUS_RING} ${
+                  dotDimmed ? "opacity-[0.05]" : "cursor-pointer hover:z-30 hover:scale-110"
+                }`}
                 style={{ left: commPos(c).x, top: commPos(c).y }}
               >
-                <Icon size={10} strokeWidth={2} aria-hidden />
+                <Icon size={10} strokeWidth={2.25} aria-hidden />
               </button>
             );
           }
