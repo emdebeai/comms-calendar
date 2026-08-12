@@ -1,6 +1,6 @@
 # Persona 01 — Domestic school leaver (VTAC)
 
-*The first persona on the Current State Touch Points map — roughly half the domestic school-leaver cohort. Draft v0.6 — every figure below is data-backed; sources in the footnotes.*
+*The first persona on the Current State Touch Points map — roughly half the domestic school-leaver cohort. Draft — every figure below is data-backed; sources in the footnotes.*
 
 **Summary:** A Year 12 student applying to RMIT through VTAC straight from school. They apply to several universities, and the most common reason they give for studying is to improve their employment prospects.
 
@@ -31,7 +31,3 @@ Figures come from the **Recruitment Performance (EXP) dashboard** (2025 domestic
 [^exp]: Recruitment EXP dashboard — 2025 domestic school-leaver enrolments (14,863 total). VTAC route 7,298 (49%). Aged ≤19 at application 7,241 of 7,298 VTAC (99.2%). Non-packaged-pathway 13,158 (88.5%). Regional or remote 1,062 (7.1%), so ~93% metropolitan. Gender 8,092 male / 6,658 female / 109 indeterminate or intersex. Program type — Bachelor's (Pass + Honours) is 67% of both preferences (42,568 of 63,561) and enrolments (4,878 of 7,241); the remainder are diplomas, associate & advanced diplomas and certificates.
 [^pref]: VTAC preference extract — RMIT is a first preference ~15% of the time and 4th-or-lower ~55% (usually not the top choice); preferences cluster by interest area (Business, Engineering, IT, Health) with no single dominant course.
 [^commencing]: RMIT commencing students, 2022–24 (HE) — "to get a job" is the top reason for study at 82% (HE); all ages, so directional for school leavers.
-
----
-
-*Changelog: v0.1–v0.4 progressive drafts · v0.5 stripped to key features (what it is / is not / based on what) · v0.6 re-based the figures on the SL-scoped Recruitment EXP dashboard (2025): VTAC ~49% of SL enrolments, 99% aged ≤19, ~89% non-pathway, Bachelor's ~67%, gender 54/45/<1.*
