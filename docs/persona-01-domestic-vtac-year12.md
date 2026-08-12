@@ -2,7 +2,7 @@
 
 *The first persona on the Current State Touch Points map — roughly half the domestic school-leaver cohort. Draft v0.6 — every figure below is data-backed; sources in the footnotes.*
 
-**In a line:** A Year 12 student applying to RMIT through VTAC straight from school — hedging across several universities, and studying above all **to get a job**.
+**Summary:** A Year 12 student applying to RMIT through VTAC straight from school. They apply to several universities, and the most common reason they give for studying is to improve their employment prospects.
 
 ## What it is
 
@@ -10,7 +10,7 @@
 - **Bachelor's degree — undergraduate, non-pathway.** Bachelor's (Pass + Honours) is **~67%** of SL preferences and enrolments; **~89%** enrol outside a packaged pathway.[^exp]
 - **17–18** — **99%** are aged ≤19 at application.[^exp]
 - **Gender non-specific** — 54% male / 45% female / <1% indeterminate or intersex.[^exp]
-- **VTAC-preference agnostic** — RMIT is a contender, not the favourite (a first preference only ~15% of the time).[^pref]
+- **VTAC-preference agnostic** — RMIT is a first preference only ~15% of the time and usually sits lower in the applicant's list.[^pref]
 - **College / interest-area agnostic** — no faculty assumed (cut by one with the College toggle).[^pref]
 - **Motivated by employment** — 82% study "to get a job".[^commencing]
 - **Metropolitan** — only **~7%** are regional or remote.[^exp]
@@ -29,7 +29,7 @@
 Figures come from the **Recruitment Performance (EXP) dashboard** (2025 domestic school leavers) unless noted, plus two older extracts for preference behaviour and motivation.
 
 [^exp]: Recruitment EXP dashboard — 2025 domestic school-leaver enrolments (14,863 total). VTAC route 7,298 (49%). Aged ≤19 at application 7,241 of 7,298 VTAC (99.2%). Non-packaged-pathway 13,158 (88.5%). Regional or remote 1,062 (7.1%), so ~93% metropolitan. Gender 8,092 male / 6,658 female / 109 indeterminate or intersex. Program type — Bachelor's (Pass + Honours) is 67% of both preferences (42,568 of 63,561) and enrolments (4,878 of 7,241); the remainder are diplomas, associate & advanced diplomas and certificates.
-[^pref]: VTAC preference extract — RMIT sits as a first preference ~15% of the time and 4th-or-lower ~55%, i.e. measured hedging across the list; interest clusters (Business, Engineering, IT, Health) but no single dominant course.
+[^pref]: VTAC preference extract — RMIT is a first preference ~15% of the time and 4th-or-lower ~55% (usually not the top choice); preferences cluster by interest area (Business, Engineering, IT, Health) with no single dominant course.
 [^commencing]: RMIT commencing students, 2022–24 (HE) — "to get a job" is the top reason for study at 82% (HE); all ages, so directional for school leavers.
 
 ---
