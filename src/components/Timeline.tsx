@@ -19,6 +19,7 @@ import {
   chipY,
   commPos,
   dotY,
+  markerPos,
   monthLabel,
   scaleX,
   type ExpandedMonths,
@@ -458,17 +459,27 @@ export function Timeline({
                 }}
                 onMouseEnter={() => onHover(c.id)}
                 onMouseLeave={() => onHover(null)}
-                title={`${c.title} · ${day} ${monthLabel(Math.floor(c.month))}`}
                 aria-label={`${COMM_LABELS[c.type]} — ${c.title} — details`}
                 // Solid fill in the type colour (grey for VTAC) with a white
                 // icon — the same solid marker language as the baseline dots,
                 // just big enough to carry the icon.
-                className={`absolute z-10 flex h-[18px] w-[18px] -translate-x-1/2 items-center justify-center rounded-full text-white ring-2 ring-card transition-opacity duration-300 ${accent} ${FOCUS_RING} ${
-                  dotDimmed ? "opacity-[0.05]" : "cursor-pointer hover:z-30 hover:scale-110"
+                className={`group absolute z-10 flex h-[22px] w-[22px] -translate-x-1/2 items-center justify-center rounded-full text-white ring-2 ring-card transition-opacity duration-300 ${accent} ${FOCUS_RING} ${
+                  dotDimmed ? "opacity-[0.05]" : "cursor-pointer hover:z-50"
                 }`}
-                style={{ left: commPos(c).x, top: commPos(c).y }}
+                style={{ left: markerPos(c).x, top: markerPos(c).y }}
               >
-                <Icon size={10} strokeWidth={2.25} aria-hidden />
+                <Icon size={12} strokeWidth={2.25} aria-hidden />
+                {/* title tooltip on hover — the card's instant-tooltip style.
+                    z-50 (and the button's hover:z-50) so it clears the sticky
+                    header / gutter. Shown/hidden INSTANTLY (no fade): a fade-out
+                    lingers after the z drops back to 10 and flashes behind the
+                    markers stacked above it. */}
+                <span
+                  aria-hidden
+                  className="pointer-events-none absolute -top-7 left-1/2 z-50 hidden -translate-x-1/2 rounded-md bg-tooltip px-2 py-1 text-xs font-normal whitespace-nowrap text-white shadow-md group-hover:block"
+                >
+                  {c.title} · {day} {monthLabel(Math.floor(c.month))}
+                </span>
               </button>
             );
           }

@@ -75,9 +75,11 @@ export function CommCard({
   // Hover wins over active: each card is its own stacking context, so a
   // hovered card (and the tooltip inside it) must sit strictly above every
   // other card — including a pinned/active one later in the DOM — otherwise
-  // the tooltip renders behind whatever overlaps it. Kept below the sticky
-  // header rows (z-40) so tooltips never cover the month/moment bands.
-  const zIndex = hovered ? 30 : active ? 20 : 10;
+  // the tooltip renders behind whatever overlaps it. A hovered card goes to
+  // z-50 so its tooltip clears the sticky header (z-40) and gutter rather
+  // than tucking behind them; the card body sits below the header anyway, so
+  // only the upward tooltip crosses into it.
+  const zIndex = hovered ? 50 : active ? 20 : 10;
   // Borderless tinted token — separation comes from the tint fill + the
   // full-colour left edge; hover/active add a ring/shadow for affordance.
   const stateClass = active
@@ -121,7 +123,7 @@ export function CommCard({
       {/* instant tooltip — the exact date; native title tooltip is too slow */}
       <span
         aria-hidden
-        className={`absolute -top-7 left-0 z-30 rounded-md bg-tooltip px-2 py-1 text-xs font-normal whitespace-nowrap text-white shadow-md transition-opacity duration-100 ${
+        className={`absolute -top-7 left-0 z-50 rounded-md bg-tooltip px-2 py-1 text-xs font-normal whitespace-nowrap text-white shadow-md transition-opacity duration-100 ${
           hovered && !filteredOut ? "opacity-100" : "pointer-events-none opacity-0"
         }`}
       >

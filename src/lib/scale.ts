@@ -164,9 +164,12 @@ export const CHIP_H = 22; // "+N more" overflow chip strip
 // type-icon markers (skyline-packed, NO fold cap) so a dense period builds a
 // tall stack you read as volume. MARKER_W is the horizontal footprint used for
 // stacking overlap — a touch wider than the marker so same-week sends stack.
-export const MARKER_SIZE = 18;
-const MARKER_W = 22;
-const MARKER_GAP = 4;
+// MARKER_PAD is equal top/bottom padding so the stack sits centred in its lane
+// (unlike commPos, which prepends a dot-baseline strip meant for cards).
+export const MARKER_SIZE = 22;
+const MARKER_W = 26;
+const MARKER_GAP = 5;
+export const MARKER_PAD = 12;
 
 export const CAMPAIGN_H = 24;
 export const CAMPAIGN_GAP = 6;
@@ -223,8 +226,9 @@ function buildLanes(
     kind: "outbound",
     chipStrip: !collapsed.has(id) && chipTeams.has(id),
     height: collapsed.has(id)
-      ? // collapsed → sized to the stacked icon markers (min = the label strip)
-        Math.max(COLLAPSED_LANE_H, laneBlockHeight(cardAreaPerTeam[id], false))
+      ? // collapsed → the stacked-marker area with equal top/bottom padding
+        // (min = the label strip). Matches markerPos so the stack is centred.
+        Math.max(COLLAPSED_LANE_H, cardAreaPerTeam[id] + 2 * MARKER_PAD)
       : id === "marketing"
         ? // fit whichever is deeper: the card stack or the campaign block
           Math.max(
@@ -337,6 +341,20 @@ export function commPos(comm: Pick<Comm, "id" | "team" | "month">) {
 /** y of a team lane's date-dot centres (the baseline strip at the top). */
 export function dotY(team: Team): number {
   return laneById(team).top + DOT_Y;
+}
+
+/** Position of a collapsed-lane icon marker: centred on its date (x), stacked
+ *  by the skyline packing (y). The whole stack is centred vertically in the
+ *  lane — so a short stack sits mid-lane, and a tall one keeps MARKER_PAD top
+ *  and bottom. */
+export function markerPos(comm: Pick<Comm, "id" | "team" | "month">) {
+  const lane = laneById(comm.team);
+  const stackH = cardAreaByTeam[comm.team]; // packed marker-stack height
+  const pad = Math.max(MARKER_PAD, (lane.height - stackH) / 2);
+  return {
+    x: Math.min(scaleX(comm.month), TOTAL_W - MARKER_SIZE),
+    y: lane.top + pad + (yOffsetById.get(comm.id) ?? 0),
+  };
 }
 
 /** y of a "+N more" chip — tucked directly under its OWN month's card column
