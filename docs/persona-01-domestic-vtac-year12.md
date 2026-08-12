@@ -1,38 +1,37 @@
 # Persona 01 — Domestic school leaver (VTAC)
 
-*The most common journey on the Current State Touch Points map. Draft v0.5 — confidence marked: ● data · ○ assumed.*
+*The first persona on the Current State Touch Points map — roughly half the domestic school-leaver cohort. Draft v0.6 — confidence marked: ● data · ○ assumed.*
 
 **In a line:** A Year 12 student applying to RMIT through VTAC straight from school — hedging across several universities, and studying above all **to get a job**.
 
 ## What it is
 
-- **Year 12**, applying **through VTAC**, straight from school (no gap year). ●[^vtac][^exp]
-- **Undergraduate — higher ed, non-pathway.** ●[^vtac]
-- **17–18** (99% are ≤19). ●[^exp]
-- **Gender non-specific** (54% M / 46% F). ●[^enrolled]
-- **VTAC-preference agnostic** — RMIT is a contender, not the favourite (1st preference only 15% of the time). ●[^vtac]
-- **College / interest-area agnostic** — no faculty assumed (cut by one with the College toggle). ●[^vtac]
+- **Year 12**, applying **through VTAC**, straight from school (no gap year). VTAC is the route for **~49%** of domestic SL enrolments (the other ~51% apply direct). ●[^exp]
+- **Bachelor's degree — undergraduate, non-pathway.** Bachelor's (Pass + Honours) is **~67%** of SL preferences and enrolments; **~89%** enrol outside a packaged pathway. ●[^exp]
+- **17–18** — **99%** are aged ≤19 at application. ●[^exp]
+- **Gender non-specific** — 54% male / 45% female / <1% indeterminate or intersex. ●[^exp]
+- **VTAC-preference agnostic** — RMIT is a contender, not the favourite (a first preference only ~15% of the time). ●[^pref]
+- **College / interest-area agnostic** — no faculty assumed (cut by one with the College toggle). ●[^pref]
 - **Motivated by employment** — 82% study "to get a job". ●[^commencing]
 - **Metropolitan Melbourne.** ○
 
 ## What it is not
 
-- **Not a direct applicant** — comes via VTAC, not RMIT's direct route.
+- **Not a direct applicant** — comes via VTAC, not RMIT's direct route (the ~51% direct cohort is a future persona).
 - **Not an equity cohort** — SNAP and Indigenous Access are *toggles* on the map, not the baseline.
 - **No selection task / portfolio** — a non-portfolio degree, so **no interaction with RAS** at any point.
 - **No offer-acceptance step** — a DOM/VTAC offer-holder never "accepts"; the course **appears automatically in Enrolment Online**. So **no "accept your offer" nudges** — the post-offer prompts are Conversion's enrolment nudges (SMS → reminder → support SMS → last-day-to-enrol).
-- **Not the VE / diploma cohort** — the ~28% vocational route is a separate future persona.
+- **Not the diploma / VE student** — the ~33% who preference diplomas, associate/advanced diplomas or certificates are a separate future persona.
 - **Not the parent** — this is the student's own journey, not their parents' comms.
 
 ## Based on what
 
-Figures come from internal dashboard extracts supplied as screenshots during drafting (Jul–Aug 2026), plus this map's own dataset. Rows marked ○ are working assumptions (location, school type, ATAR band), not yet validated. One caveat throughout: the demographic figures are enrolled/commencing students of all ages, so they're directional for school leavers, not SL-scoped.
+Figures come from the **Recruitment Performance (EXP) dashboard** (2025 domestic school leavers) unless noted, plus two older extracts for preference behaviour and motivation. Rows marked ○ are working assumptions (location, school type, ATAR band), not yet validated.
 
-[^vtac]: VTAC 2026 application-cycle extract — domestic route split (~64,898 preferenced vs ~35,003 direct applications) and RMIT course-preference tables summing to 69,134 preferences (course/field shares, preference positions, HE/VE split).
-[^exp]: Recruitment Performance (EXP) dashboard — non-school-leaver count (~6,403) and age at application (domestic · VTAC · school leaver: 98.9% aged ≤19).
-[^enrolled]: RMIT enrolled domestic undergraduates, 2022–24 — gender (54/46), SES (91% medium–high), attendance (92% full-time). Degree students only; indicative for the diploma path.
-[^commencing]: RMIT commencing students, 2022–24 (HE) — reasons for study ("to get a job": 82% HE / 57% HE+VET).
+[^exp]: Recruitment EXP dashboard — 2025 domestic school-leaver enrolments (14,863 total). VTAC route 7,298 (49%). Aged ≤19 at application 7,241 of 7,298 VTAC (99.2%). Non-packaged-pathway 13,158 (88.5%). Gender 8,092 male / 6,658 female / 109 indeterminate or intersex. Program type — Bachelor's (Pass + Honours) is 67% of both preferences (42,568 of 63,561) and enrolments (4,878 of 7,241); the remainder are diplomas, associate & advanced diplomas and certificates.
+[^pref]: VTAC preference extract — RMIT sits as a first preference ~15% of the time and 4th-or-lower ~55%, i.e. measured hedging across the list; interest clusters (Business, Engineering, IT, Health) but no single dominant course.
+[^commencing]: RMIT commencing students, 2022–24 (HE) — "to get a job" is the top reason for study at 82% (HE); all ages, so directional for school leavers.
 
 ---
 
-*Changelog: v0.1–v0.4 progressive drafts (motivation, one-page cut, definition & baseline, footnoted references) · v0.5 stripped to key features — what it is / what it is not / based on what.*
+*Changelog: v0.1–v0.4 progressive drafts · v0.5 stripped to key features (what it is / is not / based on what) · v0.6 re-based the figures on the SL-scoped Recruitment EXP dashboard (2025): VTAC ~49% of SL enrolments, 99% aged ≤19, ~89% non-pathway, Bachelor's ~67%, gender 54/45/<1.*
