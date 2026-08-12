@@ -13,7 +13,7 @@
 - **VTAC-preference agnostic** — RMIT is a contender, not the favourite (a first preference only ~15% of the time). ●[^pref]
 - **College / interest-area agnostic** — no faculty assumed (cut by one with the College toggle). ●[^pref]
 - **Motivated by employment** — 82% study "to get a job". ●[^commencing]
-- **Metropolitan Melbourne.** ○
+- **Metropolitan** — only **~7%** are regional or remote. ●[^exp]
 
 ## What it is not
 
@@ -26,9 +26,9 @@
 
 ## Based on what
 
-Figures come from the **Recruitment Performance (EXP) dashboard** (2025 domestic school leavers) unless noted, plus two older extracts for preference behaviour and motivation. Rows marked ○ are working assumptions (location, school type, ATAR band), not yet validated.
+Figures come from the **Recruitment Performance (EXP) dashboard** (2025 domestic school leavers) unless noted, plus two older extracts for preference behaviour and motivation. Rows marked ○ are working assumptions (school type, ATAR band), not yet validated.
 
-[^exp]: Recruitment EXP dashboard — 2025 domestic school-leaver enrolments (14,863 total). VTAC route 7,298 (49%). Aged ≤19 at application 7,241 of 7,298 VTAC (99.2%). Non-packaged-pathway 13,158 (88.5%). Gender 8,092 male / 6,658 female / 109 indeterminate or intersex. Program type — Bachelor's (Pass + Honours) is 67% of both preferences (42,568 of 63,561) and enrolments (4,878 of 7,241); the remainder are diplomas, associate & advanced diplomas and certificates.
+[^exp]: Recruitment EXP dashboard — 2025 domestic school-leaver enrolments (14,863 total). VTAC route 7,298 (49%). Aged ≤19 at application 7,241 of 7,298 VTAC (99.2%). Non-packaged-pathway 13,158 (88.5%). Regional or remote 1,062 (7.1%), so ~93% metropolitan. Gender 8,092 male / 6,658 female / 109 indeterminate or intersex. Program type — Bachelor's (Pass + Honours) is 67% of both preferences (42,568 of 63,561) and enrolments (4,878 of 7,241); the remainder are diplomas, associate & advanced diplomas and certificates.
 [^pref]: VTAC preference extract — RMIT sits as a first preference ~15% of the time and 4th-or-lower ~55%, i.e. measured hedging across the list; interest clusters (Business, Engineering, IT, Health) but no single dominant course.
 [^commencing]: RMIT commencing students, 2022–24 (HE) — "to get a job" is the top reason for study at 82% (HE); all ages, so directional for school leavers.
 
