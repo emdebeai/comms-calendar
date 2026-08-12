@@ -6,14 +6,14 @@
 
 ## What it is
 
-- **Year 12**, applying **through VTAC**, straight from school (no gap year). VTAC is the route for **~49%** of domestic SL enrolments (the other ~51% apply direct). ●[^exp]
-- **Bachelor's degree — undergraduate, non-pathway.** Bachelor's (Pass + Honours) is **~67%** of SL preferences and enrolments; **~89%** enrol outside a packaged pathway. ●[^exp]
-- **17–18** — **99%** are aged ≤19 at application. ●[^exp]
-- **Gender non-specific** — 54% male / 45% female / <1% indeterminate or intersex. ●[^exp]
-- **VTAC-preference agnostic** — RMIT is a contender, not the favourite (a first preference only ~15% of the time). ●[^pref]
-- **College / interest-area agnostic** — no faculty assumed (cut by one with the College toggle). ●[^pref]
-- **Motivated by employment** — 82% study "to get a job". ●[^commencing]
-- **Metropolitan** — only **~7%** are regional or remote. ●[^exp]
+- **Year 12**, applying **through VTAC**, straight from school (no gap year). VTAC is the route for **~49%** of domestic SL enrolments (the other ~51% apply direct).[^exp]
+- **Bachelor's degree — undergraduate, non-pathway.** Bachelor's (Pass + Honours) is **~67%** of SL preferences and enrolments; **~89%** enrol outside a packaged pathway.[^exp]
+- **17–18** — **99%** are aged ≤19 at application.[^exp]
+- **Gender non-specific** — 54% male / 45% female / <1% indeterminate or intersex.[^exp]
+- **VTAC-preference agnostic** — RMIT is a contender, not the favourite (a first preference only ~15% of the time).[^pref]
+- **College / interest-area agnostic** — no faculty assumed (cut by one with the College toggle).[^pref]
+- **Motivated by employment** — 82% study "to get a job".[^commencing]
+- **Metropolitan** — only **~7%** are regional or remote.[^exp]
 
 ## What it is not
 
