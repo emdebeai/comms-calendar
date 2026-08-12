@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { GraduationCap, Info, Link2, Moon, Sun } from "lucide-react";
+import { GraduationCap, Info, Link2, Moon, Rows3, Sun } from "lucide-react";
 import type { CommType } from "../data/types";
 import { FOCUS_RING } from "../lib/styles";
 import { COMM_COLORS, COMM_ICONS, COMM_LABELS } from "./icons";
@@ -14,6 +14,9 @@ interface Props {
   onToggleLines: () => void;
   showStudentLayer: boolean;
   onToggleStudentLayer: () => void;
+  /** overview mode — every lane collapsed to its touchpoint strip */
+  allLanesCollapsed: boolean;
+  onToggleAllLanes: () => void;
   theme: "light" | "dark";
   onToggleTheme: () => void;
 }
@@ -31,6 +34,8 @@ export function ControlDock({
   onToggleLines,
   showStudentLayer,
   onToggleStudentLayer,
+  allLanesCollapsed,
+  onToggleAllLanes,
   theme,
   onToggleTheme,
 }: Props) {
@@ -113,6 +118,21 @@ export function ControlDock({
           }`}
         >
           <GraduationCap size={15} strokeWidth={1.75} aria-hidden />
+        </button>
+
+        {/* Overview — collapse every lane to its compact touchpoint strip so
+            the whole map fits at once (markers keep their type icon). */}
+        <button
+          type="button"
+          onClick={onToggleAllLanes}
+          aria-pressed={allLanesCollapsed}
+          aria-label={allLanesCollapsed ? "Expand all lanes" : "Overview — collapse all lanes"}
+          title="Overview — all lanes as touchpoint rows"
+          className={`${iconBtn} ${
+            allLanesCollapsed ? "bg-header text-white" : "text-grey-70 hover:bg-grey-20"
+          }`}
+        >
+          <Rows3 size={15} strokeWidth={1.75} aria-hidden />
         </button>
 
         {/* Trigger lines */}

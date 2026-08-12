@@ -26,7 +26,7 @@ import {
 } from "../lib/scale";
 import { markerAccent } from "../lib/designConfig";
 import { EYEBROW, FOCUS_RING } from "../lib/styles";
-import { COMM_COLORS, COMM_LABELS } from "./icons";
+import { COMM_COLORS, COMM_ICONS, COMM_LABELS } from "./icons";
 import { CampaignBar } from "./CampaignBar";
 import { CommCard } from "./CommCard";
 import { MomentsBand, MonthBand, StageBand, YearBand } from "./HeaderBands";
@@ -423,11 +423,11 @@ export function Timeline({
             strip, INCLUDING comms folded into a "+N more" chip, so the true
             density of a cluster is always visible. Folded comms get a HOLLOW
             dot (outline only, dimmer) so a lineless dot reads as "more here,
-            collapsed" rather than a card that lost its stem. (Collapsed lanes
-            render nothing.) */}
-        {comms
-          .filter((c) => !collapsedLanes.has(c.team))
-          .map((c) => {
+            collapsed" rather than a card that lost its stem. A COLLAPSED lane
+            keeps its touchpoints too — as icon markers centred in the strip
+            (the type icon carries what the card would say), so you can still
+            read the cadence in the compact "all lanes" overview. */}
+        {comms.map((c) => {
           const filteredOut =
             !activeTypes.has(c.type) ||
             !matchesSegment(c, segments) ||
@@ -436,8 +436,43 @@ export function Timeline({
           const dotDimmed = filteredOut || (focusSet !== null && !inFocus);
           const folded = hiddenIds.has(c.id);
           // VTAC (external) markers are muted grey, matching their dashed cards.
-          const accentBase = c.team === "vtac" ? "bg-grey-40" : COMM_COLORS[c.type].accent;
+          const external = c.team === "vtac";
+          const accentBase = external ? "bg-grey-40" : COMM_COLORS[c.type].accent;
           const accent = markerAccent(accentBase, "dot"); // bg-*
+
+          // Collapsed lane → the marker IS the whole representation, so it
+          // carries the type icon (email/SMS/event/…) and opens the detail
+          // panel on click, like a card would.
+          if (collapsedLanes.has(c.team)) {
+            const Icon = COMM_ICONS[c.type];
+            const colors = COMM_COLORS[c.type];
+            const day = Math.round((c.month % 1) * 30) + 1;
+            return (
+              <button
+                key={`mark-${c.id}`}
+                type="button"
+                disabled={filteredOut}
+                aria-hidden={filteredOut || undefined}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onOpenDetail(c.id);
+                }}
+                onMouseEnter={() => onHover(c.id)}
+                onMouseLeave={() => onHover(null)}
+                title={`${c.title} · ${day} ${monthLabel(Math.floor(c.month))}`}
+                aria-label={`${COMM_LABELS[c.type]} — ${c.title} — details`}
+                className={`absolute z-10 flex h-[18px] w-[18px] -translate-x-1/2 items-center justify-center rounded-full ring-2 ring-card transition-opacity duration-300 ${FOCUS_RING} ${
+                  external
+                    ? "border border-dashed border-grey-40 bg-grey-10 text-grey-70"
+                    : `${colors.chip} ${colors.text}`
+                } ${dotDimmed ? "opacity-[0.05]" : "cursor-pointer hover:z-30 hover:scale-110"}`}
+                style={{ left: commPos(c).x, top: commPos(c).y }}
+              >
+                <Icon size={10} strokeWidth={2} aria-hidden />
+              </button>
+            );
+          }
+
           // Centre the dot on the 3px spine (card left edge + accent strip),
           // so dot, stem and card edge share one axis.
           const pos = { left: commPos(c).x + 0.75, top: dotY(c.team) };
@@ -621,7 +656,9 @@ export function Timeline({
                 </span>
               )}
               {collapsed && lane.kind === "outbound" && count > 0 && (
-                <span className="pl-[19px] text-xs text-grey-70">{count} hidden</span>
+                <span className="pl-[19px] text-xs text-grey-70">
+                  {count} touchpoint{count === 1 ? "" : "s"}
+                </span>
               )}
             </>
           );

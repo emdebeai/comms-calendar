@@ -75,6 +75,12 @@ export default function App() {
   // Collapsed swimlanes (by lane id) — a collapsed lane shrinks to its label
   // strip and its content is hidden, so it feeds into layoutTimeline too.
   const [collapsedLanes, setCollapsedLanes] = useState<Set<string>>(new Set());
+  // The overview / "show all lanes at once" toggle collapses every lane to its
+  // compact touchpoint strip so the whole map fits vertically.
+  const COLLAPSIBLE_LANES = ["recruitment", "marketing", "admissions", "conversion", "vtac", "digital", "study"];
+  const allLanesCollapsed = COLLAPSIBLE_LANES.every((id) => collapsedLanes.has(id));
+  const toggleAllLanes = () =>
+    setCollapsedLanes(allLanesCollapsed ? new Set() : new Set(COLLAPSIBLE_LANES));
   const [feedback, setFeedback] = useState<FeedbackStore>({});
   const [openCommId, setOpenCommId] = useState<string | null>(null);
   const [openCampaignId, setOpenCampaignId] = useState<string | null>(null);
@@ -649,6 +655,8 @@ export default function App() {
         onToggleLines={() => setShowLines((s) => !s)}
         showStudentLayer={showStudentLayer}
         onToggleStudentLayer={toggleStudentLayer}
+        allLanesCollapsed={allLanesCollapsed}
+        onToggleAllLanes={toggleAllLanes}
         theme={theme}
         onToggleTheme={toggleTheme}
       />

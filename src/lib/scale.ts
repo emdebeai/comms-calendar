@@ -160,6 +160,14 @@ export const DOT_Y = 9;
 
 export const CHIP_H = 22; // "+N more" overflow chip strip
 
+// Collapsed-lane icon markers. A collapsed lane stacks its comms as small
+// type-icon markers (skyline-packed, NO fold cap) so a dense period builds a
+// tall stack you read as volume. MARKER_W is the horizontal footprint used for
+// stacking overlap — a touch wider than the marker so same-week sends stack.
+export const MARKER_SIZE = 18;
+const MARKER_W = 22;
+const MARKER_GAP = 4;
+
 export const CAMPAIGN_H = 24;
 export const CAMPAIGN_GAP = 6;
 // The group summary bar (row 0) is taller so its label can wrap to two lines
@@ -215,7 +223,8 @@ function buildLanes(
     kind: "outbound",
     chipStrip: !collapsed.has(id) && chipTeams.has(id),
     height: collapsed.has(id)
-      ? COLLAPSED_LANE_H
+      ? // collapsed → sized to the stacked icon markers (min = the label strip)
+        Math.max(COLLAPSED_LANE_H, laneBlockHeight(cardAreaPerTeam[id], false))
       : id === "marketing"
         ? // fit whichever is deeper: the card stack or the campaign block
           Math.max(
@@ -448,31 +457,31 @@ export function layoutTimeline(
   const campTo = scaleX(campaignSpan.to);
   let campArea = DEFAULT_CARD_H;
   for (const team of OUTBOUND_TEAMS) {
-    // Collapsed lanes contribute no card area (they shrink to the label
-    // strip) and their comms aren't placed — buildLanes overrides the height.
-    if (collapsedLanes.has(team)) {
-      nextCardArea[team] = DEFAULT_CARD_H;
-      continue;
-    }
+    // Collapsed lanes stack their comms as small icon markers (fixed footprint,
+    // no fold cap) so volume reads as stack height; expanded lanes pack full
+    // cards with the usual fold. Same skyline algorithm either way.
+    const collapsed = collapsedLanes.has(team);
+    const footW = collapsed ? MARKER_W : CARD_W;
+    const gapY = collapsed ? MARKER_GAP : ROW_GAP;
     const list = raw.filter((c) => c.team === team).sort((a, b) => a.month - b.month);
     const placed: { x1: number; x2: number; y: number; bottom: number }[] = [];
     let area = 0;
     for (const c of list) {
-      const x1 = Math.min(scaleX(c.month), TOTAL_W - CARD_W - 4);
-      const x2 = x1 + CARD_W + GAP;
-      const h = heights[c.id] ?? DEFAULT_CARD_H;
+      const x1 = Math.min(scaleX(c.month), TOTAL_W - footW - 4);
+      const x2 = x1 + footW + GAP;
+      const h = collapsed ? MARKER_SIZE : heights[c.id] ?? DEFAULT_CARD_H;
       const overlapping = placed.filter((p) => x1 < p.x2 && p.x1 < x2);
-      const candidates = [0, ...overlapping.map((p) => p.bottom + ROW_GAP)].sort(
+      const candidates = [0, ...overlapping.map((p) => p.bottom + gapY)].sort(
         (a, b) => a - b,
       );
       const y =
         candidates.find((cy) =>
-          overlapping.every((p) => cy + h + ROW_GAP <= p.y || cy >= p.bottom + ROW_GAP),
+          overlapping.every((p) => cy + h + gapY <= p.y || cy >= p.bottom + gapY),
         ) ?? 0;
 
       const monthIndex = Math.floor(c.month);
       const inExpanded = expandedMonthsState.has(monthIndex);
-      if (y + h > PACK_CAP_PX && !inExpanded) {
+      if (!collapsed && y + h > PACK_CAP_PX && !inExpanded) {
         hiddenIds.add(c.id);
         const key = `${team}:${monthIndex}`;
         chipCounts.set(key, (chipCounts.get(key) ?? 0) + 1);
@@ -481,11 +490,11 @@ export function layoutTimeline(
       placed.push({ x1, x2, y, bottom: y + h });
       nextY.set(c.id, y);
       area = Math.max(area, y + h);
-      if (team === "marketing" && x1 < campTo && campFrom < x2) {
+      if (team === "marketing" && !collapsed && x1 < campTo && campFrom < x2) {
         campArea = Math.max(campArea, y + h);
       }
     }
-    nextCardArea[team] = Math.max(area, DEFAULT_CARD_H);
+    nextCardArea[team] = Math.max(area, collapsed ? MARKER_SIZE : DEFAULT_CARD_H);
     nextPlaced[team] = placed;
   }
   yOffsetById = nextY;
