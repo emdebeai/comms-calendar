@@ -52,6 +52,9 @@ export const STUDENT_EXPERIENCE: StageExperience[] = [
             items: [
               "What subjects do I actually need to take in Year 11 and 12?",
               "Do I want to aim for university, vocational training (TAFE), or go straight to work?",
+              "Which jobs and industries does [Field] actually lead to — and are they hiring?",
+              "Is a TAFE or applied pathway a faster route into my field than a degree?",
+              "What will I actually study — units, majors, and structure year by year?",
             ],
           },
           {
@@ -98,6 +101,10 @@ export const STUDENT_EXPERIENCE: StageExperience[] = [
             items: [
               "What ATAR am I tracking for? Can I get in early so I can stop stressing?",
               "Should I study at [Uni A] or [Uni B]? Which has the better vibe and location?",
+              "Does this course include work experience, internships or industry placements?",
+              "How much will it cost me — fees, transport, and can I study close to home?",
+              "Can I study this on campus, blended or fully online?",
+              "Which VCE subjects are prerequisites for this course, and what if I haven't done them?",
             ],
           },
           {
@@ -144,6 +151,9 @@ export const STUDENT_EXPERIENCE: StageExperience[] = [
             items: [
               "Is RMIT definitely the right first choice, or a plan B backup on my list?",
               "What is the exact process to start my application, and what dates do I need to meet?",
+              "Am I eligible for a scholarship or fee support, and when do I apply?",
+              "How do I order RMIT vs my backups so I don't get locked out of a better offer?",
+              "What are the VTAC and course codes I need to preference this course?",
             ],
           },
           {
@@ -190,6 +200,7 @@ export const STUDENT_EXPERIENCE: StageExperience[] = [
             items: [
               "What do I actually need to have ready on my computer before I open the portal?",
               "Do I need to find my Year 11 results, write a personal statement, or submit a portfolio?",
+              "Can I use my digital ATAR / digital ID to apply, or do I need physical documents?",
             ],
           },
           {
@@ -235,6 +246,8 @@ export const STUDENT_EXPERIENCE: StageExperience[] = [
             items: [
               "Is my course list locked in, or can I still change my mind after I hit submit?",
               "Why is this upload failing?",
+              "If something goes wrong mid-submission, how quickly can I get help?",
+              "Will I get a confirmation that my application actually went through?",
             ],
           },
           {
@@ -282,6 +295,8 @@ export const STUDENT_EXPERIENCE: StageExperience[] = [
               "When is ATAR release day, and what time do VTAC results go online?",
               "How does Change of Preference work?",
               "When do VTAC Round 1 offers come out, and what happens if I reject one?",
+              "Where will my results and offer actually land — will it come to my phone or portal?",
+              "What support is there if I'm stressed while I wait?",
             ],
           },
           {
@@ -330,6 +345,7 @@ export const STUDENT_EXPERIENCE: StageExperience[] = [
               "If I accept a backup offer, can I still get a higher preference in Round 2?",
               "When is the reply deadline, and what if I miss it?",
               "Can I defer a TAFE offer, or is that only for uni degrees?",
+              "How long can I defer for, and does deferring affect my scholarship or place?",
             ],
           },
           {
@@ -372,6 +388,8 @@ export const STUDENT_EXPERIENCE: StageExperience[] = [
               "Can I change my preferences now to get an offer in Round 2?",
               "Is there an RMIT diploma or associate degree I can jump into instead?",
               "Do I need to contact RMIT directly to apply for a pathway course?",
+              "Which RMIT diploma or TAFE pathway guarantees credit into my original degree?",
+              "Will a pathway cost me more or take longer overall than a direct entry?",
             ],
           },
           {
@@ -420,6 +438,10 @@ export const STUDENT_EXPERIENCE: StageExperience[] = [
               "Which subjects do I need to choose for my first semester?",
               "Who can I talk to if I hit a technical problem?",
               "Why do I have to do these tests? I already got a place, right?",
+              "How do I log in for the first time — where's my temporary password?",
+              "Where do I actually go to enrol?",
+              "How do I get timetabling and class-selection help before semester starts?",
+              "What study-skills or peer support is there if I fall behind early?",
             ],
           },
           {
@@ -473,73 +495,110 @@ export interface QuestionLink {
 }
 
 export const QUESTION_LINKS: QuestionLink[] = [
-  // First-pass, clear-cut mappings only — the unambiguous ones where a comm
-  // plainly answers the question. Everything else stays unmapped (a neutral
-  // "—" on its card) until the teams call the link — or the real gap — for
-  // themselves. Comm ids are the auto-slugified titles; the "What is it"
-  // series and Open Day / Key dates eDMs repeat each school year, so their
-  // later instances carry -2 / -2-2 suffixes (see slugify in commsSchema).
+  // One question per comm, assigned from the Experience Layer question set —
+  // only where the comm directly answers it. Comms with no assignment are the
+  // blanks the teams fill in (they read "—" in the journey lane and show no
+  // linked question in their detail panel). Ids are live slugs from the 2026
+  // DOM eDM Planner import + the Recruitment events.
   {
-    // Understand — the pathway question is exactly what the explainer series
-    // answers (TAFE vs uni, and pathways), across all three years it runs.
+    // The explainer series answers the uni-vs-TAFE fork head-on.
     stage: "Understand",
     match: "vocational training",
-    commIds: [
-      "what-is-it-series-vocational-study-explaining-the-difference-between-tafe-and",
-      "what-is-it-series-vocational-study-explaining-the-difference-between-tafe-and-2",
-      "what-is-it-series-vocational-study-explaining-the-difference-between-tafe-and-2-2",
-      "what-is-it-series-pathways-explaining-everything-you-need-to-know-about-pathwa",
-      "what-is-it-series-pathways-explaining-everything-you-need-to-know-about-pathwa-2",
-      "what-is-it-series-pathways-explaining-everything-you-need-to-know-about-pathwa-2-2",
-    ],
+    commIds: ["what-is-vocational-study", "what-is-vocational-study-2", "what-is-vocational-study-3"],
   },
   {
-    // Consider — "which uni / the vibe" is the Open Day cluster: the invite
-    // eDMs plus the campus events and their reminders / confirmations.
+    // Pathways series: alternate entry when the ATAR falls short.
+    stage: "Understand",
+    match: "faster route into my field",
+    commIds: ["what-are-pathways", "what-are-pathways-2", "what-are-pathways-3"],
+  },
+  {
+    // The Open Day cluster (invites, campus tours, guides, S4AD) + the events
+    // themselves — all in service of "which uni has the better vibe".
     stage: "Consider",
     match: "vibe and location",
     commIds: [
-      "why-you-won-t-want-to-miss-rmit-open-day-2026-it-s-our-biggest-event-of-the-yea",
-      "why-you-won-t-want-to-miss-rmit-open-day-2026-it-s-our-biggest-event-of-the-yea-2",
-      "why-you-won-t-want-to-miss-rmit-open-day-2026-it-s-our-biggest-event-of-the-yea-2-2",
+      "only-at-open-day-can-you",
+      "register-for-open-day-and-win",
+      "only-at-bundoora",
+      "only-at-the-city-campus",
+      "only-at-brunswick",
+      "best-questions-to-ask-on-the-day",
+      "best-questions-to-ask-on-the-day-2",
+      "best-questions-to-ask-on-the-day-3",
+      "only-at-rmit-open-day",
+      "only-at-rmit-open-day-2",
+      "only-at-rmit-open-day-3",
+      "the-open-day-guide-is-live",
+      "the-open-day-guide-is-live-2",
+      "discover-melbourne",
+      "discover-melbourne-2",
+      "discover-melbourne-3",
+      "become-an-rmit-student-for-a-day",
+      "become-an-rmit-student-for-a-day-2",
       "open-day-bundoora-campus",
       "open-day-city",
       "open-day-brunswick",
-      "open-day-bundoora-campus-reminder",
-      "open-day-city-reminder",
-      "open-day-brunswick-reminder",
       "open-day-bundoora-campus-registration-confirmation",
       "open-day-city-registration-confirmation",
       "open-day-brunswick-registration-confirmation",
     ],
   },
   {
-    // Decide — "how do I start / what dates" is answered by the VTAC apply
-    // push and the recurring Key dates eDM.
+    // Key dates + VTAC launch + services: the application process question.
     stage: "Decide",
     match: "exact process to start my application",
     commIds: [
-      "vtac-services-and-event-here-to-help",
-      "vtac-final-push-scholarship-promotion",
-      "key-dates-for-2026-we-ll-be-in-touch-throughout-the-year-to-tell-you-all-about",
-      "key-dates-for-2026-we-ll-be-in-touch-throughout-the-year-to-tell-you-all-about-2",
-      "key-dates-for-2026-we-ll-be-in-touch-throughout-the-year-to-tell-you-all-about-2-2",
+      "here-s-a-glimpse-of-2026",
+      "here-s-a-glimpse-of-2026-2",
+      "here-s-a-glimpse-of-2026-3",
+      "what-s-next-after-open-day",
+      "we-re-here-to-help-preference-rmit",
+    ],
+  },
+  {
+    stage: "Decide",
+    match: "scholarship or fee support",
+    commIds: [
+      "what-to-know-about-scholarships",
+      "what-to-know-about-scholarships-2",
+      "what-to-know-about-scholarships-3",
+    ],
+  },
+  {
+    // The KSP hard-sell answers "is RMIT the right first choice".
+    stage: "Decide",
+    match: "right first choice",
+    commIds: ["why-choose-rmit"],
+  },
+  {
+    // Final pushes + the #2-8 "make a course your #1" series: preference order.
+    stage: "Decide",
+    match: "order RMIT vs my backups",
+    commIds: [
+      "there-s-still-time-to-preference-rmit",
+      "there-s-still-time-to-preference-rmit-2",
+      "explore-a-future-with-rmit",
+      "explore-a-future-with-rmit-2",
+      "explore-a-future-with-rmit-3",
+      "explore-a-future-with-rmit-4",
     ],
   },
   {
     stage: "Wait",
     match: "change of preference",
-    commIds: [
-      "cop-explained",
-      "thanks-for-preferencing-rmit",
-      "it-s-not-too-late-to-make-the-most-of-your-preferences-and-make-an-course-as-you",
-      "we-ll-be-on-the-phone-from-today-until-12pm-on-13-december-to-help-you-secure-yo",
-      "cop-closes-today-at-12pm-we-re-still-open-today-if-you-ve-got-questions",
-      "vtac-offers-are-released-today-good-luck-upcoming-rounds",
-      "change-of-preference-event",
-      "change-of-preference-event-reminder",
-      "change-of-preference-event-registration-confirmation",
-    ],
+    commIds: ["cop-explained", "cop-explained-2", "change-of-preference-closes-today"],
+  },
+  {
+    stage: "Wait",
+    match: "atar release day",
+    commIds: ["vtac-results-are-released-today"],
+  },
+  {
+    // 23 Dec offers-released send answers the Round 1 timing question.
+    stage: "Wait",
+    match: "round 1 offers",
+    commIds: ["explore-a-future-with-rmit-5"],
   },
 ];
 
