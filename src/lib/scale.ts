@@ -7,7 +7,7 @@
 // layoutTimeline / EXPANDED_MONTH_PX) so busy periods are inspected in place
 // without a permanently distorted, over-weighted Year-12 season.
 
-import { campaignGroups, campaignSpan } from "../data/comms";
+import { buildCampaignRows, inbound as inboundData } from "../data/comms";
 import { YEARS } from "../data/journey";
 import type { Comm, Team } from "../data/types";
 
@@ -177,23 +177,43 @@ export const CAMPAIGN_GAP = 6;
 // like the comm cards, instead of truncating. Channel rows shift down by the
 // difference. Keep in sync with CampaignBar's summary rendering.
 export const CAMPAIGN_SUMMARY_H = 44;
+/** The always-on floor band pinned across the bottom of the campaigns lane.
+ *  Declared with the other campaign constants — buildLanes runs at module
+ *  init, so this must exist before the first campaignsLaneHeight() call. */
+/** Row pitch of the campaigns lane (labelled bar + breathing room). */
+export const CAMPAIGN_ROW_H = 32;
+// Row count for the current expansion state — set by layoutTimeline before
+// buildLanes runs; initial value covers the collapsed tree (5 rows).
+let campaignRowsN = buildCampaignRows(new Set()).length;
+
+/** Height of the campaigns lane for the current expansion state. */
+function campaignsLaneHeight(): number {
+  return LANE_PAD + campaignRowsN * CAMPAIGN_ROW_H + LANE_PAD;
+}
+
+/** Canvas y of campaigns-lane row `i`. */
+export function campaignRowY(i: number): number {
+  return laneById("campaigns").top + LANE_PAD + i * CAMPAIGN_ROW_H;
+}
 
 export const INBOUND_H = 96;
+/** Taller variant for multi-line (per-channel) inbound lanes — the legend row
+ *  plus six lines need the extra headroom. */
+export const INBOUND_CHANNELS_H = 150;
 export const DIVIDER_H = 32;
 
 // VTAC is included so its comms pack + lay out like the RMIT lanes, but it's
 // kept last and rendered in its own "External sender" section (see buildLanes).
-const OUTBOUND_TEAMS: Team[] = ["recruitment", "marketing", "admissions", "conversion", "vtac"];
+const OUTBOUND_TEAMS: Team[] = ["recruitment", "marketing-events", "marketing", "admissions", "conversion", "vtac"];
 
 // Campaign bars shown in the Marketing lane, in draw order: every media
 // schedule contributes a (taller) summary bar, plus one bar per placement
 // while it's expanded. Held as a flat list of row HEIGHTS so the two schedules
 // can stack with different row counts. Mutable module state like the rest of
 // the layout — set by layoutTimeline.
-let campaignRowHeights: number[] = campaignGroups.map(() => CAMPAIGN_SUMMARY_H);
 
 export interface LaneDef {
-  id: Team | "digital" | "study" | "divider-vtac" | "divider-inbound";
+  id: Team | "campaigns" | "digital" | "study" | "divider-vtac" | "divider-inbound";
   label: string;
   sub?: string;
   top: number;
@@ -229,13 +249,7 @@ function buildLanes(
       ? // collapsed → the stacked-marker area with equal top/bottom padding
         // (min = the label strip). Matches markerPos so the stack is centred.
         Math.max(COLLAPSED_LANE_H, cardAreaPerTeam[id] + 2 * MARKER_PAD)
-      : id === "marketing"
-        ? // fit whichever is deeper: the card stack or the campaign block
-          Math.max(
-            laneBlockHeight(cardAreaPerTeam.marketing, chipTeams.has("marketing")),
-            marketingCampaignBottom(),
-          )
-        : laneBlockHeight(cardAreaPerTeam[id], chipTeams.has(id)),
+      : laneBlockHeight(cardAreaPerTeam[id], chipTeams.has(id)),
   });
   const inbound = (id: "digital" | "study", label: string): Omit<LaneDef, "top"> => ({
     id,
@@ -243,18 +257,33 @@ function buildLanes(
     sub: "Inbound",
     kind: "inbound",
     chipStrip: false,
-    height: collapsed.has(id) ? COLLAPSED_LANE_H : INBOUND_H,
+    height: collapsed.has(id)
+      ? COLLAPSED_LANE_H
+      : inboundData.find((d) => d.id === id)?.channels?.length
+        ? INBOUND_CHANNELS_H
+        : INBOUND_H,
   });
 
   const defs: Array<Omit<LaneDef, "top">> = [
     outbound("recruitment", "Recruitment", "Outbound"),
-    outbound("marketing", "Marketing", "Outbound + always-on"),
+    outbound("marketing-events", "Marketing — events", "Event-based comms"),
+    outbound("marketing", "Marketing — eDMs", "Outbound eDMs"),
     outbound("admissions", "Admissions", "Outbound"),
     outbound("conversion", "Conversion", "Outbound"),
     // VTAC — a third party, not an RMIT team: its own section, sending the
     // student the newsletter cadence directly.
     { id: "divider-vtac", label: "External sender", kind: "divider", height: DIVIDER_H, chipStrip: false },
     outbound("vtac", "VTAC", "Direct to the student"),
+    // Paid media + always-on — its own lane so the schedules read as a
+    // programme, not as Marketing's footnote.
+    {
+      id: "campaigns",
+      label: "Digital and out-of-home campaigns",
+      sub: "Paid + always-on",
+      kind: "outbound",
+      chipStrip: false,
+      height: collapsed.has("campaigns") ? COLLAPSED_LANE_H : campaignsLaneHeight(),
+    },
     { id: "divider-inbound", label: "Inbound Engagement", kind: "divider", height: DIVIDER_H, chipStrip: false },
     inbound("digital", "Digital"),
     inbound("study", "Study@RMIT"),
@@ -277,22 +306,19 @@ function buildLanes(
 let yOffsetById = new Map<string, number>();
 let cardAreaByTeam: Record<Team, number> = {
   recruitment: DEFAULT_CARD_H,
+  "marketing-events": DEFAULT_CARD_H,
   marketing: DEFAULT_CARD_H,
   admissions: DEFAULT_CARD_H,
   conversion: DEFAULT_CARD_H,
   vtac: DEFAULT_CARD_H,
 };
-// Card depth (within the card area) that the media schedule must clear — the
-// deepest marketing card in the campaign's own x-span, NOT the lane-wide max.
-// Keeps the campaign block tucked under its local cards instead of the lane
-// bottom. Set by layoutTimeline; used by campaignY and buildLanes.
-let marketingCampaignArea = DEFAULT_CARD_H;
 // Placed-card rectangles per team (card-area-relative bottoms), so a "+N more"
 // chip can sit below the deepest card that actually overlaps its x — hugging
 // its column without colliding with a taller neighbour. Set by layoutTimeline.
 type PlacedRect = { x1: number; x2: number; bottom: number };
 let placedByTeam: Record<Team, PlacedRect[]> = {
   recruitment: [],
+  "marketing-events": [],
   marketing: [],
   admissions: [],
   conversion: [],
@@ -368,32 +394,11 @@ export function chipY(team: Team, monthIndex: number): number {
   return lane.top + DOT_STRIP_H + LANE_PAD + depth + ROW_GAP;
 }
 
-/** Top of the campaign block, measured from the marketing lane's top. Sits
- *  ROW_GAP below the deepest content in its OWN x-span — cards, and any chip
- *  that tucks under a column in that span (see marketingCampaignArea). Tight,
- *  no lane-wide wasted space. */
-function campaignBlockTop(): number {
-  return DOT_STRIP_H + LANE_PAD + marketingCampaignArea + ROW_GAP + 2;
-}
 
-/** y of campaign row `index` — a flat index across every schedule's summary
- *  and (when expanded) placement rows, in the order Timeline draws them. */
-export function campaignY(index: number): number {
-  let y = laneById("marketing").top + campaignBlockTop();
-  for (let i = 0; i < Math.min(index, campaignRowHeights.length); i++) {
-    y += campaignRowHeights[i] + CAMPAIGN_GAP;
-  }
-  return y;
-}
 
-/** Bottom offset (from the marketing lane top) of the whole campaign block —
- *  so the lane can grow to fit it when the media schedules are deeper than the
- *  card stack (e.g. both expanded). Mirrors campaignY's geometry. */
-function marketingCampaignBottom(): number {
-  const rows = campaignRowHeights.reduce((sum, h) => sum + h, 0);
-  const gaps = Math.max(campaignRowHeights.length - 1, 0) * CAMPAIGN_GAP;
-  return campaignBlockTop() + rows + gaps + LANE_PAD;
-}
+
+
+
 
 export interface OverflowChip {
   team: Team;
@@ -420,6 +425,7 @@ export function layoutTimeline(
   openCampaigns: Set<string> = new Set(),
   collapsedLanes: Set<string> = new Set(),
   studentLayer = false,
+  filteredIds: Set<string> = new Set(),
 ): TimelineLayout {
   // Set the header height before anything reads it (buildLanes anchors every
   // lane's `top` to HEADER_H).
@@ -427,10 +433,7 @@ export function layoutTimeline(
   HEADER_H = headerHeight();
   expandedMonthsState = expandedMonths;
   cardHeightById = heights;
-  campaignRowHeights = campaignGroups.flatMap((g) => [
-    CAMPAIGN_SUMMARY_H,
-    ...(openCampaigns.has(g.id) ? g.channels.map(() => CAMPAIGN_H) : []),
-  ]);
+  campaignRowsN = buildCampaignRows(openCampaigns).length;
   TOTAL_W =
     baseScaleX(MONTHS) +
     140 +
@@ -455,6 +458,7 @@ export function layoutTimeline(
   const nextY = new Map<string, number>();
   const nextPlaced: Record<Team, PlacedRect[]> = {
     recruitment: [],
+    "marketing-events": [],
     marketing: [],
     admissions: [],
     conversion: [],
@@ -462,6 +466,7 @@ export function layoutTimeline(
   };
   const nextCardArea: Record<Team, number> = {
     recruitment: DEFAULT_CARD_H,
+    "marketing-events": DEFAULT_CARD_H,
     marketing: DEFAULT_CARD_H,
     admissions: DEFAULT_CARD_H,
     conversion: DEFAULT_CARD_H,
@@ -471,9 +476,6 @@ export function layoutTimeline(
   // clear the cards in ITS OWN column (the campaign x-span) — not the lane's
   // globally-deepest stack (e.g. the dense COP cluster far to the right).
   // Otherwise a big empty gap opens above it at the campaign's position.
-  const campFrom = scaleX(campaignSpan.from);
-  const campTo = scaleX(campaignSpan.to);
-  let campArea = DEFAULT_CARD_H;
   for (const team of OUTBOUND_TEAMS) {
     // Collapsed lanes stack their comms as small icon markers (fixed footprint,
     // no fold cap) so volume reads as stack height; expanded lanes pack full
@@ -485,6 +487,11 @@ export function layoutTimeline(
     const placed: { x1: number; x2: number; y: number; bottom: number }[] = [];
     let area = 0;
     for (const c of list) {
+      // Filtered-out comms don't take card space in an EXPANDED lane — they
+      // render as ghost baseline dots only, so lanes shrink to fit what's
+      // actually lit. Collapsed lanes keep packing them (ghost markers are
+      // the presence signal there, and cost 22px, not a card).
+      if (!collapsed && filteredIds.has(c.id)) continue;
       const x1 = Math.min(scaleX(c.month), TOTAL_W - footW - 4);
       const x2 = x1 + footW + GAP;
       const h = collapsed ? MARKER_SIZE : heights[c.id] ?? DEFAULT_CARD_H;
@@ -508,9 +515,6 @@ export function layoutTimeline(
       placed.push({ x1, x2, y, bottom: y + h });
       nextY.set(c.id, y);
       area = Math.max(area, y + h);
-      if (team === "marketing" && !collapsed && x1 < campTo && campFrom < x2) {
-        campArea = Math.max(campArea, y + h);
-      }
     }
     nextCardArea[team] = Math.max(area, collapsed ? MARKER_SIZE : DEFAULT_CARD_H);
     nextPlaced[team] = placed;
@@ -523,19 +527,6 @@ export function layoutTimeline(
     const [team, mi] = key.split(":");
     return { team: team as Team, monthIndex: Number(mi), count };
   });
-  // A marketing chip inside the campaign's x-span tucks under whatever cards
-  // overlap its x, so the campaign block must clear that chip too. Chips
-  // outside the span don't move the campaigns (they hug their own column).
-  for (const chip of chips) {
-    if (chip.team !== "marketing") continue;
-    const cx = scaleX(chip.monthIndex) + 4;
-    if (cx < campTo && campFrom < cx + CHIP_W) {
-      const depth = deepestBottomAt("marketing", cx, CHIP_W) || DEFAULT_CARD_H;
-      campArea = Math.max(campArea, depth + ROW_GAP + CHIP_H);
-    }
-  }
-  marketingCampaignArea = campArea;
-
   LANES = buildLanes(nextCardArea, new Set(chips.map((c) => c.team)), collapsedLanes);
   TOTAL_H = LANES[LANES.length - 1].top + LANES[LANES.length - 1].height;
 

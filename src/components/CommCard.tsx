@@ -92,17 +92,18 @@ export function CommCard({
     <button
       ref={rootRef}
       type="button"
-      // Filtered-out chips fade almost out (a dense map stays overwhelming at
-      // 0.15) and must not be reachable by pointer or keyboard, nor announced —
-      // otherwise they sit in the tab order at failing contrast and open panels
-      // the filter is hiding.
+      // Filtered-out chips fade to a faint ghost — still perceptible, so
+      // "hidden by a lens" never reads as "doesn't exist" — and must not be
+      // reachable by pointer or keyboard, nor announced. Transient focus
+      // dimming fades harder (the lens needs the contrast) but keeps the card
+      // tabbable, so it snaps back to full opacity on keyboard focus.
       disabled={filteredOut}
       aria-hidden={filteredOut || undefined}
       aria-label={`${comm.title}${variant ? ` (to ${variant})` : ""}, ${dateLabel} — details and comments`}
       className={`absolute flex items-start gap-1.5 px-2 py-1.5 text-left transition-[opacity,box-shadow] duration-300 ${
         chipClass
       } ${filteredOut ? "cursor-default" : "cursor-pointer"} ${stateClass} ${
-        dimmed ? "opacity-[0.05]" : ""
+        filteredOut ? "opacity-[0.12]" : dimmed ? "opacity-[0.05] focus-visible:opacity-100" : ""
       } ${FOCUS_RING}`}
       style={{ left: x, top: y, width: CARD_W, minHeight: PILL_H, zIndex }}
       onMouseEnter={() => {
@@ -113,8 +114,14 @@ export function CommCard({
         setHovered(false);
         onHover(null);
       }}
-      onFocus={() => setHovered(true)}
-      onBlur={() => setHovered(false)}
+      onFocus={() => {
+        setHovered(true);
+        onHover(comm.id);
+      }}
+      onBlur={() => {
+        setHovered(false);
+        onHover(null);
+      }}
       onClick={(e) => {
         e.stopPropagation();
         onOpenDetail(comm.id);

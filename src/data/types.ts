@@ -1,5 +1,5 @@
 export type CommType = "email" | "sms" | "webinar" | "call" | "event";
-export type Team = "recruitment" | "marketing" | "admissions" | "conversion" | "vtac";
+export type Team = "recruitment" | "marketing-events" | "marketing" | "admissions" | "conversion" | "vtac";
 /** Sending/management platform a comm goes out of. Marketing eDMs run out of
  *  Marketo (Adobe); event registration + confirmation emails out of Cvent;
  *  text messages out of ClickSend. */
@@ -60,6 +60,11 @@ export interface Comm {
 }
 
 export type CampaignChannel =
+  // always-on brand media
+  | "spotify"
+  | "linkedin"
+  | "retargeting"
+  | "leads"
   // digital + radio
   | "youtube"
   | "livewire"
@@ -94,12 +99,26 @@ export interface Campaign {
 }
 
 /** A media schedule: one summary bar that expands into per-channel bars. */
+/** A labelled span within the always-on band (a messaging phase or a
+ *  conversion burst). Positions are CALENDAR-year floats (0 = Jan, 11.x = Dec)
+ *  — the band tiles them across every school-year band, since each band is
+ *  the same calendar year. */
+export interface CampaignPhase {
+  label: string;
+  from: number;
+  to: number;
+}
+
 export interface CampaignGroup {
   id: string;
   title: string;
   from: number;
   to: number;
   channels: Campaign[];
+  /** always-on only — seasonal messaging phases shown inside the floor band */
+  phases?: CampaignPhase[];
+  /** always-on only — short conversion bursts (e.g. S1 intake pushes) */
+  bursts?: CampaignPhase[];
 }
 
 export interface Moment {
@@ -138,6 +157,23 @@ export interface InboundLaneData {
   id: "digital" | "study";
   baseline: number;
   peaks: InboundPeak[];
+  /** Real measured series (month float → raw value). When present, the curve
+   *  draws ONLY across the series' span — outside it the lane stays blank —
+   *  and `peaks` are used purely as labels (y looked up from the series). */
+  series?: { month: number; value: number }[];
+  /** Small caption at the series start naming the data source. */
+  seriesNote?: string;
+  /** Multi-line mode: one line per channel, sharing a single scale. When
+   *  present it replaces the single curve entirely. Lines break across gaps
+   *  of more than 1.5 months (e.g. the Feb → Aug hole in an extract). */
+  channels?: InboundChannelSeries[];
+}
+
+export interface InboundChannelSeries {
+  label: string;
+  /** CSS colour custom-property name, e.g. "--color-teal" */
+  color: string;
+  points: { month: number; value: number }[];
 }
 
 export interface FeedbackEntry {

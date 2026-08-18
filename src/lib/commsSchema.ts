@@ -87,7 +87,7 @@ export const COMMS_COLUMNS = [
   "event_state",
 ] as const;
 
-const TEAMS: Team[] = ["recruitment", "marketing", "admissions", "conversion", "vtac"];
+const TEAMS: Team[] = ["recruitment", "marketing", "marketing-events", "admissions", "conversion", "vtac"];
 const TYPES: CommType[] = ["email", "sms", "webinar", "call", "event"];
 const MONTH_NAMES = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
 

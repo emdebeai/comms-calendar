@@ -1,6 +1,6 @@
 import { Fragment } from "react";
 import { Ban, ChevronDown, ChevronRight } from "lucide-react";
-import { campaignGroups, inbound } from "../data/comms";
+import { inbound } from "../data/comms";
 import { EMBARGOES, MOMENTS } from "../data/journey";
 import type { Comm, CommType, Team } from "../data/types";
 import { matchesSegment, type SegmentSelection } from "../lib/segments";
@@ -28,7 +28,7 @@ import {
 import { markerAccent } from "../lib/designConfig";
 import { EYEBROW, FOCUS_RING } from "../lib/styles";
 import { COMM_COLORS, COMM_ICONS, COMM_LABELS } from "./icons";
-import { CampaignBar } from "./CampaignBar";
+import { CampaignGantt } from "./CampaignGantt";
 import { CommCard } from "./CommCard";
 import { MomentsBand, MonthBand, StageBand, YearBand } from "./HeaderBands";
 import { InboundLane } from "./InboundLane";
@@ -40,7 +40,7 @@ interface Props {
   hiddenIds: Set<string>;
   chips: OverflowChip[];
   expandedMonths: ExpandedMonths;
-  onToggleMonth: (monthIndex: number) => void;
+  onSetMonthLevel: (monthIndex: number, level: 0 | 1 | 2) => void;
   /** true when the user has months zoomed — shows the reset-zoom chip */
   canResetZoom: boolean;
   onResetZoom: () => void;
@@ -58,6 +58,7 @@ interface Props {
   /** true when any lens (filter or focus) is dimming the map — the always-on
    *  media campaigns and "+N more" chips recede with it. */
   dimBackground: boolean;
+  dimChips: boolean;
   activeId: string | null;
   showLines: boolean;
   activeMomentId: string | null;
@@ -71,10 +72,11 @@ interface Props {
   /** click a stage name in the header band → scroll the map there */
   onJumpStage: (from: number) => void;
   /** ids of the media schedules currently expanded to their placements */
-  openCampaigns: Set<string>;
-  onToggleCampaigns: (groupId: string) => void;
-  /** click on a channel bar opens its detail panel */
+  onOpenSchedule: (groupId: string) => void;
+  expandedCampaigns: Set<string>;
+  onToggleCampaign: (id: string) => void;
   onOpenCampaign: (id: string) => void;
+  /** click on a channel bar opens its detail panel */
   onHover: (id: string | null) => void;
   /** click on a comm opens the detail panel (attributes + comments) */
   onOpenDetail: (id: string) => void;
@@ -94,7 +96,7 @@ export function Timeline({
   hiddenIds,
   chips,
   expandedMonths,
-  onToggleMonth,
+  onSetMonthLevel,
   canResetZoom,
   onResetZoom,
   stageCounts,
@@ -103,6 +105,7 @@ export function Timeline({
   equity,
   focusSet,
   dimBackground,
+  dimChips,
   activeId,
   showLines,
   activeMomentId,
@@ -112,8 +115,9 @@ export function Timeline({
   onPinQuestion,
   onOpenStage,
   onJumpStage,
-  openCampaigns,
-  onToggleCampaigns,
+  onOpenSchedule,
+  expandedCampaigns,
+  onToggleCampaign,
   onOpenCampaign,
   onHover,
   onOpenDetail,
@@ -236,7 +240,7 @@ export function Timeline({
 
       <div className="sticky top-0 z-40" style={{ height: MONTH_H }}>
         <div className="absolute top-0" style={{ left: LABEL_W, width: TOTAL_W }}>
-          <MonthBand expandedMonths={expandedMonths} onToggleMonth={onToggleMonth} />
+          <MonthBand expandedMonths={expandedMonths} onSetLevel={onSetMonthLevel} />
         </div>
         <div
           className="sticky left-0 z-20 flex h-full items-center justify-between gap-2 border-r border-b border-grey-30 bg-card px-4 text-xs text-grey-70"
@@ -373,45 +377,18 @@ export function Timeline({
         })}
 
         {/* Media schedules — one summary bar each, expandable to per-placement
-            bars, stacked in the Marketing lane (so both hide when it's
+            bars, in their own campaigns lane (so both hide when it's
             collapsed). Row indices run FLAT across both schedules, matching the
             row-height list campaignY walks. */}
-        {!collapsedLanes.has("marketing") &&
-          (() => {
-            let row = 0;
-            return campaignGroups.map((group) => {
-              const expanded = openCampaigns.has(group.id);
-              const summaryRow = row++;
-              const channelRows = expanded ? group.channels.map(() => row++) : [];
-              return (
-                <Fragment key={group.id}>
-                  <CampaignBar
-                    campaign={{
-                      id: group.id,
-                      title: `${group.title} — ${group.channels.length} placements`,
-                      channel: "group",
-                      from: group.from,
-                      to: group.to,
-                    }}
-                    index={summaryRow}
-                    expanded={expanded}
-                    dimmed={dimBackground}
-                    onToggle={() => onToggleCampaigns(group.id)}
-                  />
-                  {expanded &&
-                    group.channels.map((c, i) => (
-                      <CampaignBar
-                        key={c.id}
-                        campaign={c}
-                        index={channelRows[i]}
-                        dimmed={dimBackground}
-                        onOpen={onOpenCampaign}
-                      />
-                    ))}
-                </Fragment>
-              );
-            });
-          })()}
+        {!collapsedLanes.has("campaigns") && (
+          <CampaignGantt
+            expanded={expandedCampaigns}
+            dimmed={dimBackground}
+            onToggle={onToggleCampaign}
+            onOpenChannel={onOpenCampaign}
+            onOpenAlwaysOn={() => onOpenSchedule("cmp-always-on")}
+          />
+        )}
 
         {/* Inbound engagement curves */}
         {inbound
@@ -438,7 +415,7 @@ export function Timeline({
           const folded = hiddenIds.has(c.id);
           // VTAC (external) markers are muted grey, matching their dashed cards.
           const external = c.team === "vtac";
-          const accentBase = external ? "bg-grey-40" : COMM_COLORS[c.type].accent;
+          const accentBase = external ? "bg-grey-70" : COMM_COLORS[c.type].accent;
           const accent = markerAccent(accentBase, "dot"); // bg-*
 
           // Collapsed lane → the marker IS the whole representation, so it
@@ -459,12 +436,18 @@ export function Timeline({
                 }}
                 onMouseEnter={() => onHover(c.id)}
                 onMouseLeave={() => onHover(null)}
+                onFocus={() => onHover(c.id)}
+                onBlur={() => onHover(null)}
                 aria-label={`${COMM_LABELS[c.type]} — ${c.title} — details`}
                 // Solid fill in the type colour (grey for VTAC) with a white
                 // icon — the same solid marker language as the baseline dots,
                 // just big enough to carry the icon.
-                className={`group absolute z-10 flex h-[22px] w-[22px] -translate-x-1/2 items-center justify-center rounded-full text-white ring-2 ring-card transition-opacity duration-300 ${accent} ${FOCUS_RING} ${
-                  dotDimmed ? "opacity-[0.05]" : "cursor-pointer hover:z-50"
+                className={`group absolute z-10 flex h-[22px] w-[22px] -translate-x-1/2 items-center justify-center rounded-full text-on-accent ring-2 ring-card transition-opacity duration-300 ${accent} ${FOCUS_RING} ${
+                  filteredOut
+                    ? "opacity-[0.12]"
+                    : dotDimmed
+                      ? "opacity-[0.05] focus-visible:z-50 focus-visible:opacity-100"
+                      : "cursor-pointer hover:z-50 focus-visible:z-50"
                 }`}
                 style={{ left: markerPos(c).x, top: markerPos(c).y }}
               >
@@ -499,7 +482,7 @@ export function Timeline({
                 aria-hidden={filteredOut || undefined}
                 onClick={(e) => {
                   e.stopPropagation();
-                  onToggleMonth(Math.floor(c.month));
+                  onSetMonthLevel(Math.floor(c.month), 2);
                 }}
                 title="Expand this month to see it"
                 aria-label={`This ${COMM_LABELS[c.type].toLowerCase()} is folded here — expand this month to see it`}
@@ -508,7 +491,9 @@ export function Timeline({
                   "border-",
                 )} ${FOCUS_RING} ${
                   dotDimmed
-                    ? "cursor-default opacity-[0.05]"
+                    ? filteredOut
+                      ? "cursor-default opacity-[0.12]"
+                      : "cursor-default opacity-[0.05] focus-visible:opacity-100"
                     : "cursor-pointer opacity-70 hover:scale-125 hover:opacity-100"
                 }`}
                 style={pos}
@@ -516,13 +501,16 @@ export function Timeline({
             );
           }
           // Visible → solid dot with a card-coloured halo separating it from
-          // the lane. Decorative (its card carries the real affordance).
+          // the lane. Decorative (its card carries the real affordance) —
+          // except for filtered-out comms, where the ghost dot IS the whole
+          // footprint (no card, no stem), so it carries a hover title.
           return (
             <span
               key={`dot-${c.id}`}
               aria-hidden
+              title={filteredOut ? `${c.title} — hidden by filters` : undefined}
               className={`absolute z-10 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full ring-2 ring-card transition-opacity duration-300 ${accent} ${
-                dotDimmed ? "opacity-[0.05]" : ""
+                filteredOut ? "opacity-[0.12]" : dotDimmed ? "opacity-[0.05]" : ""
               }`}
               style={pos}
             />
@@ -537,8 +525,9 @@ export function Timeline({
             !activeTypes.has(c.type) ||
             !matchesSegment(c, segments) ||
             (equity !== null && c.equity !== equity);
+            if (filteredOut) return null; // ghost dot only — no card, no stem
             const inFocus = focusSet ? focusSet.has(c.id) : false;
-            const stemDimmed = filteredOut || (focusSet !== null && !inFocus);
+            const stemDimmed = focusSet !== null && !inFocus;
             const { x: cx, y } = commPos(c);
             const top = dotY(c.team) + 5;
             return (
@@ -565,8 +554,9 @@ export function Timeline({
             !activeTypes.has(c.type) ||
             !matchesSegment(c, segments) ||
             (equity !== null && c.equity !== equity);
+            if (filteredOut) return null; // ghost dot only — see the dot strip
             const inFocus = focusSet ? focusSet.has(c.id) : false;
-            const dimmed = filteredOut || (focusSet !== null && !inFocus);
+            const dimmed = focusSet !== null && !inFocus;
             return (
               <CommCard
                 key={c.id}
@@ -595,14 +585,14 @@ export function Timeline({
           <button
             key={`${chip.team}-${chip.monthIndex}`}
             type="button"
-            disabled={dimBackground}
-            aria-hidden={dimBackground || undefined}
+            disabled={dimChips}
+            aria-hidden={dimChips || undefined}
             onClick={(e) => {
               e.stopPropagation();
-              onToggleMonth(chip.monthIndex);
+              onSetMonthLevel(chip.monthIndex, (expandedMonths.get(chip.monthIndex) ?? 0) === 0 ? 1 : 2);
             }}
             className={`absolute z-10 flex items-center rounded-full border border-grey-30 bg-card px-2 text-xs font-medium whitespace-nowrap text-rmit-blue-interactive transition-opacity duration-300 ${FOCUS_RING} ${
-              dimBackground ? "opacity-[0.05]" : "hover:border-rmit-blue-interactive"
+              dimChips ? "opacity-[0.05]" : "hover:border-rmit-blue-interactive"
             }`}
             style={{
               left: Math.min(scaleX(chip.monthIndex) + 4, TOTAL_W - 80),
@@ -661,9 +651,14 @@ export function Timeline({
               {!collapsed && lane.sub && (
                 <span className="mt-0.5 pl-[19px] text-xs text-grey-70">{lane.sub}</span>
               )}
-              {!collapsed && isEmpty && (
+              {!collapsed && isEmpty && lane.id !== "campaigns" && (
                 <span className="mt-1 pl-[19px] text-xs text-grey-70 italic">
                   No comms mapped yet
+                </span>
+              )}
+              {!collapsed && lane.id === "campaigns" && (
+                <span className="mt-1 pl-[19px] text-xs text-grey-70">
+                  Always-on + 4 campaigns
                 </span>
               )}
               {collapsed && lane.kind === "outbound" && count > 0 && (

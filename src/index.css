@@ -16,7 +16,8 @@
   --color-grey-30: #e1e1e1;
   --color-grey-40: #d2d2d2;
   --color-grey-50: #b0b0b0;
-  --color-grey-60: #8d8d8d;
+  /* darkened from #8d8d8d — small text on card/surface must clear 4.5:1 */
+  --color-grey-60: #767676;
   --color-grey-70: #6e6e6e;
   --color-grey-80: #4f4f4f;
   --color-grey-90: #333333;
@@ -49,6 +50,9 @@
   --color-tint-teal: #d4f1ee;
   --color-tint-pink: #fde0ea;
   --color-tint-indigo: #e1e5fb;
+  /* icon/text colour ON an accent-filled marker (white passes on all light
+     accents; dark theme overrides to near-black for the pastel accents) */
+  --color-on-accent: #ffffff;
   --color-purple: #5e3a9e;
   --color-teal: #0d6f64;
   --color-pink: #a92561;
@@ -103,6 +107,7 @@
   --color-tint-teal: #0f2926;
   --color-tint-pink: #34162a;
   --color-tint-indigo: #1a2147;
+  --color-on-accent: #10131a;
   --color-purple: #b69bea;
   --color-teal: #4dd4c4;
   --color-pink: #f486b4;

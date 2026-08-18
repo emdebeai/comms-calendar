@@ -5,6 +5,7 @@ import {
   Frame,
   Gamepad2,
   Landmark,
+  Linkedin,
   Megaphone,
   Monitor,
   MoveVertical,
@@ -12,10 +13,12 @@ import {
   ShoppingBag,
   Signpost,
   StickyNote,
+  Target,
   Truck,
+  UserSearch,
   type LucideIcon,
 } from "lucide-react";
-import { siGoogle, siGoogleads, siMeta, siReddit, siTiktok, siYoutube } from "simple-icons";
+import { siGoogle, siGoogleads, siMeta, siReddit, siSpotify, siTiktok, siYoutube } from "simple-icons";
 import type { CampaignChannel } from "../data/types";
 
 // Channel icons. Real brands use their official logo path (simple-icons,
@@ -28,6 +31,7 @@ import type { CampaignChannel } from "../data/types";
 
 const BRAND_PATHS: Partial<Record<CampaignChannel, string>> = {
   youtube: siYoutube.path,
+  spotify: siSpotify.path,
   tiktok: siTiktok.path,
   meta: siMeta.path,
   reddit: siReddit.path,
@@ -36,6 +40,11 @@ const BRAND_PATHS: Partial<Record<CampaignChannel, string>> = {
 };
 
 const LUCIDE_FALLBACKS: Partial<Record<CampaignChannel, LucideIcon>> = {
+  // simple-icons dropped the LinkedIn mark (brand-guideline removal) — the
+  // Lucide glyph is the sanctioned stand-in.
+  linkedin: Linkedin,
+  retargeting: Target,
+  leads: UserSearch,
   livewire: Gamepad2,
   radio: Radio,
   "radio-traffic": Car,

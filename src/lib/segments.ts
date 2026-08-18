@@ -62,13 +62,10 @@ export interface UnavailableValue {
   reason: string;
 }
 
-export const UNAVAILABLE_SEGMENTS: Partial<Record<SegmentKey, UnavailableValue[]>> = {
-  // Persona-01 is HE (undergraduate, non-pathway) — the VE/diploma route is a
-  // separate future persona, so VE shows but can't be selected.
-  college: [
-    { value: "VE", label: "VE", reason: "Not applicable — this persona is higher ed" },
-  ],
-};
+// Persona-01 is HE (undergraduate, non-pathway) — VE comms stay on the map but
+// ghosted (see matchesSegment), and the VE chip toggles them on. No axis values
+// are hard-disabled for this persona anymore.
+export const UNAVAILABLE_SEGMENTS: Partial<Record<SegmentKey, UnavailableValue[]>> = {};
 
 /** Equity cohorts: full program names (chip shows the short form, tooltip the
  *  full name) and cohorts that exist but have no mapped data yet. */
@@ -104,6 +101,10 @@ export function availableSegments(comms: Comm[]): { axis: SegmentAxis; values: s
  *  values are OR'd; across axes they're AND'd. A blank field on the comm counts
  *  as a match (untailored = goes to everyone). */
 export function matchesSegment(comm: Comm, sel: SegmentSelection): boolean {
+  // VE-tagged comms sit outside this persona (HE, non-pathway): they stay on
+  // the map but ghosted, and only light up when VE is explicitly toggled on
+  // the College axis. Regardless of what else is selected.
+  if (comm.college === "VE" && !(sel.college ?? []).includes("VE")) return false;
   for (const key of Object.keys(sel) as SegmentKey[]) {
     const want = sel[key];
     if (!want || want.length === 0) continue;

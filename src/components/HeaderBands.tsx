@@ -1,4 +1,4 @@
-import { Info, X } from "lucide-react";
+import { Info } from "lucide-react";
 import { MOMENTS, STAGES, YEARS } from "../data/journey";
 import type { Moment } from "../data/types";
 import {
@@ -132,14 +132,14 @@ export function YearBand() {
 
 interface MonthBandProps {
   expandedMonths: ExpandedMonths;
-  onToggleMonth: (monthIndex: number) => void;
+  onSetLevel: (monthIndex: number, level: 0 | 1 | 2) => void;
 }
 
-/** Month ticks — stays pinned while scrolling down. Each month is a button
- *  that cycles collapsed → week view → day-by-day → collapsed. Week view
- *  shows date-range ticks; day view shows day-number ticks, both aligned
- *  with the canvas gridlines. */
-export function MonthBand({ expandedMonths, onToggleMonth }: MonthBandProps) {
+/** Month ticks — stays pinned while scrolling down. A collapsed month is a
+ *  button that opens week view; an expanded month is a soft-outlined strip
+ *  that cycles week → day → collapsed on click (current mode in the title/
+ *  aria-label). */
+export function MonthBand({ expandedMonths, onSetLevel }: MonthBandProps) {
   // Context runs — one label per contiguous stretch sharing a year band and
   // stage ("Yr 12 · Consider" once across Jan–Aug, not stamped under every
   // month). The label is sticky within its span, so it follows the scroll
@@ -191,27 +191,17 @@ export function MonthBand({ expandedMonths, onToggleMonth }: MonthBandProps) {
         const left = scaleX(m);
         const width = scaleX(m + 1) - left;
         const level = expandedMonths.get(m) ?? 0;
-        const title =
-          level === 0
-            ? "Expand to week view"
-            : level === 1
-              ? "Expand to day-by-day view"
-              : "Back to month view";
-        return (
-          <button
-            key={m}
-            type="button"
-            onClick={() => onToggleMonth(m)}
-            aria-pressed={level > 0}
-            title={title}
-            className={`absolute h-full cursor-pointer text-xs ${FOCUS_RING} ${
-              level > 0
-                ? "bg-header font-semibold text-white"
-                : "text-grey-70 hover:bg-grey-10 hover:text-grey-90"
-            }`}
-            style={{ left, width }}
-          >
-            {level > 0 ? (
+        if (level > 0) {
+          return (
+            <button
+              key={m}
+              type="button"
+              onClick={() => onSetLevel(m, level === 1 ? 2 : 0)}
+              title={level === 1 ? "Expand to day-by-day view" : "Back to month view"}
+              aria-label={`${monthLabel(m)} — ${level === 1 ? "week view; click for day view" : "day view; click to collapse"}`}
+              className={`absolute inset-y-[3px] cursor-pointer rounded-md border border-grey-40 bg-card text-xs shadow-sm hover:border-rmit-blue-interactive/60 ${FOCUS_RING}`}
+              style={{ left, width }}
+            >
               <>
                 {/* Labels are placed with the SAME scaleX the gridlines and
                     comm dots use — never even (d/30) spacing. An expanded month
@@ -230,7 +220,7 @@ export function MonthBand({ expandedMonths, onToggleMonth }: MonthBandProps) {
                       return (
                         <span
                           key={w.start}
-                          className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 font-normal whitespace-nowrap text-white/75"
+                          className="absolute top-[5px] -translate-x-1/2 font-normal whitespace-nowrap text-grey-60"
                           style={{ left: pos }}
                         >
                           {w.label}
@@ -242,7 +232,7 @@ export function MonthBand({ expandedMonths, onToggleMonth }: MonthBandProps) {
                     Array.from({ length: 30 }, (_, i) => i + 1).map((d) => (
                       <span
                         key={d}
-                        className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 font-normal text-white/75"
+                        className="absolute top-[5px] -translate-x-1/2 font-normal text-grey-60"
                         style={{ left: scaleX(m + (d - 1) / 30) - left }}
                       >
                         {d}
@@ -254,36 +244,35 @@ export function MonthBand({ expandedMonths, onToggleMonth }: MonthBandProps) {
                     edge while the month is in view, but pins just past the
                     gutter once you scroll into the month — so it can never slide
                     over the gutter/Reset-zoom control. */}
-                <span
-                  aria-hidden
-                  className="pointer-events-none absolute inset-y-0 left-0 right-0 z-10 flex items-center"
-                >
+                <span className="pointer-events-none absolute inset-y-0 left-0 right-0 z-10 flex items-start pt-px">
                   <span
-                    className="bg-header py-0.5 pr-2 pl-2 font-semibold whitespace-nowrap"
+                    className="rounded-r-md bg-card py-0.5 pr-2 pl-2 font-semibold whitespace-nowrap text-grey-90"
                     style={stickyLabel}
                   >
                     {monthLabel(m)}
-                    <span className="ml-1.5 font-normal text-white/70">
+                    <span className="ml-1.5 font-normal text-grey-60">
                       {monthYearShort(m)} · {monthStage(m)}
                     </span>
                   </span>
                 </span>
-                {level === 2 && (
-                  <X
-                    size={12}
-                    strokeWidth={2}
-                    aria-hidden
-                    className="absolute top-1/2 right-2 -translate-y-1/2 text-white/80"
-                  />
-                )}
               </>
-            ) : (
-              /* Collapsed cell — month name up top; the year/stage context
-                 line below comes from the run layer, one label per span. */
-              <span className="flex h-full items-start justify-center pt-1">
-                {monthLabel(m)}
-              </span>
-            )}
+            </button>
+          );
+        }
+        return (
+          <button
+            key={m}
+            type="button"
+            onClick={() => onSetLevel(m, 1)}
+            title="Expand to week view"
+            className={`absolute h-full cursor-pointer text-xs text-grey-70 hover:bg-grey-10 hover:text-grey-90 ${FOCUS_RING}`}
+            style={{ left, width }}
+          >
+            {/* Collapsed cell — month name up top; the year/stage context
+                line below comes from the run layer, one label per span. */}
+            <span className="flex h-full items-start justify-center pt-1">
+              {monthLabel(m)}
+            </span>
           </button>
         );
       })}
@@ -349,6 +338,8 @@ export function MomentsBand({ activeMomentId, onHoverMoment, onPinMoment }: Mome
             aria-pressed={active}
             onMouseEnter={() => onHoverMoment(moment.id)}
             onMouseLeave={() => onHoverMoment(null)}
+            onFocus={() => onHoverMoment(moment.id)}
+            onBlur={() => onHoverMoment(null)}
             onClick={(e) => {
               e.stopPropagation();
               onPinMoment(moment.id);

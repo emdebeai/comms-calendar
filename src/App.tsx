@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { flushSync } from "react-dom";
+import { Mail } from "lucide-react";
 import { ControlDock } from "./components/ControlDock";
 import { PersonaDock } from "./components/PersonaDock";
+import { SegmentToggles } from "./components/SegmentToggles";
 import { Timeline } from "./components/Timeline";
 import {
   availableSegments,
@@ -12,9 +14,10 @@ import {
 import { connectedIds } from "./components/TriggerLayer";
 import { CommDetailPanel } from "./components/CommDetailPanel";
 import { CampaignDetailPanel } from "./components/CampaignDetailPanel";
+import { ScheduleDetailPanel } from "./components/ScheduleDetailPanel";
 import { StudentStagePanel } from "./components/StudentStagePanel";
 import type { QuestionRef } from "./components/StudentJourneyLane";
-import { allCampaignChannels } from "./data/comms";
+import { allCampaignChannels, campaignGroups } from "./data/comms";
 import { STAGES } from "./data/journey";
 import { Minimap } from "./components/Minimap";
 import { linkedCommIds } from "./data/studentExperience";
@@ -32,7 +35,7 @@ import {
   scaleX,
   type ExpandedMonths,
 } from "./lib/scale";
-import { COMM_LABELS } from "./components/icons";
+import { COMM_COLORS, COMM_ICONS, COMM_LABELS } from "./components/icons";
 
 const THEME_KEY = "comms-calendar-theme";
 
@@ -40,6 +43,34 @@ const ALL_TYPES: CommType[] = ["email", "sms", "webinar", "call", "event"];
 
 // Spoken names for the three month-zoom levels (index = level).
 const ZOOM_LEVEL_NAME = ["month view", "week view", "day view"] as const;
+
+// Print/export mode (?print) — used for static captures of the map: hides the
+// intro header and the floating UI, and renders the segment filters as a
+// static legend strip below the canvas so nothing overlaps the content.
+const PRINT_MODE = new URLSearchParams(window.location.search).has("print");
+// ?dots — start with every lane collapsed to its marker strip (the Overview
+// toggle's state), for capturing the compact all-dots view.
+const DOTS_MODE = new URLSearchParams(window.location.search).has("dots");
+// The overview / "show all lanes at once" toggle collapses every lane to its
+// compact touchpoint strip so the whole map fits vertically.
+const COLLAPSIBLE_LANES = ["recruitment", "marketing-events", "marketing", "admissions", "conversion", "vtac", "campaigns", "digital", "study"];
+// Segment filters straight from the URL (?preference=%232-8&college=COBL&
+// campus=city&eventState=registered,attended) so a filtered view can be
+// captured/shared by link. Comma-separates multiple values on one axis.
+const SEG_FROM_URL: SegmentSelection = (() => {
+  const p = new URLSearchParams(window.location.search);
+  const out: SegmentSelection = {};
+  for (const key of ["preference", "college", "campus", "eventState"] as const) {
+    const v = p.get(key);
+    if (v) out[key] = v.split(",");
+  }
+  // Default view (no URL filters): 2nd–8th preference, all colleges, City
+  // campus, Registered + Attended event stages. Clearable in the UI as usual.
+  if (Object.keys(out).length === 0) {
+    return { preference: ["#2-8"], campus: ["city"], eventState: ["registered", "attended"] };
+  }
+  return out;
+})();
 
 export default function App() {
   const [rawComms, setRawComms] = useState<Comm[] | null>(null);
@@ -52,7 +83,9 @@ export default function App() {
   const [pinnedMoment, setPinnedMoment] = useState<string | null>(null);
   // Month zoom — each month independently cycles collapsed → week → day →
   // collapsed. Multiple can be open at once (month index → level).
-  const [expandedMonths, setExpandedMonths] = useState<ExpandedMonths>(new Map());
+  // Level 0 = the user explicitly collapsed the month — it pins shut a month
+  // the filter auto-expand would otherwise force open (see effectiveExpanded).
+  const [expandedMonths, setExpandedMonths] = useState<Map<number, 0 | 1 | 2>>(new Map());
   // Student journey — question focus comes straight from the lane (hover is
   // transient, pin sticks) and drives the cross-highlight: the linked comms
   // light up, everything else dims. openStage is the optional deep-dive
@@ -65,19 +98,28 @@ export default function App() {
   const [showStudentLayer, setShowStudentLayer] = useState(false);
   // Segment lens — opened from the persona dock. Focuses the map on comms
   // tailored to a chosen segment (college, campus, preference, event stage).
-  const [segments, setSegments] = useState<SegmentSelection>({});
+  const [segments, setSegments] = useState<SegmentSelection>(SEG_FROM_URL);
   // Equity cohort focus (e.g. SNAP) — exclusive: dims everything except comms
   // tailored to it, and jumps the map to the match.
   const [equity, setEquity] = useState<string | null>(null);
-  // Media-schedule summary bars — expanding one shows its per-placement bars,
-  // which grows the Marketing lane, so it also feeds into layoutTimeline.
-  const [openCampaigns, setOpenCampaigns] = useState<Set<string>>(new Set());
+  // Media-schedule panel — the always-on bar lists its channels here.
+  const [openScheduleId, setOpenScheduleId] = useState<string | null>(null);
+  // Campaign-lane tree expansion — "open-day" reveals its two schedules,
+  // a schedule id reveals its placements. Feeds layoutTimeline (lane height).
+  const [expandedCampaigns, setExpandedCampaigns] = useState<Set<string>>(new Set());
   // Collapsed swimlanes (by lane id) — a collapsed lane shrinks to its label
   // strip and its content is hidden, so it feeds into layoutTimeline too.
-  const [collapsedLanes, setCollapsedLanes] = useState<Set<string>>(new Set());
-  // The overview / "show all lanes at once" toggle collapses every lane to its
-  // compact touchpoint strip so the whole map fits vertically.
-  const COLLAPSIBLE_LANES = ["recruitment", "marketing", "admissions", "conversion", "vtac", "digital", "study"];
+  const [collapsedLanes, setCollapsedLanes] = useState<Set<string>>(
+    // ?dots collapses the outbound lanes to marker strips but keeps the
+    // inbound engagement lanes expanded — collapsed, their graphs vanish.
+    () =>
+      DOTS_MODE
+        ? new Set(COLLAPSIBLE_LANES.filter((id) => id !== "digital" && id !== "study"))
+        : // Sparse lanes (1 and 4 comms) start collapsed — their marker strips
+          // carry the cadence; a click expands them. Saves ~240px of mostly
+          // empty card area on first load.
+          new Set(["admissions", "conversion", "marketing-events"]),
+  );
   const allLanesCollapsed = COLLAPSIBLE_LANES.every((id) => collapsedLanes.has(id));
   const toggleAllLanes = () =>
     setCollapsedLanes(allLanesCollapsed ? new Set() : new Set(COLLAPSIBLE_LANES));
@@ -146,20 +188,35 @@ export default function App() {
   // folded into "+N more" chips. Pass 2 (layout, below) additionally
   // auto-expands any month that hides a comm still LIT under the active filter,
   // so a match is never trapped inside a folded chip. The RENDERED layout is
+  // Whether a comm is hidden by the persistent type/segment/equity lenses
+  // (independent of the transient hover/moment focus).
+  const isFilteredOut = useCallback(
+    (c: Comm) =>
+      !activeTypes.has(c.type) ||
+      !matchesSegment(c, segments) ||
+      (equity !== null && c.equity !== equity),
+    [activeTypes, segments, equity],
+  );
+  // Comm ids hidden by the persistent lenses — excluded from card packing.
+  const filteredIds = useMemo(
+    () => new Set((rawComms ?? []).filter(isFilteredOut).map((c) => c.id)),
+    [rawComms, isFilteredOut],
+  );
   // pass 2 (and, being computed last, it owns the module-level scale state).
   const baseLayout = useMemo(
     () =>
       rawComms
         ? layoutTimeline(
             rawComms,
-            expandedMonths,
+            new Map([...expandedMonths].filter(([, l]) => l > 0) as [number, 1 | 2][]),
             cardHeights,
-            openCampaigns,
+            expandedCampaigns,
             collapsedLanes,
             showStudentLayer,
+            filteredIds,
           )
         : null,
-    [rawComms, expandedMonths, cardHeights, openCampaigns, collapsedLanes, showStudentLayer],
+    [rawComms, expandedMonths, cardHeights, expandedCampaigns, collapsedLanes, showStudentLayer, filteredIds],
   );
 
   // ── Focus + filter state (drives what dims) ──────────────────────────────
@@ -184,21 +241,18 @@ export default function App() {
     momentCommIds ??
     (triggerFocusActive ? new Set<string>([activeId as string, ...connected]) : null);
 
-  // Whether a comm is hidden by the persistent type/segment/equity lenses
-  // (independent of the transient hover/moment focus).
-  const isFilteredOut = useCallback(
-    (c: Comm) =>
-      !activeTypes.has(c.type) ||
-      !matchesSegment(c, segments) ||
-      (equity !== null && c.equity !== equity),
-    [activeTypes, segments, equity],
-  );
   const filterActive =
     activeTypes.size < ALL_TYPES.length || segmentCount(segments) > 0 || equity !== null;
   // Any lens that dims part of the map — the always-on media campaigns and the
   // "+N more" chips recede into the background whenever one is engaged, so they
   // don't stay bright while the comms around them fade.
-  const dimBackground = filterActive || focusSet !== null;
+  // Campaign bars aren't segmentable — they go to everyone — so the segment
+  // lenses don't dim them (matching the "goes to everyone stays lit" rule).
+  // Only a focus lens (question / moment / trigger highlight) pushes them back.
+  const dimBackground = focusSet !== null;
+  // "+N more" chips DO recede under the persistent filters — a chip may hold
+  // only filtered-out comms, so it dims (and stops taking clicks) with them.
+  const dimChips = filterActive || focusSet !== null;
 
   // Auto-expand pass: expand any month holding a folded comm that's still lit
   // under the persistent filter, so the match surfaces instead of hiding inside
@@ -214,12 +268,31 @@ export default function App() {
     return months.size ? months : null;
   }, [baseLayout, filterActive, collapsedLanes, isFilteredOut]);
 
-  const effectiveExpanded = useMemo(() => {
-    if (!autoExpandMonths) return expandedMonths;
-    const m = new Map(expandedMonths);
-    for (const mo of autoExpandMonths) if (!m.has(mo)) m.set(mo, 2); // day view reveals all
+  const effectiveExpanded = useMemo<ExpandedMonths>(() => {
+    const m: ExpandedMonths = new Map();
+    for (const [mo, lvl] of expandedMonths) if (lvl > 0) m.set(mo, lvl as 1 | 2);
+    // auto-expand only months the user hasn't touched — an explicit 0 wins
+    if (autoExpandMonths)
+      for (const mo of autoExpandMonths) if (!expandedMonths.has(mo)) m.set(mo, 2);
     return m;
   }, [expandedMonths, autoExpandMonths]);
+
+  // Set one month's zoom level directly (0 collapses; 0 on an auto-expanded
+  // month is stored so the pin persists, otherwise the entry is dropped).
+  const setMonthLevel = useCallback(
+    (month: number, level: 0 | 1 | 2) => {
+      setExpandedMonths((prev) => {
+        // Collapse is ALWAYS stored as an explicit 0 (a pin). Deleting the
+        // entry instead raced the filter auto-expand: collapsing folds comms
+        // into "+N more" chips, which re-qualifies the month for auto-expand,
+        // which reopened it — making day view take two clicks to close.
+        const next = new Map(prev);
+        next.set(month, level);
+        return next;
+      });
+    },
+    [autoExpandMonths],
+  );
 
   const layout = useMemo(
     () =>
@@ -228,12 +301,13 @@ export default function App() {
             rawComms,
             effectiveExpanded,
             cardHeights,
-            openCampaigns,
+            expandedCampaigns,
             collapsedLanes,
             showStudentLayer,
+            filteredIds,
           )
         : null,
-    [rawComms, effectiveExpanded, cardHeights, openCampaigns, collapsedLanes, showStudentLayer],
+    [rawComms, effectiveExpanded, cardHeights, expandedCampaigns, collapsedLanes, showStudentLayer, filteredIds],
   );
 
   // How many comms the active lenses leave lit — feeds the "N of M shown"
@@ -253,6 +327,19 @@ export default function App() {
     () => (rawComms ? availableSegments(rawComms) : []),
     [rawComms],
   );
+  // Names the engaged lenses so "Showing 84 of 117" always says WHY — an
+  // unexplained ghosted comm is indistinguishable from a missing one.
+  const activeFilterLabel = useMemo(() => {
+    const parts: string[] = [];
+    for (const { axis } of segmentAxes) {
+      const vals = segments[axis.key];
+      if (vals?.length) parts.push(vals.map((v) => axis.labels[v] ?? v).join("+"));
+    }
+    if (equity) parts.push(equity);
+    if (activeTypes.size < ALL_TYPES.length)
+      parts.push([...activeTypes].map((t) => COMM_LABELS[t]).join("+"));
+    return parts.join(" · ");
+  }, [segments, equity, activeTypes, segmentAxes]);
   // Equity cohorts present in the data (e.g. SNAP).
   const equityCohorts = useMemo(
     () =>
@@ -367,7 +454,7 @@ export default function App() {
   // exactly how far `date` moved — one atomic reflow, no follow-up-frame jump.
   const applyMonthZoom = (month: number, dir: 1 | -1, date: number) => {
     if (zoomFrameLock.current) return; // one step per frame
-    const cur = expandedMonths.get(month) ?? 0;
+    const cur = effectiveExpanded.get(month) ?? 0;
     const next = Math.max(0, Math.min(2, cur + dir));
     if (next === cur) return; // already at the rail — nothing to do, no jump
     zoomFrameLock.current = true;
@@ -378,9 +465,9 @@ export default function App() {
     const beforeX = scaleX(date);
     flushSync(() =>
       setExpandedMonths((prev) => {
+        // Explicit 0 always (see setMonthLevel) — avoids the auto-expand race.
         const m = new Map(prev);
-        if (next === 0) m.delete(month);
-        else m.set(month, next as 1 | 2);
+        m.set(month, next as 0 | 1 | 2);
         return m;
       }),
     );
@@ -419,8 +506,10 @@ export default function App() {
     const el = scrollerRef.current;
     if (!el || !layout || panelOpen) return;
     if (e.key === "0") {
-      if (expandedMonths.size === 0) return;
-      setExpandedMonths(new Map());
+      if (effectiveExpanded.size === 0) return;
+      setExpandedMonths(
+        new Map(autoExpandMonths ? [...autoExpandMonths].map((m) => [m, 0 as const]) : []),
+      );
       setZoomAnnounce("Zoom reset — all months in month view");
       return;
     }
@@ -465,6 +554,7 @@ export default function App() {
       </div>
       {/* Sticky left so the title stays put during horizontal scroll, but
           scrolls away vertically like normal page content. */}
+      {!PRINT_MODE && (
       <header className="sticky left-0 w-screen px-6 pt-6 pb-5" {...bgInert}>
         <h1 className="text-3xl font-bold text-rmit-blue">
           Current State Touch Points
@@ -500,6 +590,7 @@ export default function App() {
           </div>
         )}
       </header>
+      )}
 
       <main className="border-t border-grey-30" {...bgInert}>
         {loadError ? (
@@ -523,26 +614,20 @@ export default function App() {
               hiddenIds={layout.hiddenIds}
               chips={layout.chips}
               expandedMonths={effectiveExpanded}
-              onToggleMonth={(m) =>
-                setExpandedMonths((prev) => {
-                  const next = new Map(prev);
-                  const level = next.get(m);
-                  if (!level)
-                    next.set(m, 1); // collapsed → weeks
-                  else if (level === 1)
-                    next.set(m, 2); // weeks → days
-                  else next.delete(m); // days → collapsed
-                  return next;
-                })
+              onSetMonthLevel={setMonthLevel}
+              canResetZoom={effectiveExpanded.size > 0}
+              onResetZoom={() =>
+                setExpandedMonths(
+        new Map(autoExpandMonths ? [...autoExpandMonths].map((m) => [m, 0 as const]) : []),
+      )
               }
-              canResetZoom={expandedMonths.size > 0}
-              onResetZoom={() => setExpandedMonths(new Map())}
               stageCounts={stageCounts}
               activeTypes={activeTypes}
               segments={segments}
               equity={equity}
               focusSet={focusSet}
               dimBackground={dimBackground}
+              dimChips={dimChips}
               activeId={activeId}
               showLines={showLines}
               activeMomentId={activeMomentId}
@@ -559,21 +644,32 @@ export default function App() {
                 // One right-hand panel at a time; ⓘ on the open stage closes it.
                 setOpenCommId(null);
                 setOpenCampaignId(null);
+                setOpenScheduleId(null);
                 setOpenStage((p) => (p === stage ? null : stage));
               }}
-              openCampaigns={openCampaigns}
-              onToggleCampaigns={(groupId) =>
-                setOpenCampaigns((prev) => {
+              expandedCampaigns={expandedCampaigns}
+              onToggleCampaign={(id) =>
+                setExpandedCampaigns((prev) => {
                   const next = new Set(prev);
-                  if (next.has(groupId)) next.delete(groupId);
-                  else next.add(groupId);
+                  if (next.has(id)) next.delete(id);
+                  else next.add(id);
                   return next;
                 })
               }
-              onOpenCampaign={setOpenCampaignId}
+              onOpenCampaign={(id) => {
+                setOpenScheduleId(null);
+                setOpenCampaignId(id);
+              }}
+              onOpenSchedule={(groupId) => {
+                setOpenCommId(null);
+                setOpenCampaignId(null);
+                setOpenStage(null);
+                setOpenScheduleId((p) => (p === groupId ? null : groupId));
+              }}
               onHover={setHovered}
               onOpenDetail={(id) => {
                 setOpenStage(null);
+                setOpenScheduleId(null);
                 setOpenCommId(id);
               }}
               onMeasure={handleMeasure}
@@ -612,17 +708,65 @@ export default function App() {
                   ))}
               </ul>
             </section>
+            {/* Print mode — the filter axes as a static legend strip below the
+                canvas (never overlapping it), so exports show what the map can
+                be cut by: preference, college, campus, event stage. */}
+            {PRINT_MODE && (
+              <div className="sticky left-0 w-screen border-t border-grey-30 px-6 py-4">
+                {/* Touchpoint key — the marker dots as they appear on the map,
+                    one per channel type, plus the external-sender grey. */}
+                <div className="mb-3 flex flex-wrap items-center gap-x-5 gap-y-2">
+                  <span className="text-xs font-semibold text-grey-90">Touchpoint key</span>
+                  {ALL_TYPES.map((t) => {
+                    const Icon = COMM_ICONS[t];
+                    return (
+                      <span key={t} className="flex items-center gap-1.5 text-xs text-grey-80">
+                        <span
+                          className={`flex h-[22px] w-[22px] items-center justify-center rounded-full text-on-accent ring-2 ring-card ${COMM_COLORS[t].accent}`}
+                        >
+                          <Icon size={12} strokeWidth={2.25} aria-hidden />
+                        </span>
+                        {COMM_LABELS[t]}
+                      </span>
+                    );
+                  })}
+                  <span className="flex items-center gap-1.5 text-xs text-grey-80">
+                    <span className="flex h-[22px] w-[22px] items-center justify-center rounded-full bg-grey-70 text-on-accent ring-2 ring-card">
+                      <Mail size={12} strokeWidth={2.25} aria-hidden />
+                    </span>
+                    External sender (VTAC) — any channel
+                  </span>
+                </div>
+                <div className="mb-2 flex items-center gap-2 text-xs text-grey-70">
+                  <span className="font-semibold text-grey-90">
+                    Filters available on the interactive map
+                  </span>
+                  <span aria-hidden>·</span>
+                  <span>
+                    Persona: <span className="font-semibold">DOM SL</span> — domestic school
+                    leaver
+                  </span>
+                </div>
+                <SegmentToggles
+                  axes={segmentAxes}
+                  selection={segments}
+                  counts={segmentCounts}
+                  onSelect={() => {}}
+                  onClearAll={() => setSegments({})}
+                />
+              </div>
+            )}
           </>
         )}
       </main>
 
       {/* Overview scrubber — the whole 3-year map in 300px, bottom-left. */}
-      {layout && <Minimap comms={layout.comms} scrollerRef={scrollerRef} />}
+      {layout && !PRINT_MODE && <Minimap comms={layout.comms} scrollerRef={scrollerRef} />}
 
       {/* Filter summary — floats just above the control dock whenever a lens
           is engaged, so filtering always says what it did (and offers the way
           back). Doubles as the empty state when nothing matches. */}
-      {layout && filterActive && (
+      {layout && filterActive && !PRINT_MODE && (
         <div className="fixed bottom-[4.75rem] left-1/2 z-40 -translate-x-1/2" role="status">
           <div className="animate-pop-in flex items-center gap-2.5 rounded-full border border-grey-30 bg-card/90 py-1.5 pr-1.5 pl-3.5 text-xs shadow-xl backdrop-blur-md">
             {shownCount === 0 ? (
@@ -631,6 +775,9 @@ export default function App() {
               <span className="text-grey-80">
                 Showing <span className="font-semibold text-grey-90">{shownCount}</span> of{" "}
                 {layout.comms.length} comms
+                {activeFilterLabel && (
+                  <span className="text-grey-70"> — {activeFilterLabel}</span>
+                )}
               </span>
             )}
             <button
@@ -647,6 +794,7 @@ export default function App() {
       {/* Sleek floating control dock — filters, trigger lines, legend, theme.
           Fixed bottom-centre so it stays reachable while scrolling and never
           clashes with the sticky header bands or the right-hand panels. */}
+      {!PRINT_MODE && (
       <ControlDock
         activeTypes={activeTypes}
         onToggleType={toggleType}
@@ -660,9 +808,11 @@ export default function App() {
         theme={theme}
         onToggleTheme={toggleTheme}
       />
+      )}
 
       {/* Persona dock — bottom-left, names the persona and opens the segment
           toggles as a popover. */}
+      {!PRINT_MODE && (
       <PersonaDock
         axes={segmentAxes}
         selection={segments}
@@ -689,6 +839,7 @@ export default function App() {
         }
         onClearAll={() => setSegments({})}
       />
+      )}
 
       {openComm && layout && (
         <CommDetailPanel
@@ -697,6 +848,17 @@ export default function App() {
           entries={feedback[openComm.id] ?? []}
           onClose={() => setOpenCommId(null)}
           onAdd={(entry) => addFeedback(openComm.id, entry)}
+        />
+      )}
+
+      {openScheduleId && !openCampaign && (
+        <ScheduleDetailPanel
+          group={campaignGroups.find((g) => g.id === openScheduleId)!}
+          onOpenChannel={(id) => {
+            setOpenScheduleId(null);
+            setOpenCampaignId(id);
+          }}
+          onClose={() => setOpenScheduleId(null)}
         />
       )}
 
