@@ -62,6 +62,13 @@ export const COLLECTIONS: Record<string, CollectionDef> = {
     table: process.env.EXCEL_EDM_REVIEW_TABLE || "EdmReviewTable",
     label: "Marketing's eDM question answers",
   },
+  // Per-comm field overrides edited in the detail panel. "latest" so each
+  // save holds the full accumulated patch and the newest wins on read.
+  "comm-edits": {
+    mode: "latest",
+    itemKey: "commId",
+    label: "Detail-panel edits to comms",
+  },
 };
 
 const NS = "comms-calendar";

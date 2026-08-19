@@ -32,6 +32,7 @@ import {
 } from "./lib/feedback";
 import { FOCUS_RING } from "./lib/styles";
 import { loadComms } from "./lib/loadComms";
+import { loadCommEdits, saveCommEdit, type CommEdits, type CommPatch } from "./lib/commEdits";
 import {
   LABEL_W,
   commDateLabel,
@@ -93,6 +94,21 @@ export default function App() {
     setEntered(true);
   }, []);
   const [rawComms, setRawComms] = useState<Comm[] | null>(null);
+  // Detail-panel edits, keyed by comm id — merged onto the loaded comms below.
+  const [commEdits, setCommEdits] = useState<CommEdits>({});
+  // The comms the whole app renders: base data with any overrides applied.
+  const comms = useMemo<Comm[] | null>(() => {
+    if (!rawComms) return null;
+    if (Object.keys(commEdits).length === 0) return rawComms;
+    return rawComms.map((c) => (commEdits[c.id] ? { ...c, ...commEdits[c.id] } : c));
+  }, [rawComms, commEdits]);
+  const editComm = useCallback((commId: string, patch: CommPatch) => {
+    setCommEdits((prev) => {
+      const merged = { ...prev[commId], ...patch };
+      void saveCommEdit(commId, merged).catch(() => {});
+      return { ...prev, [commId]: merged };
+    });
+  }, []);
   const [importIssues, setImportIssues] = useState<{ row: number; message: string }[]>([]);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [activeTypes, setActiveTypes] = useState<Set<CommType>>(new Set(ALL_TYPES));
@@ -233,6 +249,9 @@ export default function App() {
     loadFeedback()
       .then(setFeedback)
       .catch(() => setFeedback({}));
+    loadCommEdits()
+      .then(setCommEdits)
+      .catch(() => setCommEdits({}));
   }, []);
 
   // The timeline lays out in two passes. Pass 1 (baseLayout) uses only the
@@ -251,15 +270,15 @@ export default function App() {
   );
   // Comm ids hidden by the persistent lenses — excluded from card packing.
   const filteredIds = useMemo(
-    () => new Set((rawComms ?? []).filter(isFilteredOut).map((c) => c.id)),
-    [rawComms, isFilteredOut],
+    () => new Set((comms ?? []).filter(isFilteredOut).map((c) => c.id)),
+    [comms, isFilteredOut],
   );
   // pass 2 (and, being computed last, it owns the module-level scale state).
   const baseLayout = useMemo(
     () =>
-      rawComms
+      comms
         ? layoutTimeline(
-            rawComms,
+            comms,
             new Map([...expandedMonths].filter(([, l]) => l > 0) as [number, 1 | 2][]),
             cardHeights,
             expandedCampaigns,
@@ -268,7 +287,7 @@ export default function App() {
             filteredIds,
           )
         : null,
-    [rawComms, expandedMonths, cardHeights, expandedCampaigns, collapsedLanes, showStudentLayer, filteredIds],
+    [comms, expandedMonths, cardHeights, expandedCampaigns, collapsedLanes, showStudentLayer, filteredIds],
   );
 
   // ── Focus + filter state (drives what dims) ──────────────────────────────
@@ -348,9 +367,9 @@ export default function App() {
 
   const layout = useMemo(
     () =>
-      rawComms
+      comms
         ? layoutTimeline(
-            rawComms,
+            comms,
             effectiveExpanded,
             cardHeights,
             expandedCampaigns,
@@ -359,7 +378,7 @@ export default function App() {
             filteredIds,
           )
         : null,
-    [rawComms, effectiveExpanded, cardHeights, expandedCampaigns, collapsedLanes, showStudentLayer, filteredIds],
+    [comms, effectiveExpanded, cardHeights, expandedCampaigns, collapsedLanes, showStudentLayer, filteredIds],
   );
 
   // How many comms the active lenses leave lit — feeds the "N of M shown"
@@ -376,8 +395,8 @@ export default function App() {
 
   // Which tailoring axes actually have values in the loaded data.
   const segmentAxes = useMemo(
-    () => (rawComms ? availableSegments(rawComms) : []),
-    [rawComms],
+    () => (comms ? availableSegments(comms) : []),
+    [comms],
   );
   // Names the engaged lenses so "Showing 84 of 117" always says WHY — an
   // unexplained ghosted comm is indistinguishable from a missing one.
@@ -395,31 +414,31 @@ export default function App() {
   // Equity cohorts present in the data (e.g. SNAP).
   const equityCohorts = useMemo(
     () =>
-      rawComms
-        ? [...new Set(rawComms.map((c) => c.equity).filter(Boolean))].sort()
+      comms
+        ? [...new Set(comms.map((c) => c.equity).filter(Boolean))].sort()
         : [],
-    [rawComms],
+    [comms],
   ) as string[];
 
   // Comms explicitly tagged with each segment value / equity cohort — shown as
   // counts on the toggle chips (a mini-report on where tailoring effort goes).
   const segmentCounts = useMemo(() => {
     const m: Record<string, Record<string, number>> = {};
-    if (!rawComms) return m;
+    if (!comms) return m;
     for (const { axis } of segmentAxes) m[axis.key] = {};
-    for (const c of rawComms) {
+    for (const c of comms) {
       for (const { axis } of segmentAxes) {
         const v = c[axis.key];
         if (v) m[axis.key][v] = (m[axis.key][v] ?? 0) + 1;
       }
     }
     return m;
-  }, [rawComms, segmentAxes]);
+  }, [comms, segmentAxes]);
   const equityCounts = useMemo(() => {
     const m: Record<string, number> = {};
-    for (const c of rawComms ?? []) if (c.equity) m[c.equity] = (m[c.equity] ?? 0) + 1;
+    for (const c of comms ?? []) if (c.equity) m[c.equity] = (m[c.equity] ?? 0) + 1;
     return m;
-  }, [rawComms]);
+  }, [comms]);
 
   // Stage names in the header band double as jump links.
   const jumpToStage = (from: number) =>
@@ -892,6 +911,7 @@ export default function App() {
           onClose={() => setOpenCommId(null)}
           onAdd={(entry) => addFeedback(openComm.id, entry)}
           onDelete={isAdmin ? (entryId) => removeFeedback(openComm.id, entryId) : undefined}
+          onEdit={(patch) => editComm(openComm.id, patch)}
         />
       )}
 

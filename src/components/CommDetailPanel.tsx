@@ -1,6 +1,8 @@
+import { useState } from "react";
+import { Check, Pencil } from "lucide-react";
 import { MOMENTS, STAGES } from "../data/journey";
 import { linkedQuestions } from "../data/studentExperience";
-import type { Comm, FeedbackEntry } from "../data/types";
+import type { Comm, CommType, FeedbackEntry } from "../data/types";
 import { commDateLabel } from "../lib/scale";
 import { SEGMENT_AXES } from "../lib/segments";
 import { EYEBROW } from "../lib/styles";
@@ -18,6 +20,94 @@ interface Props {
   onAdd: (entry: Omit<FeedbackEntry, "id" | "createdAt">) => void;
   /** admin only — delete a comment by id */
   onDelete?: (entryId: string) => void;
+  /** persist a field edit made in the panel */
+  onEdit?: (patch: Partial<Comm>) => void;
+}
+
+const FIELD =
+  "w-full rounded-md border border-grey-30 bg-card px-2.5 py-1.5 text-sm text-grey-90 placeholder:text-grey-70 focus:border-rmit-blue-interactive focus:outline-2 focus:outline-offset-0 focus:outline-rmit-blue-interactive";
+const TEAMS: Comm["team"][] = [
+  "recruitment",
+  "marketing-events",
+  "marketing",
+  "admissions",
+  "conversion",
+  "vtac",
+];
+
+/** Editable form for a comm's details. Text fields commit on blur, selects on
+ *  change; each sends a single-field patch, which the app accumulates. */
+function EditForm({ comm, onEdit }: { comm: Comm; onEdit: (patch: Partial<Comm>) => void }) {
+  const set = (field: keyof Comm, value: string) =>
+    onEdit({ [field]: value.trim() || undefined } as Partial<Comm>);
+  const Text = ({ label, field }: { label: string; field: keyof Comm }) => (
+    <label className="flex flex-col gap-1">
+      <span className="text-sm text-grey-70">{label}</span>
+      <input
+        type="text"
+        defaultValue={(comm[field] as string) ?? ""}
+        onBlur={(e) => set(field, e.target.value)}
+        className={FIELD}
+      />
+    </label>
+  );
+  return (
+    <div className="flex flex-col gap-3">
+      <Text label="Title" field="title" />
+      <label className="flex flex-col gap-1">
+        <span className="text-sm text-grey-70">Type</span>
+        <select
+          value={comm.type}
+          onChange={(e) => onEdit({ type: e.target.value as CommType })}
+          className={FIELD}
+        >
+          {(Object.keys(COMM_LABELS) as CommType[]).map((t) => (
+            <option key={t} value={t}>
+              {COMM_LABELS[t]}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label className="flex flex-col gap-1">
+        <span className="text-sm text-grey-70">Team</span>
+        <select
+          value={comm.team}
+          onChange={(e) => onEdit({ team: e.target.value as Comm["team"] })}
+          className={FIELD}
+        >
+          {TEAMS.map((t) => (
+            <option key={t} value={t}>
+              {t}
+            </option>
+          ))}
+        </select>
+      </label>
+      <Text label="Time" field="time" />
+      <label className="flex flex-col gap-1">
+        <span className="text-sm text-grey-70">Moment</span>
+        <select
+          value={comm.momentId ?? ""}
+          onChange={(e) => onEdit({ momentId: e.target.value || undefined })}
+          className={FIELD}
+        >
+          <option value="">None</option>
+          {MOMENTS.map((m) => (
+            <option key={m.id} value={m.id}>
+              {m.label}
+            </option>
+          ))}
+        </select>
+      </label>
+      <Text label="Primary CTA" field="cta" />
+      <Text label="Secondary CTA 1" field="secondaryCta1" />
+      <Text label="Secondary CTA 2" field="secondaryCta2" />
+      <Text label="Audience" field="audience" />
+      <Text label="Campaign" field="campaign" />
+      <Text label="Theme" field="theme" />
+      <Text label="Open rate" field="openRate" />
+      <Text label="Click rate" field="clickRate" />
+    </div>
+  );
 }
 
 // Quiet Notion-style property row: sentence-case regular-weight label that
@@ -34,7 +124,8 @@ function AttributeRow({ label, value }: { label: string; value?: string | null }
   );
 }
 
-export function CommDetailPanel({ comm, allComms, entries, onClose, onAdd, onDelete }: Props) {
+export function CommDetailPanel({ comm, allComms, entries, onClose, onAdd, onDelete, onEdit }: Props) {
+  const [editing, setEditing] = useState(false);
   const Icon = COMM_ICONS[comm.type];
   const colors = COMM_COLORS[comm.type];
 
@@ -75,6 +166,30 @@ export function CommDetailPanel({ comm, allComms, entries, onClose, onAdd, onDel
       onClose={onClose}
     >
       <div className="flex-1 overflow-y-auto p-5">
+        {onEdit && (
+          <div className="mb-3 flex justify-end">
+            <button
+              type="button"
+              onClick={() => setEditing((e) => !e)}
+              aria-pressed={editing}
+              className="flex items-center gap-1.5 rounded-md border border-grey-30 px-2.5 py-1 text-xs font-medium text-grey-80 hover:bg-grey-10"
+            >
+              {editing ? (
+                <>
+                  <Check size={13} strokeWidth={2} aria-hidden /> Done
+                </>
+              ) : (
+                <>
+                  <Pencil size={13} strokeWidth={2} aria-hidden /> Edit details
+                </>
+              )}
+            </button>
+          </div>
+        )}
+        {editing && onEdit ? (
+          <EditForm key={comm.id} comm={comm} onEdit={onEdit} />
+        ) : (
+        <>
         {/* ── Attributes ── */}
         <h3 className={`text-grey-70 ${EYEBROW}`}>Details</h3>
         <dl className="mt-2">
@@ -159,6 +274,9 @@ export function CommDetailPanel({ comm, allComms, entries, onClose, onAdd, onDel
               <p className="mt-2 text-sm text-grey-70">No send data yet.</p>
             )}
           </>
+        )}
+
+        </>
         )}
 
         <FeedbackThread entries={entries} onDelete={onDelete} />
