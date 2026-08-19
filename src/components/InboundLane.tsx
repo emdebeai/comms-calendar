@@ -117,11 +117,6 @@ export function InboundLane({ data }: { data: InboundLaneData }) {
             onMouseLeave={() => setHoverX(null)}
             onClick={() => setShowChannels(true)}
           >
-            {data.seriesNote && (
-              <text x={LABEL_W + 12} y={16} className="fill-grey-60 text-xs">
-                {data.seriesNote}
-              </text>
-            )}
             <text x={LABEL_W + 12} y={30} className="fill-rmit-blue-interactive text-xs font-medium">
               Total enquiries · click to split by channel
             </text>
@@ -214,11 +209,6 @@ export function InboundLane({ data }: { data: InboundLaneData }) {
           onMouseLeave={() => setHoverX(null)}
           onClick={() => setShowChannels(false)}
         >
-          {data.seriesNote && (
-            <text x={LABEL_W + 12} y={16} className="fill-grey-60 text-xs">
-              {data.seriesNote}
-            </text>
-          )}
           {/* legend — one chip per channel, inline under the note */}
           {channels.map((c, i) => {
             const lx = LABEL_W + 12 + i * 104;
@@ -397,11 +387,6 @@ export function InboundLane({ data }: { data: InboundLaneData }) {
       >
         <path d={path} fill="var(--color-tint-blue)" opacity={0.85} />
         <path d={line} fill="none" stroke="var(--color-rmit-blue-interactive)" strokeWidth={1.5} />
-        {data.seriesNote && series && (
-          <text x={scaleX(series[0].month) + 6} y={16} className="fill-grey-60 text-xs">
-            {data.seriesNote}
-          </text>
-        )}
         {hoverLive && (
           <g>
             <line

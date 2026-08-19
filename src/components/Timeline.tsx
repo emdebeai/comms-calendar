@@ -665,6 +665,17 @@ export function Timeline({
               {!collapsed && lane.sub && (
                 <span className="mt-0.5 pl-[19px] text-xs text-grey-70">{lane.sub}</span>
               )}
+              {/* Inbound lanes carry their data-source note in the sticky
+                  gutter (like VTAC's sub-label) rather than inside the chart,
+                  so it stays put as you scroll the timeline horizontally. */}
+              {!collapsed &&
+                lane.kind === "inbound" &&
+                (() => {
+                  const note = inbound.find((d) => d.id === lane.id)?.seriesNote;
+                  return note ? (
+                    <span className="mt-1 pl-[19px] text-xs leading-snug text-grey-60">{note}</span>
+                  ) : null;
+                })()}
               {!collapsed && isEmpty && lane.id !== "campaigns" && (
                 <span className="mt-1 pl-[19px] text-xs text-grey-70 italic">
                   No comms mapped yet
