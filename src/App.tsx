@@ -20,6 +20,7 @@ import type { QuestionRef } from "./components/StudentJourneyLane";
 import { allCampaignChannels, campaignGroups } from "./data/comms";
 import { STAGES } from "./data/journey";
 import { Minimap } from "./components/Minimap";
+import { Landing } from "./components/Landing";
 import { linkedCommIds } from "./data/studentExperience";
 import type { CommType, FeedbackEntry, Comm } from "./data/types";
 import { addFeedbackEntry, loadFeedback, type FeedbackStore } from "./lib/feedback";
@@ -73,12 +74,24 @@ const SEG_FROM_URL: SegmentSelection = (() => {
 })();
 
 export default function App() {
+  // Landing splash gates the map (once per browser session). Print mode
+  // and any deep-linked URL filters skip it and go straight in.
+  const [entered, setEntered] = useState(
+    () =>
+      PRINT_MODE ||
+      window.location.search.length > 0 || // deep-linked/shared view skips the door
+      sessionStorage.getItem("cc-entered") === "1",
+  );
+  const enterMap = useCallback(() => {
+    sessionStorage.setItem("cc-entered", "1");
+    setEntered(true);
+  }, []);
   const [rawComms, setRawComms] = useState<Comm[] | null>(null);
   const [importIssues, setImportIssues] = useState<{ row: number; message: string }[]>([]);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [activeTypes, setActiveTypes] = useState<Set<CommType>>(new Set(ALL_TYPES));
   const [hovered, setHovered] = useState<string | null>(null);
-  const [showLines, setShowLines] = useState(false);
+  const [showLines, setShowLines] = useState(true);
   const [hoveredMoment, setHoveredMoment] = useState<string | null>(null);
   const [pinnedMoment, setPinnedMoment] = useState<string | null>(null);
   // Month zoom — each month independently cycles collapsed → week → day →
@@ -538,6 +551,8 @@ export default function App() {
     };
   }, []);
 
+  if (!entered) return <Landing onEnter={enterMap} />;
+
   return (
     <div ref={scrollerRef} className="h-screen overflow-auto bg-surface font-sans text-grey-90">
       {/* Bypass block for the 100+ tab stops on the canvas. Kept in the DOM
@@ -556,27 +571,13 @@ export default function App() {
       </div>
       {/* Sticky left so the title stays put during horizontal scroll, but
           scrolls away vertically like normal page content. */}
-      {!PRINT_MODE && (
-      <header className="sticky left-0 w-screen px-6 pt-6 pb-5" {...bgInert}>
-        <h1 className="text-3xl font-bold text-rmit-blue">
-          Current State Touch Points
-        </h1>
-        <div className="mt-2 flex items-center gap-2 text-xs text-grey-70">
-          <span>Prospective student type</span>
-          <span className="rounded-md bg-tint-blue px-2 py-0.5 font-semibold uppercase tracking-widest text-rmit-blue">
-            DOM SL
-          </span>
-        </div>
-        <p className="mt-2 max-w-3xl text-sm text-grey-70">
-          By creating and working from a holistic view of the future student
-          experience, we aim to enable the business to consider the needs and goals
-          of students at each step of the journey, as well as considering the journey
-          as an end-to-end experience.
-        </p>
-        {importIssues.length > 0 && (
+      {/* Hero moved to the landing splash. Only the data-quality banner
+          remains at the top, and only when a row failed to import. */}
+      {!PRINT_MODE && importIssues.length > 0 && (
+        <div className="px-6 pt-4" {...bgInert}>
           <div
             role="status"
-            className="mt-3 max-w-3xl rounded-md border border-amber bg-tint-amber px-3 py-2 text-sm text-grey-90"
+            className="max-w-3xl rounded-md border border-amber bg-tint-amber px-3 py-2 text-sm text-grey-90"
           >
             <span className="font-semibold">
               {importIssues.length} row{importIssues.length === 1 ? "" : "s"} couldn&rsquo;t be
@@ -590,8 +591,7 @@ export default function App() {
             {importIssues.length > 3 ? `; +${importIssues.length - 3} more` : ""}. Everything
             else loaded fine.
           </div>
-        )}
-      </header>
+        </div>
       )}
 
       <main className="border-t border-grey-30" {...bgInert}>
