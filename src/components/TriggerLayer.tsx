@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import type { Comm } from "../data/types";
-import { CARD_W, TOTAL_H, TOTAL_W, commHeight, commPos } from "../lib/scale";
+import { CARD_W, MARKER_SIZE, TOTAL_H, TOTAL_W, commHeight, commPos, markerPos } from "../lib/scale";
 
 interface Link {
   from: string;
@@ -18,25 +18,41 @@ interface Route {
   end: [number, number];
 }
 
+/** Where a connector attaches to a comm: its card box, or its icon marker
+ *  when the comm sits in a collapsed lane (markerPos centres on the date). */
+function anchorOf(comm: Comm, collapsed: Set<string>) {
+  if (collapsed.has(comm.team)) {
+    const p = markerPos(comm);
+    const left = p.x - MARKER_SIZE / 2;
+    return { left, right: left + MARKER_SIZE, midY: p.y + MARKER_SIZE / 2 };
+  }
+  const p = commPos(comm);
+  const h = commHeight(comm.id);
+  return { left: p.x, right: p.x + CARD_W, midY: p.y + h / 2 };
+}
+
 // Route a connector between two cards, always arriving at the target's left
 // edge. Cards far enough apart horizontally get a gentle S-curve; close or
 // overlapping cards get a rounded elbow — out of the source's bottom (or
 // top), straight down (or up), then a quarter-turn into the target's left
 // side at mid-height.
-function routePath(byId: Map<string, Comm>, aId: string, bId: string): Route | null {
+function routePath(
+  byId: Map<string, Comm>,
+  aId: string,
+  bId: string,
+  collapsed: Set<string>,
+): Route | null {
   const from = byId.get(aId);
   const to = byId.get(bId);
   if (!from || !to) return null;
-  const a = commPos(from);
-  const b = commPos(to);
-  const hFrom = commHeight(aId);
-  const hTo = commHeight(bId);
-  const yTarget = b.y + hTo / 2;
-  const xTarget = b.x - 3;
+  const a = anchorOf(from, collapsed);
+  const b = anchorOf(to, collapsed);
+  const yTarget = b.midY;
+  const xTarget = b.left - 3;
 
-  if (b.x >= a.x + CARD_W + 32) {
-    const x1 = a.x + CARD_W;
-    const y1 = a.y + hFrom / 2;
+  if (b.left >= a.right + 32) {
+    const x1 = a.right;
+    const y1 = a.midY;
     const k = Math.min(70, Math.max(28, (xTarget - x1) / 2));
     return {
       d: `M${x1},${y1} C${x1 + k},${y1} ${xTarget - k},${yTarget} ${xTarget},${yTarget}`,
@@ -45,17 +61,14 @@ function routePath(byId: Map<string, Comm>, aId: string, bId: string): Route | n
     };
   }
 
-  // Stacked / overlapping cards — the gap between them is often just a few
+  // Stacked / overlapping — the gap between endpoints is often just a few
   // pixels, far too tight to route through. Bracket around the RIGHT side
   // instead: out of the source's right edge at mid-height, bow into the open
-  // space beside the cards, back into the target's right edge at mid-height.
-  // Horizontal tangents at both ends keep it one calm loop.
-  const ySrc = a.y + hFrom / 2;
-  const xSrc = a.x + CARD_W + 1.5;
-  const xTgt = b.x + CARD_W + 3;
-  // Bulge past both right edges, a little wider for long vertical hops.
-  const bulge =
-    Math.max(a.x, b.x) + CARD_W + 26 + Math.min(18, Math.abs(yTarget - ySrc) / 10);
+  // space beside them, back into the target's right edge at mid-height.
+  const ySrc = a.midY;
+  const xSrc = a.right + 1.5;
+  const xTgt = b.right + 3;
+  const bulge = Math.max(a.right, b.right) + 26 + Math.min(18, Math.abs(yTarget - ySrc) / 10);
   return {
     d: `M${xSrc},${ySrc} C${bulge},${ySrc} ${bulge},${yTarget} ${xTgt},${yTarget}`,
     start: [xSrc, ySrc],
@@ -66,6 +79,7 @@ function routePath(byId: Map<string, Comm>, aId: string, bId: string): Route | n
 interface Props {
   comms: Comm[];
   hiddenIds: Set<string>;
+  collapsedLanes: Set<string>;
   activeId: string | null;
   showAll: boolean;
 }
@@ -73,7 +87,7 @@ interface Props {
 /** Trigger connectors: all of them when toggled on, otherwise just the
  *  hovered/pinned comm's. Links touching a comm that's folded into a
  *  "+N more" chip are skipped — no lines to invisible cards. */
-export function TriggerLayer({ comms, hiddenIds, activeId, showAll }: Props) {
+export function TriggerLayer({ comms, hiddenIds, collapsedLanes, activeId, showAll }: Props) {
   const links = useMemo(
     () =>
       buildLinks(comms).filter((l) => !hiddenIds.has(l.from) && !hiddenIds.has(l.to)),
@@ -101,7 +115,7 @@ export function TriggerLayer({ comms, hiddenIds, activeId, showAll }: Props) {
           small dot. Hover-revealed lines draw in; the show-all overlay keeps
           non-hovered links dashed and quiet. */}
       {visible.map((l) => {
-        const route = routePath(byId, l.from, l.to);
+        const route = routePath(byId, l.from, l.to, collapsedLanes);
         if (!route) return null;
         const emphasised = !showAll || l.from === activeId || l.to === activeId;
         const drawIn = emphasised && !showAll; // hover reveal only

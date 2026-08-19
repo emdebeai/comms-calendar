@@ -163,14 +163,20 @@ export function Timeline({
     acc[c.team] = (acc[c.team] ?? 0) + 1;
     return acc;
   }, {});
-  // Endpoints a trigger line must not draw to: folded "+N more" comms plus
-  // anything in a collapsed lane.
-  const hiddenOrCollapsed = collapsedLanes.size
-    ? new Set([
-        ...hiddenIds,
-        ...comms.filter((c) => collapsedLanes.has(c.team)).map((c) => c.id),
-      ])
-    : hiddenIds;
+  // Endpoints a trigger line must not draw to: folded "+N more" comms and
+  // comms hidden by the current filters (ghosts). Comms in a COLLAPSED lane
+  // still render as icon markers, so they DO get lines — anchored to the
+  // marker instead of the (absent) card.
+  const filteredForLines = comms.filter(
+    (c) =>
+      !activeTypes.has(c.type) ||
+      !matchesSegment(c, segments) ||
+      (equity !== null && c.equity !== equity),
+  );
+  const hiddenForLines =
+    filteredForLines.length || hiddenIds.size
+      ? new Set([...hiddenIds, ...filteredForLines.map((c) => c.id)])
+      : hiddenIds;
 
   // Alternating lane-stripe background, computed once so the canvas and the
   // sticky gutter stay in sync (divider lanes are skipped in the count).
@@ -613,11 +619,12 @@ export function Timeline({
           </button>
         ))}
 
-        {/* Trigger lines skip endpoints in collapsed lanes (nothing to point
-            at there) as well as folded "+N more" comms. */}
+        {/* Trigger lines skip folded "+N more" and filtered-out comms, but
+            DO draw to collapsed-lane markers (positioned via collapsedLanes). */}
         <TriggerLayer
           comms={comms}
-          hiddenIds={hiddenOrCollapsed}
+          hiddenIds={hiddenForLines}
+          collapsedLanes={collapsedLanes}
           activeId={activeId}
           showAll={showLines}
         />
