@@ -136,6 +136,9 @@ export interface EdmAnswer {
   verdict: string;
   question?: string;
   notes?: string;
+  ctaPrimary?: string;
+  ctaSecondary?: string;
+  ctaTertiary?: string;
   reviewer?: string;
   updatedAt: string;
 }

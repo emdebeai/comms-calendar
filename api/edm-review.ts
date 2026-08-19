@@ -18,6 +18,9 @@ export interface EdmAnswer {
   /** the question they think it answers, when ours was wrong */
   question?: string;
   notes?: string;
+  ctaPrimary?: string;
+  ctaSecondary?: string;
+  ctaTertiary?: string;
   reviewer?: string;
   updatedAt: string;
 }
@@ -87,6 +90,9 @@ async function readFromGraph(): Promise<Answers> {
       verdict: v[idx("verdict")] || "",
       question: v[idx("question")] || undefined,
       notes: v[idx("notes")] || undefined,
+      ctaPrimary: v[idx("cta_primary")] || undefined,
+      ctaSecondary: v[idx("cta_secondary")] || undefined,
+      ctaTertiary: v[idx("cta_tertiary")] || undefined,
       reviewer: v[idx("reviewer")] || undefined,
       updatedAt: v[idx("updated_at")] || "",
     })),
@@ -121,6 +127,9 @@ export default async function handler(req: Req, res: Res) {
         verdict: str("verdict"),
         question: str("question") || undefined,
         notes: str("notes") || undefined,
+        ctaPrimary: str("ctaPrimary") || undefined,
+        ctaSecondary: str("ctaSecondary") || undefined,
+        ctaTertiary: str("ctaTertiary") || undefined,
         reviewer: str("reviewer") || undefined,
         updatedAt: new Date().toISOString(),
       };
@@ -131,6 +140,9 @@ export default async function handler(req: Req, res: Res) {
           entry.verdict,
           entry.question ?? "",
           entry.notes ?? "",
+          entry.ctaPrimary ?? "",
+          entry.ctaSecondary ?? "",
+          entry.ctaTertiary ?? "",
           entry.reviewer ?? "",
           entry.updatedAt,
         ]);

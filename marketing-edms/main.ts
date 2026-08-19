@@ -13,6 +13,7 @@ interface Row {
 }
 interface Answer {
   commId: string; verdict: string; question?: string; notes?: string;
+  ctaPrimary?: string; ctaSecondary?: string; ctaTertiary?: string;
   reviewer?: string; updatedAt: string;
 }
 
@@ -37,6 +38,7 @@ let filter: "all" | "todo" | "done" = "all";
 const esc = (s: string) =>
   String(s ?? "").replace(/[&<>"']/g, (c) =>
     ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
+
 
 const known = (q: string) => QUESTIONS.some((x) => x.q === q);
 
@@ -67,23 +69,23 @@ function questionCell(r: Row): string {
   const custom =
     sel === OTHER
       ? `<input type="text" data-field="other" value="${esc(a?.question ?? "")}"
-           placeholder="Type the question it answers…" autocomplete="off" class="${CTRL} mt-1.5">`
+           placeholder="Type the question it answers" autocomplete="off" class="${CTRL} mt-1.5">`
       : "";
 
   // Keep our proposal visible once they've moved away from it — otherwise the
   // thing they're correcting disappears the moment they correct it.
   const ours =
     r.q && sel !== r.q
-      ? `<p class="mt-1.5 text-xs text-grey-60">We proposed: ${esc(r.q)}</p>`
+      ? `<p class="mt-1.5 text-xs text-grey-60">We picked: ${esc(r.q)}</p>`
       : !r.q
-        ? `<p class="mt-1.5 text-xs text-grey-60">We didn’t assign one.</p>`
+        ? `<p class="mt-1.5 text-xs text-grey-60">We didn&rsquo;t pick one.</p>`
         : "";
 
   return `<select data-field="question" class="${CTRL}" aria-label="Question this send answers">
-      ${r.q ? "" : `<option value=""${sel === "" ? " selected" : ""}>— Choose a question —</option>`}
+      ${r.q ? "" : `<option value=""${sel === "" ? " selected" : ""}>Choose a question</option>`}
       ${groups}
-      <option value="${NONE}"${sel === NONE ? " selected" : ""}>— Doesn’t answer a student question —</option>
-      <option value="${OTHER}"${sel === OTHER ? " selected" : ""}>Other / something else…</option>
+      <option value="${NONE}"${sel === NONE ? " selected" : ""}>Doesn&rsquo;t answer a student question</option>
+      <option value="${OTHER}"${sel === OTHER ? " selected" : ""}>Other / something else</option>
     </select>${custom}${ours}`;
 }
 
@@ -93,7 +95,7 @@ function row(r: Row, i: number): string {
   return `<tr data-id="${esc(r.id)}" class="${done ? "bg-tint-green/30" : ""} hover:bg-grey-10">
       <td class="${TD} text-center">
         <input type="checkbox" data-field="reviewed" ${done ? "checked" : ""}
-          aria-label="Reviewed — ${esc(r.title)}"
+          aria-label="Reviewed: ${esc(r.title)}"
           class="size-4 accent-rmit-blue focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rmit-blue-interactive">
       </td>
       <td class="${TD} whitespace-nowrap">
@@ -110,9 +112,21 @@ function row(r: Row, i: number): string {
         <span class="mt-1 block rounded-full bg-tint-blue px-2 py-0.5 text-center text-xs text-rmit-blue">${esc(r.stage)}</span>
       </td>
       <td class="${TD} min-w-80">${questionCell(r)}</td>
+      <td class="${TD} min-w-40">
+        <input type="text" data-field="ctaPrimary" value="${esc(a?.ctaPrimary ?? "")}"
+          placeholder="Primary CTA" autocomplete="off" class="${CTRL}">
+      </td>
+      <td class="${TD} min-w-40">
+        <input type="text" data-field="ctaSecondary" value="${esc(a?.ctaSecondary ?? "")}"
+          placeholder="Secondary CTA" autocomplete="off" class="${CTRL}">
+      </td>
+      <td class="${TD} min-w-40">
+        <input type="text" data-field="ctaTertiary" value="${esc(a?.ctaTertiary ?? "")}"
+          placeholder="Tertiary CTA" autocomplete="off" class="${CTRL}">
+      </td>
       <td class="${TD} min-w-44">
         <input type="text" data-field="notes" value="${esc(a?.notes ?? "")}"
-          placeholder="Optional note…" autocomplete="off" class="${CTRL}">
+          placeholder="Optional note" autocomplete="off" class="${CTRL}">
       </td>
       <td class="${TD} text-right text-xs text-grey-60">#${i + 1}</td>
     </tr>`;
@@ -121,18 +135,18 @@ function row(r: Row, i: number): string {
 function render() {
   document.getElementById("app")!.innerHTML = `
     <div class="mx-auto max-w-[100rem] px-5 pt-10 pb-24">
-      <h1 class="text-3xl font-bold text-rmit-blue">eDM question review</h1>
+      <h1 class="text-3xl font-bold text-rmit-blue">Linking eDMs to student experience questions</h1>
       <p class="mt-2 max-w-3xl text-grey-80">
-        Every 2026 domestic school-leaver eDM, with the one student question we think it answers on the
-        Current State Touch Points map. We’ve made a first pass — we need you to tell us where we got it wrong.
+        Every 2026 domestic school leaver eDM, with the student question we think it answers on the
+        Current State Touch Points map.
       </p>
       <div class="mt-4 max-w-3xl rounded-lg border border-grey-30 bg-card p-4 text-sm text-grey-80">
         <p class="font-semibold text-grey-90">How this works</p>
         <ul class="mt-2 list-disc pl-5">
-          <li>The question we proposed is already selected. If it’s right, tick the box.</li>
-          <li>If it’s wrong, pick the right one — the list is grouped by journey stage.</li>
-          <li>“Doesn’t answer a student question” is a perfectly good answer, and so is “Other”.</li>
-          <li>Skip anything you’re unsure about. Answers save on their own, so you can come back to it.</li>
+          <li>The question we picked is already selected. If it looks right, tick the box.</li>
+          <li>If it looks wrong, choose a different one. The list is grouped by journey stage.</li>
+          <li>You can also choose &lsquo;Doesn&rsquo;t answer a student question&rsquo; or &lsquo;Other&rsquo;.</li>
+          <li>Skip anything you&rsquo;re not sure about. Answers save as you go.</li>
         </ul>
       </div>
       <div id="banner" class="mt-4"></div>
@@ -172,6 +186,9 @@ function render() {
               <th class="${TH}">eDM</th>
               <th class="${TH}">Campaign / stage</th>
               <th class="${TH}">Question it answers</th>
+              <th class="${TH}">Primary CTA</th>
+              <th class="${TH}">Secondary CTA</th>
+              <th class="${TH}">Tertiary CTA</th>
               <th class="${TH}">Notes</th>
               <th class="${TH} text-right">#</th>
             </tr>
@@ -181,12 +198,12 @@ function render() {
       </div>
 
       <p class="mt-6 max-w-3xl rounded-lg border border-grey-30 bg-card p-4 text-sm text-grey-70">
-        <b class="text-grey-90">Everything saves automatically</b> as you go — there’s nothing to submit and no file to
-        send back. Several people can review at once.
+        <b class="text-grey-90">Answers save automatically.</b> There is nothing to submit and no file to send back.
+        More than one person can fill this in at once.
       </p>
       <footer class="mt-7 border-t border-grey-30 pt-4 text-xs text-grey-60">
-        RMIT EDC · Current State Touch Points — Persona 01, domestic school leaver (VTAC).
-        Sends sourced from the 2026 DOM eDM Planner.
+        RMIT EDC, Current State Touch Points. Persona 01, domestic school leaver (VTAC).
+        Sends from the 2026 DOM eDM Planner.
       </footer>
     </div>`;
   progress();
@@ -232,7 +249,7 @@ async function save(commId: string) {
   } catch (err) {
     setStatus("Not saved", "error");
     banner(`<div role="alert" class="rounded-lg border border-danger bg-tint-red px-4 py-3 text-sm text-grey-90">
-      <b>Your last answer didn’t save.</b> ${esc((err as Error).message)} Your answers are still on screen — they’ll
+      <b>Your last answer didn&rsquo;t save.</b> ${esc((err as Error).message)} Your answers are still on screen and will
       save when the connection is back.</div>`);
   }
 }
@@ -285,6 +302,9 @@ document.addEventListener("input", (ev) => {
   if (!tr) return;
   if (el.dataset.field === "notes") update(tr.dataset.id!, { notes: el.value }, 1200);
   if (el.dataset.field === "other") update(tr.dataset.id!, { verdict: "wrong", question: el.value }, 1200);
+  if (el.dataset.field === "ctaPrimary") update(tr.dataset.id!, { ctaPrimary: el.value }, 1200);
+  if (el.dataset.field === "ctaSecondary") update(tr.dataset.id!, { ctaSecondary: el.value }, 1200);
+  if (el.dataset.field === "ctaTertiary") update(tr.dataset.id!, { ctaTertiary: el.value }, 1200);
 });
 
 document.addEventListener("click", (ev) => {
