@@ -28,8 +28,9 @@ const BY_STAGE = STAGE_ORDER.map((stage) => ({
   questions: QUESTIONS.filter((q) => q.stage === stage).map((q) => q.q),
 })).filter((g) => g.questions.length);
 
-const NONE = "__none__";   // "doesn't answer a student question"
-const OTHER = "__other__"; // something not on the map yet — free text
+const NONE = "__none__";     // "doesn't answer a student question"
+const OTHER = "__other__";   // something not on the map yet — free text
+const UNSURE = "__unsure__"; // reviewer isn't sure yet
 
 const answers = new Map<string, Answer>();
 let reviewer = localStorage.getItem("edm-review-reviewer") ?? "";
@@ -46,6 +47,7 @@ const known = (q: string) => QUESTIONS.some((x) => x.q === q);
 function selected(r: Row): string {
   const a = answers.get(r.id);
   if (!a || !a.verdict) return r.q;             // untouched → our proposal
+  if (a.verdict === "unsure") return UNSURE;
   if (a.verdict === "none") return NONE;
   if (a.verdict === "wrong") return a.question && known(a.question) ? a.question : OTHER;
   return r.q;                                    // confirmed as-is
@@ -83,9 +85,10 @@ function questionCell(r: Row): string {
 
   return `<select data-field="question" class="${CTRL}" aria-label="Question this send answers">
       ${r.q ? "" : `<option value=""${sel === "" ? " selected" : ""}>Choose a question</option>`}
+      <option value="${OTHER}"${sel === OTHER ? " selected" : ""}>Other / something else</option>
+      <option value="${UNSURE}"${sel === UNSURE ? " selected" : ""}>Not sure</option>
       ${groups}
       <option value="${NONE}"${sel === NONE ? " selected" : ""}>Doesn&rsquo;t answer a student question</option>
-      <option value="${OTHER}"${sel === OTHER ? " selected" : ""}>Other / something else</option>
     </select>${custom}${ours}`;
 }
 
@@ -267,6 +270,7 @@ function update(commId: string, patch: Partial<Answer>, ms: number) {
 
 /** Dropdown choice → the stored verdict/question pair. */
 function fromChoice(r: Row, value: string, custom?: string): Partial<Answer> {
+  if (value === UNSURE) return { verdict: "unsure", question: undefined };
   if (value === NONE) return { verdict: "none", question: undefined };
   if (value === OTHER) return { verdict: "wrong", question: custom ?? answers.get(r.id)?.question ?? "" };
   if (value === "") return { verdict: "", question: undefined };
