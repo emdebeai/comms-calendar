@@ -11,6 +11,7 @@ import {
 } from "../src/lib/commsSchema";
 import type { Comm, FeedbackEntry } from "../src/data/types";
 import { appendTableRow, isGraphConfigured, readTable, tableNames } from "./graph";
+import { appendFeedbackToRedis, isRedisConfigured, readFeedbackFromRedis } from "./redis";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const CSV_PATH = path.join(__dirname, "data", "comms.csv");
@@ -65,8 +66,14 @@ async function appendFileLine(filePath: string, line: string): Promise<void> {
 
 // ── Feedback ────────────────────────────────────────────────────────────
 
+// Same precedence as the deployed Vercel function (api/feedback.ts):
+// SharePoint Graph → Redis (Vercel KV / Upstash) → local JSON file. So
+// `npm run dev` with KV env vars set captures to the same Upstash the
+// deployed site uses; with none set it stays on server/data/feedback.json.
 export async function getFeedback(): Promise<FeedbackStore> {
-  return isGraphConfigured() ? readFeedbackFromGraph() : readFeedbackFromJson();
+  if (isGraphConfigured()) return readFeedbackFromGraph();
+  if (isRedisConfigured()) return readFeedbackFromRedis();
+  return readFeedbackFromJson();
 }
 
 async function readFeedbackFromJson(): Promise<FeedbackStore> {
@@ -118,6 +125,8 @@ export async function addFeedback(
       entry.metricValue ?? "",
       entry.createdAt,
     ]);
+  } else if (isRedisConfigured()) {
+    await appendFeedbackToRedis(commId, entry);
   } else {
     const store = await readFeedbackFromJson();
     (store[commId] ??= []).push(entry);

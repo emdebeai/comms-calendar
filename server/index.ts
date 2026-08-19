@@ -3,6 +3,7 @@ import cors from "cors";
 import express from "express";
 import { addComm, addFeedback, getComms, getFeedback } from "./dataStore";
 import { isGraphConfigured } from "./graph";
+import { isRedisConfigured } from "./redis";
 import { COMMS_COLUMNS } from "../src/lib/commsSchema";
 
 const app = express();
@@ -64,7 +65,12 @@ app.post("/api/feedback", async (req, res) => {
 });
 
 const port = Number(process.env.API_PORT) || 5174;
+const feedbackSource = isGraphConfigured()
+  ? "SharePoint (Graph)"
+  : isRedisConfigured()
+    ? "Redis (Vercel KV / Upstash)"
+    : "local feedback.json";
 app.listen(port, () => {
   console.log(`[api] listening on http://localhost:${port}`);
-  console.log(`[api] data source: ${isGraphConfigured() ? "SharePoint Excel (Graph)" : "local files (server/data/)"}`);
+  console.log(`[api] comms: ${isGraphConfigured() ? "SharePoint Excel (Graph)" : "local comms.csv"} · feedback: ${feedbackSource}`);
 });
