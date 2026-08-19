@@ -489,11 +489,10 @@ export function layoutTimeline(
     const placed: { x1: number; x2: number; y: number; bottom: number }[] = [];
     let area = 0;
     for (const c of list) {
-      // Filtered-out comms don't take card space in an EXPANDED lane — they
-      // render as ghost baseline dots only, so lanes shrink to fit what's
-      // actually lit. Collapsed lanes keep packing them (ghost markers are
-      // the presence signal there, and cost 22px, not a card).
-      if (!collapsed && filteredIds.has(c.id)) continue;
+      // Filtered-out comms never take space — expanded lanes render them as
+      // ghost baseline dots, collapsed lanes drop them entirely — so both
+      // shrink to fit only what's actually lit under the current lenses.
+      if (filteredIds.has(c.id)) continue;
       const x1 = Math.min(scaleX(c.month), TOTAL_W - footW - 4);
       const x2 = x1 + footW + GAP;
       const h = collapsed ? MARKER_SIZE : heights[c.id] ?? DEFAULT_CARD_H;

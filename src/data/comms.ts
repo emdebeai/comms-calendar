@@ -515,6 +515,7 @@ export const inbound: InboundLaneData[] = [
     peaks: [
       { month: 30.833, height: 0, label: "Open Day lead-up" },
       { month: 31.067, height: 0, label: "Open Day" },
+      { month: 33.833, height: 0, label: "Exam lead-up" },
       { month: 35.2, height: 0, label: "Results + CoP" },
     ],
   },

@@ -48,9 +48,9 @@ export const MOMENTS: Moment[] = [
   {
     id: "vce-exams",
     label: "VCE written exams",
-    from: 24 + 9 + (27 - 1) / 30, // Tue 27 Oct
+    from: 24 + 9 + (26 - 1) / 30, // Mon 26 Oct
     to: 24 + 10 + (18 - 1) / 30, // Wed 18 Nov
-    dates: "Tue 27 Oct – Wed 18 Nov",
+    dates: "Mon 26 Oct – Wed 18 Nov",
   },
   // Results land first, CoP follows from them — so results sit on the line
   // ABOVE CoP in the band (array order decides at an equal anchor).
@@ -81,9 +81,9 @@ export interface Embargo {
 
 export const EMBARGOES: Embargo[] = [
   {
-    // VCE exam period, Tue 27 Oct – Wed 18 Nov 2026 (Year 12). Marketing and
+    // VCE exam period, Mon 26 Oct – Wed 18 Nov 2026 (Year 12). Marketing and
     // Conversion both hold sends across it.
-    from: 24 + 9 + (27 - 1) / 30, // 27 Oct, Yr 12 ≈ 33.87
+    from: 24 + 9 + (26 - 1) / 30, // 26 Oct, Yr 12 ≈ 33.83
     to: 24 + 10 + (18 - 1) / 30, //  18 Nov, Yr 12 ≈ 34.57
     label: "Comms embargo · VCE exams (Marketing + Conversion)",
   },

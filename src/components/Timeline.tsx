@@ -422,6 +422,9 @@ export function Timeline({
           // carries the type icon (email/SMS/event/…) and opens the detail
           // panel on click, like a card would.
           if (collapsedLanes.has(c.team)) {
+            // Ghosts are dropped from the collapsed stack (and its height) —
+            // the lane shows only what's lit, saving vertical space.
+            if (filteredOut) return null;
             const Icon = COMM_ICONS[c.type];
             const day = Math.round((c.month % 1) * 30) + 1;
             return (
