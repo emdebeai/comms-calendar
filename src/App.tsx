@@ -427,6 +427,8 @@ export default function App() {
     });
   };
 
+  // Rejects on failure so the composer can keep the note on screen and say
+  // why — a note that never reached the store must never look like it did.
   const addFeedback = async (commId: string, entry: Omit<FeedbackEntry, "id" | "createdAt">) => {
     const saved = await addFeedbackEntry(commId, entry);
     setFeedback((prev) => ({ ...prev, [commId]: [...(prev[commId] ?? []), saved] }));

@@ -12,5 +12,5 @@
     "noUnusedParameters": true,
     "types": ["node"]
   },
-  "include": ["server", "src/lib/csv.ts", "src/lib/commsSchema.ts", "src/data/types.ts"]
+  "include": ["server", "api", "src/lib/csv.ts", "src/lib/commsSchema.ts", "src/data/types.ts"]
 }

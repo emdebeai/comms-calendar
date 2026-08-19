@@ -22,9 +22,25 @@ npm run dev
 ## Where the data lives
 
 Comms are read from **`server/data/comms.csv`** (see `src/lib/commsSchema.ts`
-for the column schema). Feedback notes are stored in
-`server/data/feedback.json`. Both are plain local files — edit the CSV or
-replace it with a spreadsheet export and refresh the page.
+for the column schema). Both are plain local files — edit the CSV or replace
+it with a spreadsheet export and refresh the page.
+
+**Feedback notes** land in different places depending on where the app is
+running:
+
+| Running | Notes go to | Shared with others |
+|---|---|---|
+| `npm run dev` | `server/data/feedback.json` via the Express API | Anyone on that server |
+| Deployed to Vercel | `api/feedback.ts` → Redis (Vercel KV / Upstash), or SharePoint once Graph is set up | Yes |
+| Single-file build (`build:standalone`) | The viewer's own `localStorage` | No — it says so in the UI |
+
+To switch the deployed site on, add a Redis from **Vercel → Storage → Create →
+Upstash for Redis** and connect it to the project; Vercel injects
+`KV_REST_API_URL` / `KV_REST_API_TOKEN` and the function starts using it on the
+next deploy. Fill in the `AZURE_*` / `EXCEL_*` variables instead (or as well)
+and it writes to the SharePoint workbook, which takes priority. With neither
+configured the API answers 503 and the composer keeps the note on screen with
+the reason — a note is never silently dropped. See `.env.example`.
 
 ## Responsible AI & data handling
 

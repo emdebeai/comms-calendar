@@ -5,7 +5,7 @@ import { EYEBROW, FOCUS_RING } from "../lib/styles";
 
 interface Props {
   entries: FeedbackEntry[];
-  onAdd: (entry: Omit<FeedbackEntry, "id" | "createdAt">) => void;
+  onAdd: (entry: Omit<FeedbackEntry, "id" | "createdAt">) => void | Promise<void>;
 }
 
 const INPUT_CLASS =
@@ -63,6 +63,10 @@ export function FeedbackComposer({ onAdd }: Pick<Props, "onAdd">) {
   const [metricLabel, setMetricLabel] = useState("");
   const [metricValue, setMetricValue] = useState("");
   const [composing, setComposing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  // A note that failed to save stays in the box with the reason — losing
+  // someone's typing silently is worse than any error message.
+  const [error, setError] = useState<string | null>(null);
 
   const formRef = useRef<HTMLDivElement>(null);
   const commentRef = useRef<HTMLTextAreaElement>(null);
@@ -76,14 +80,23 @@ export function FeedbackComposer({ onAdd }: Pick<Props, "onAdd">) {
     if (formEmpty) setComposing(false);
   };
 
-  const submit = () => {
-    if (!comment.trim()) return;
-    onAdd({
-      author: author.trim() || "Anonymous",
-      comment: comment.trim(),
-      metricLabel: metricLabel.trim() || undefined,
-      metricValue: metricValue.trim() || undefined,
-    });
+  const submit = async () => {
+    if (!comment.trim() || saving) return;
+    setSaving(true);
+    setError(null);
+    try {
+      await onAdd({
+        author: author.trim() || "Anonymous",
+        comment: comment.trim(),
+        metricLabel: metricLabel.trim() || undefined,
+        metricValue: metricValue.trim() || undefined,
+      });
+    } catch (err) {
+      setSaving(false);
+      setError((err as Error).message || "That note didn't save. Try again.");
+      return;
+    }
+    setSaving(false);
     setComment("");
     setMetricLabel("");
     setMetricValue("");
@@ -157,15 +170,21 @@ export function FeedbackComposer({ onAdd }: Pick<Props, "onAdd">) {
             <button
               type="button"
               onClick={submit}
-              disabled={!comment.trim()}
+              disabled={!comment.trim() || saving}
               className={`mt-1 flex min-h-11 items-center justify-center gap-1.5 rounded-full bg-header px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50 ${FOCUS_RING}`}
             >
               <MessageSquarePlus size={14} strokeWidth={1.75} aria-hidden />
-              Add note
+              {saving ? "Adding…" : "Add note"}
             </button>
-            <p className="text-xs text-grey-70">
-              Notes are shared with everyone using this timeline.
-            </p>
+            {error ? (
+              <p role="alert" className="text-xs text-danger">
+                {error} Your note is still here — try again in a moment.
+              </p>
+            ) : (
+              <p className="text-xs text-grey-70">
+                Notes are shared with everyone using this timeline.
+              </p>
+            )}
           </>
         )}
       </div>
