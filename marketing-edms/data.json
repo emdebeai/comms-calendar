@@ -1,0 +1,1022 @@
+{
+ "rows": [
+  {
+   "id": "here-s-a-glimpse-of-2026-2",
+   "stage": "Understand",
+   "date": "17 Mar",
+   "year": "Year 10",
+   "campaign": "Nurture SL",
+   "title": "Here's a glimpse of 2026",
+   "audience": "Yr 10",
+   "theme": "Key dates for 2026 + we'll be in touch throughout the year + April School Holiday Tours",
+   "ctaPrimary": "Key dates for 2026",
+   "ctaSecondary": "we'll be in touch throughout the year",
+   "ctaTertiary": "April School Holiday Tours",
+   "q": "What is the exact process to start my application, and what dates do I need to meet?",
+   "qstage": "Decide"
+  },
+  {
+   "id": "what-is-vocational-study-3",
+   "stage": "Understand",
+   "date": "22 Apr",
+   "year": "Year 10",
+   "campaign": "Nurture SL",
+   "title": "What is vocational study?",
+   "audience": "Yr 10",
+   "theme": "What is it series — TAFE vs university + kinds of VE courses",
+   "ctaPrimary": "What is it series — TAFE vs university",
+   "ctaSecondary": "kinds of VE courses",
+   "ctaTertiary": "",
+   "q": "Do I want to aim for university, vocational training (TAFE), or go straight to work?",
+   "qstage": "Understand"
+  },
+  {
+   "id": "what-to-know-about-scholarships-3",
+   "stage": "Understand",
+   "date": "29 Apr",
+   "year": "Year 10",
+   "campaign": "Nurture SL",
+   "title": "What to know about scholarships?",
+   "audience": "Y10",
+   "theme": "What is it series — how scholarships work + showcase",
+   "ctaPrimary": "What is it series — how scholarships work",
+   "ctaSecondary": "showcase",
+   "ctaTertiary": "",
+   "q": "Am I eligible for a scholarship or fee support, and when do I apply?",
+   "qstage": "Decide"
+  },
+  {
+   "id": "what-are-pathways-3",
+   "stage": "Understand",
+   "date": "13 May",
+   "year": "Year 10",
+   "campaign": "Nurture SL",
+   "title": "What are pathways?",
+   "audience": "Yr 10",
+   "theme": "What is it series — pathways as alternate entry if the ATAR falls short",
+   "ctaPrimary": "What is it series — pathways as alternate entry if the ATAR falls short",
+   "ctaSecondary": "",
+   "ctaTertiary": "",
+   "q": "Is a TAFE or applied pathway a faster route into my field than a degree?",
+   "qstage": "Understand"
+  },
+  {
+   "id": "discover-melbourne-3",
+   "stage": "Understand",
+   "date": "29 May",
+   "year": "Year 10",
+   "campaign": "Nurture SL",
+   "title": "Discover Melbourne",
+   "audience": "Yr 10",
+   "theme": "Uni guide and tips + Open Day mention",
+   "ctaPrimary": "Uni guide and tips",
+   "ctaSecondary": "Open Day mention",
+   "ctaTertiary": "",
+   "q": "Should I study at [Uni A] or [Uni B]? Which has the better vibe and location?",
+   "qstage": "Consider"
+  },
+  {
+   "id": "only-at-rmit-open-day-2",
+   "stage": "Consider",
+   "date": "2 Jul",
+   "year": "Year 10",
+   "campaign": "Open Day",
+   "title": "Only at RMIT Open Day",
+   "audience": "Yr 10-12 - unregistered",
+   "theme": "Why you won't want to miss RMIT Open Day 2026",
+   "ctaPrimary": "Why you won't want to miss RMIT Open Day 2026",
+   "ctaSecondary": "",
+   "ctaTertiary": "",
+   "q": "Should I study at [Uni A] or [Uni B]? Which has the better vibe and location?",
+   "qstage": "Consider"
+  },
+  {
+   "id": "what-s-next-after-open-day-3",
+   "stage": "Consider",
+   "date": "25 Aug",
+   "year": "Year 10",
+   "campaign": "VTAC",
+   "title": "What's next after Open Day",
+   "audience": "Year 10",
+   "theme": "VTAC launch + events to look forward to (S4AD etc)",
+   "ctaPrimary": "VTAC launch",
+   "ctaSecondary": "events to look forward to (S4AD etc)",
+   "ctaTertiary": "",
+   "q": "",
+   "qstage": ""
+  },
+  {
+   "id": "become-an-rmit-student-for-a-day-2",
+   "stage": "Consider",
+   "date": "10 Sep",
+   "year": "Year 10",
+   "campaign": "S4AD",
+   "title": "Become an RMIT Student for a Day",
+   "audience": "Year 10",
+   "theme": "",
+   "ctaPrimary": "",
+   "ctaSecondary": "",
+   "ctaTertiary": "",
+   "q": "Should I study at [Uni A] or [Uni B]? Which has the better vibe and location?",
+   "qstage": "Consider"
+  },
+  {
+   "id": "good-luck-on-your-exams-3",
+   "stage": "Consider",
+   "date": "20 Oct",
+   "year": "Year 10",
+   "campaign": "VTAC",
+   "title": "Good luck on your exams!",
+   "audience": "Year 10",
+   "theme": "Mental health tips",
+   "ctaPrimary": "Mental health tips",
+   "ctaSecondary": "",
+   "ctaTertiary": "",
+   "q": "",
+   "qstage": ""
+  },
+  {
+   "id": "what-s-next-for-you-after-year-10-or-11",
+   "stage": "Consider",
+   "date": "19 Nov",
+   "year": "Year 10",
+   "campaign": "COP",
+   "title": "What's next for you after year 10 or 11",
+   "audience": "Year 10",
+   "theme": "",
+   "ctaPrimary": "",
+   "ctaSecondary": "",
+   "ctaTertiary": "",
+   "q": "",
+   "qstage": ""
+  },
+  {
+   "id": "here-s-a-glimpse-of-2026-3",
+   "stage": "Consider",
+   "date": "17 Mar",
+   "year": "Year 11",
+   "campaign": "Nurture SL",
+   "title": "Here's a glimpse of 2026",
+   "audience": "Yr 11",
+   "theme": "Key dates for 2026 + we'll be in touch throughout the year + April School Holiday Tours",
+   "ctaPrimary": "Key dates for 2026",
+   "ctaSecondary": "we'll be in touch throughout the year",
+   "ctaTertiary": "April School Holiday Tours",
+   "q": "What is the exact process to start my application, and what dates do I need to meet?",
+   "qstage": "Decide"
+  },
+  {
+   "id": "what-is-vocational-study-2",
+   "stage": "Consider",
+   "date": "22 Apr",
+   "year": "Year 11",
+   "campaign": "Nurture SL",
+   "title": "What is vocational study?",
+   "audience": "Yr 11",
+   "theme": "What is it series — TAFE vs university + kinds of VE courses",
+   "ctaPrimary": "What is it series — TAFE vs university",
+   "ctaSecondary": "kinds of VE courses",
+   "ctaTertiary": "",
+   "q": "Do I want to aim for university, vocational training (TAFE), or go straight to work?",
+   "qstage": "Understand"
+  },
+  {
+   "id": "what-to-know-about-scholarships-2",
+   "stage": "Consider",
+   "date": "29 Apr",
+   "year": "Year 11",
+   "campaign": "Nurture SL",
+   "title": "What to know about scholarships?",
+   "audience": "Y11",
+   "theme": "What is it series — how scholarships work + showcase",
+   "ctaPrimary": "What is it series — how scholarships work",
+   "ctaSecondary": "showcase",
+   "ctaTertiary": "",
+   "q": "Am I eligible for a scholarship or fee support, and when do I apply?",
+   "qstage": "Decide"
+  },
+  {
+   "id": "what-are-pathways-2",
+   "stage": "Consider",
+   "date": "13 May",
+   "year": "Year 11",
+   "campaign": "Nurture SL",
+   "title": "What are pathways?",
+   "audience": "Yr 11",
+   "theme": "What is it series — pathways as alternate entry if the ATAR falls short",
+   "ctaPrimary": "What is it series — pathways as alternate entry if the ATAR falls short",
+   "ctaSecondary": "",
+   "ctaTertiary": "",
+   "q": "Is a TAFE or applied pathway a faster route into my field than a degree?",
+   "qstage": "Understand"
+  },
+  {
+   "id": "discover-melbourne-2",
+   "stage": "Consider",
+   "date": "29 May",
+   "year": "Year 11",
+   "campaign": "Nurture SL",
+   "title": "Discover Melbourne",
+   "audience": "Yr 11",
+   "theme": "Uni guide and tips + Open Day mention",
+   "ctaPrimary": "Uni guide and tips",
+   "ctaSecondary": "Open Day mention",
+   "ctaTertiary": "",
+   "q": "Should I study at [Uni A] or [Uni B]? Which has the better vibe and location?",
+   "qstage": "Consider"
+  },
+  {
+   "id": "only-at-rmit-open-day-3",
+   "stage": "Consider",
+   "date": "2 Jul",
+   "year": "Year 11",
+   "campaign": "Open Day",
+   "title": "Only at RMIT Open Day",
+   "audience": "Yr 10-12 - unregistered",
+   "theme": "Why you won't want to miss RMIT Open Day 2026",
+   "ctaPrimary": "Why you won't want to miss RMIT Open Day 2026",
+   "ctaSecondary": "",
+   "ctaTertiary": "",
+   "q": "Should I study at [Uni A] or [Uni B]? Which has the better vibe and location?",
+   "qstage": "Consider"
+  },
+  {
+   "id": "what-s-next-after-open-day-2",
+   "stage": "Consider",
+   "date": "25 Aug",
+   "year": "Year 11",
+   "campaign": "VTAC",
+   "title": "What's next after Open Day",
+   "audience": "Year 11",
+   "theme": "VTAC launch + events to look forward to (S4AD etc)",
+   "ctaPrimary": "VTAC launch",
+   "ctaSecondary": "events to look forward to (S4AD etc)",
+   "ctaTertiary": "",
+   "q": "",
+   "qstage": ""
+  },
+  {
+   "id": "become-an-rmit-student-for-a-day",
+   "stage": "Consider",
+   "date": "10 Sep",
+   "year": "Year 11",
+   "campaign": "S4AD",
+   "title": "Become an RMIT Student for a Day",
+   "audience": "Year 11",
+   "theme": "",
+   "ctaPrimary": "",
+   "ctaSecondary": "",
+   "ctaTertiary": "",
+   "q": "Should I study at [Uni A] or [Uni B]? Which has the better vibe and location?",
+   "qstage": "Consider"
+  },
+  {
+   "id": "good-luck-on-your-exams-2",
+   "stage": "Consider",
+   "date": "20 Oct",
+   "year": "Year 11",
+   "campaign": "VTAC",
+   "title": "Good luck on your exams!",
+   "audience": "Year 11",
+   "theme": "Mental health tips",
+   "ctaPrimary": "Mental health tips",
+   "ctaSecondary": "",
+   "ctaTertiary": "",
+   "q": "",
+   "qstage": ""
+  },
+  {
+   "id": "skills-you-can-take-from-school-to-uni",
+   "stage": "Consider",
+   "date": "19 Nov",
+   "year": "Year 11",
+   "campaign": "COP",
+   "title": "Skills you can take from school to uni",
+   "audience": "Year 11",
+   "theme": "The milestone of moving to Year 12",
+   "ctaPrimary": "The milestone of moving to Year 12",
+   "ctaSecondary": "",
+   "ctaTertiary": "",
+   "q": "",
+   "qstage": ""
+  },
+  {
+   "id": "here-s-a-glimpse-of-2026",
+   "stage": "Consider",
+   "date": "17 Mar",
+   "year": "Year 12",
+   "campaign": "Nurture SL",
+   "title": "Here's a glimpse of 2026",
+   "audience": "Year 12",
+   "theme": "Key dates for 2026 + we'll be in touch throughout the year + April School Holiday Tours",
+   "ctaPrimary": "Key dates for 2026",
+   "ctaSecondary": "we'll be in touch throughout the year",
+   "ctaTertiary": "April School Holiday Tours",
+   "q": "What is the exact process to start my application, and what dates do I need to meet?",
+   "qstage": "Decide"
+  },
+  {
+   "id": "what-is-vocational-study",
+   "stage": "Consider",
+   "date": "22 Apr",
+   "year": "Year 12",
+   "campaign": "Nurture SL",
+   "title": "What is vocational study?",
+   "audience": "Year 12",
+   "theme": "What is it series — TAFE vs university + kinds of VE courses",
+   "ctaPrimary": "What is it series — TAFE vs university",
+   "ctaSecondary": "kinds of VE courses",
+   "ctaTertiary": "",
+   "q": "Do I want to aim for university, vocational training (TAFE), or go straight to work?",
+   "qstage": "Understand"
+  },
+  {
+   "id": "what-to-know-about-scholarships",
+   "stage": "Consider",
+   "date": "29 Apr",
+   "year": "Year 12",
+   "campaign": "Nurture SL",
+   "title": "What to know about scholarships?",
+   "audience": "Year 12",
+   "theme": "What is it series — how scholarships work + showcase",
+   "ctaPrimary": "What is it series — how scholarships work",
+   "ctaSecondary": "showcase",
+   "ctaTertiary": "",
+   "q": "Am I eligible for a scholarship or fee support, and when do I apply?",
+   "qstage": "Decide"
+  },
+  {
+   "id": "what-are-pathways",
+   "stage": "Consider",
+   "date": "13 May",
+   "year": "Year 12",
+   "campaign": "Nurture SL",
+   "title": "What are pathways?",
+   "audience": "Year 12",
+   "theme": "What is it series — pathways as alternate entry if the ATAR falls short",
+   "ctaPrimary": "What is it series — pathways as alternate entry if the ATAR falls short",
+   "ctaSecondary": "",
+   "ctaTertiary": "",
+   "q": "Is a TAFE or applied pathway a faster route into my field than a degree?",
+   "qstage": "Understand"
+  },
+  {
+   "id": "only-at-open-day-can-you",
+   "stage": "Consider",
+   "date": "19 May",
+   "year": "Year 12",
+   "campaign": "Open Day",
+   "title": "Only at Open Day can you...",
+   "audience": "New Open Day leads (SL & NSL)",
+   "theme": "Initial Open Day messaging and highlights",
+   "ctaPrimary": "Initial Open Day messaging and highlights",
+   "ctaSecondary": "",
+   "ctaTertiary": "",
+   "q": "Should I study at [Uni A] or [Uni B]? Which has the better vibe and location?",
+   "qstage": "Consider"
+  },
+  {
+   "id": "discover-melbourne",
+   "stage": "Consider",
+   "date": "29 May",
+   "year": "Year 12",
+   "campaign": "Nurture SL",
+   "title": "Discover Melbourne",
+   "audience": "Year 12",
+   "theme": "Uni guide and tips + Open Day mention",
+   "ctaPrimary": "Uni guide and tips",
+   "ctaSecondary": "Open Day mention",
+   "ctaTertiary": "",
+   "q": "Should I study at [Uni A] or [Uni B]? Which has the better vibe and location?",
+   "qstage": "Consider"
+  },
+  {
+   "id": "moving-to-melbourne",
+   "stage": "Consider",
+   "date": "29 May",
+   "year": "Year 12",
+   "campaign": "Nurture SL",
+   "title": "Moving to Melbourne",
+   "audience": "Regional Yr 12",
+   "theme": "Moving to Melbourne / uni guide + Open Day mention",
+   "ctaPrimary": "Moving to Melbourne / uni guide",
+   "ctaSecondary": "Open Day mention",
+   "ctaTertiary": "",
+   "q": "",
+   "qstage": ""
+  },
+  {
+   "id": "register-for-open-day-and-win",
+   "stage": "Consider",
+   "date": "10 Jun",
+   "year": "Year 12",
+   "campaign": "Open Day",
+   "title": "Register for Open Day and win",
+   "audience": "Interest Area",
+   "theme": "Register for a chance to win + first peek at the vibe",
+   "ctaPrimary": "Register for a chance to win",
+   "ctaSecondary": "first peek at the vibe",
+   "ctaTertiary": "",
+   "q": "Should I study at [Uni A] or [Uni B]? Which has the better vibe and location?",
+   "qstage": "Consider"
+  },
+  {
+   "id": "only-at-bundoora",
+   "stage": "Consider",
+   "date": "18 Jun",
+   "year": "Year 12",
+   "campaign": "Open Day",
+   "title": "Only at Bundoora",
+   "audience": "Registered Bundoora",
+   "theme": "Virtual tour of the Bundoora campus",
+   "ctaPrimary": "Virtual tour of the Bundoora campus",
+   "ctaSecondary": "",
+   "ctaTertiary": "",
+   "q": "Should I study at [Uni A] or [Uni B]? Which has the better vibe and location?",
+   "qstage": "Consider"
+  },
+  {
+   "id": "only-at-the-city-campus",
+   "stage": "Consider",
+   "date": "18 Jun",
+   "year": "Year 12",
+   "campaign": "Open Day",
+   "title": "Only at the City Campus",
+   "audience": "Registered City",
+   "theme": "Virtual tour of the City campus",
+   "ctaPrimary": "Virtual tour of the City campus",
+   "ctaSecondary": "",
+   "ctaTertiary": "",
+   "q": "Should I study at [Uni A] or [Uni B]? Which has the better vibe and location?",
+   "qstage": "Consider"
+  },
+  {
+   "id": "only-at-brunswick",
+   "stage": "Consider",
+   "date": "18 Jun",
+   "year": "Year 12",
+   "campaign": "Open Day",
+   "title": "Only at Brunswick",
+   "audience": "Registered Brunswick",
+   "theme": "Virtual tour of the Brunswick campus",
+   "ctaPrimary": "Virtual tour of the Brunswick campus",
+   "ctaSecondary": "",
+   "ctaTertiary": "",
+   "q": "Should I study at [Uni A] or [Uni B]? Which has the better vibe and location?",
+   "qstage": "Consider"
+  },
+  {
+   "id": "best-questions-to-ask-on-the-day",
+   "stage": "Consider",
+   "date": "30 Jun",
+   "year": "Year 12",
+   "campaign": "Open Day",
+   "title": "Best questions to ask on the day",
+   "audience": "Registered Bundoora",
+   "theme": "Best questions to ask on the day and who to ask them to",
+   "ctaPrimary": "Best questions to ask on the day and who to ask them to",
+   "ctaSecondary": "",
+   "ctaTertiary": "",
+   "q": "Should I study at [Uni A] or [Uni B]? Which has the better vibe and location?",
+   "qstage": "Consider"
+  },
+  {
+   "id": "best-questions-to-ask-on-the-day-2",
+   "stage": "Consider",
+   "date": "30 Jun",
+   "year": "Year 12",
+   "campaign": "Open Day",
+   "title": "Best questions to ask on the day",
+   "audience": "Registered City",
+   "theme": "Best questions to ask on the day and who to ask them to",
+   "ctaPrimary": "Best questions to ask on the day and who to ask them to",
+   "ctaSecondary": "",
+   "ctaTertiary": "",
+   "q": "Should I study at [Uni A] or [Uni B]? Which has the better vibe and location?",
+   "qstage": "Consider"
+  },
+  {
+   "id": "best-questions-to-ask-on-the-day-3",
+   "stage": "Consider",
+   "date": "30 Jun",
+   "year": "Year 12",
+   "campaign": "Open Day",
+   "title": "Best questions to ask on the day",
+   "audience": "Registered Brunswick",
+   "theme": "Best questions to ask on the day and who to ask them to",
+   "ctaPrimary": "Best questions to ask on the day and who to ask them to",
+   "ctaSecondary": "",
+   "ctaTertiary": "",
+   "q": "Should I study at [Uni A] or [Uni B]? Which has the better vibe and location?",
+   "qstage": "Consider"
+  },
+  {
+   "id": "only-at-rmit-open-day",
+   "stage": "Consider",
+   "date": "2 Jul",
+   "year": "Year 12",
+   "campaign": "Open Day",
+   "title": "Only at RMIT Open Day",
+   "audience": "Yr 10-12 - unregistered",
+   "theme": "Why you won't want to miss RMIT Open Day 2026",
+   "ctaPrimary": "Why you won't want to miss RMIT Open Day 2026",
+   "ctaSecondary": "",
+   "ctaTertiary": "",
+   "q": "Should I study at [Uni A] or [Uni B]? Which has the better vibe and location?",
+   "qstage": "Consider"
+  },
+  {
+   "id": "the-open-day-guide-is-live",
+   "stage": "Consider",
+   "date": "15 Jul",
+   "year": "Year 12",
+   "campaign": "Open Day",
+   "title": "The Open Day guide is live",
+   "audience": "Registered - Interest Areas",
+   "theme": "Download the full guide or your study area",
+   "ctaPrimary": "Download the full guide or your study area",
+   "ctaSecondary": "",
+   "ctaTertiary": "",
+   "q": "Should I study at [Uni A] or [Uni B]? Which has the better vibe and location?",
+   "qstage": "Consider"
+  },
+  {
+   "id": "the-open-day-guide-is-live-2",
+   "stage": "Consider",
+   "date": "15 Jul",
+   "year": "Year 12",
+   "campaign": "Open Day",
+   "title": "The Open Day guide is live",
+   "audience": "Operational Interest Areas",
+   "theme": "Download the full guide or your study area",
+   "ctaPrimary": "Download the full guide or your study area",
+   "ctaSecondary": "",
+   "ctaTertiary": "",
+   "q": "Should I study at [Uni A] or [Uni B]? Which has the better vibe and location?",
+   "qstage": "Consider"
+  },
+  {
+   "id": "what-to-know-about-open-day",
+   "stage": "Consider",
+   "date": "24 Jul",
+   "year": "Year 12",
+   "campaign": "Open Day",
+   "title": "What to know about Open Day",
+   "audience": "Registered (Campus Specific) SL + NSL",
+   "theme": "Food, prayer space, sensory space, shuttle bus, parking",
+   "ctaPrimary": "Food, prayer space, sensory space, shuttle bus, parking",
+   "ctaSecondary": "",
+   "ctaTertiary": "",
+   "q": "",
+   "qstage": ""
+  },
+  {
+   "id": "what-to-know-about-open-day-2",
+   "stage": "Consider",
+   "date": "24 Jul",
+   "year": "Year 12",
+   "campaign": "Open Day",
+   "title": "What to know about Open Day",
+   "audience": "Unregistered (All campus, excluding Bundoora leads) SL + NSL",
+   "theme": "Logistics + Open Day is for everyone",
+   "ctaPrimary": "Logistics",
+   "ctaSecondary": "Open Day is for everyone",
+   "ctaTertiary": "",
+   "q": "",
+   "qstage": ""
+  },
+  {
+   "id": "what-to-know-about-open-day-bundoora-push",
+   "stage": "Consider",
+   "date": "24 Jul",
+   "year": "Year 12",
+   "campaign": "Open Day",
+   "title": "What to know about Open Day - Bundoora push",
+   "audience": "Unregistered (IA Education, trades and health) SL + NSL",
+   "theme": "Logistics — Bundoora push",
+   "ctaPrimary": "Logistics — Bundoora push",
+   "ctaSecondary": "",
+   "ctaTertiary": "",
+   "q": "",
+   "qstage": ""
+  },
+  {
+   "id": "what-s-next-after-open-day",
+   "stage": "Decide",
+   "date": "25 Aug",
+   "year": "Year 12",
+   "campaign": "VTAC",
+   "title": "What's next after Open Day",
+   "audience": "Year 12",
+   "theme": "VTAC launch + events to look forward to (S4AD etc)",
+   "ctaPrimary": "VTAC launch",
+   "ctaSecondary": "events to look forward to (S4AD etc)",
+   "ctaTertiary": "",
+   "q": "What is the exact process to start my application, and what dates do I need to meet?",
+   "qstage": "Decide"
+  },
+  {
+   "id": "we-re-here-to-help-preference-rmit",
+   "stage": "Begin",
+   "date": "10 Sep",
+   "year": "Year 12",
+   "campaign": "VTAC",
+   "title": "We're here to help <Preference RMIT>",
+   "audience": "Year 12",
+   "theme": "VTAC services and event + here to help",
+   "ctaPrimary": "VTAC services and event",
+   "ctaSecondary": "here to help",
+   "ctaTertiary": "",
+   "q": "What is the exact process to start my application, and what dates do I need to meet?",
+   "qstage": "Decide"
+  },
+  {
+   "id": "why-choose-rmit",
+   "stage": "Begin",
+   "date": "17 Sep",
+   "year": "Year 12",
+   "campaign": "VTAC",
+   "title": "Why choose RMIT?",
+   "audience": "Y12",
+   "theme": "Hard sell — KSPs, tailored by IA or campus",
+   "ctaPrimary": "Hard sell — KSPs, tailored by IA or campus",
+   "ctaSecondary": "",
+   "ctaTertiary": "",
+   "q": "Is RMIT definitely the right first choice, or a plan B backup on my list?",
+   "qstage": "Decide"
+  },
+  {
+   "id": "there-s-still-time-to-preference-rmit",
+   "stage": "Submit",
+   "date": "24 Sep",
+   "year": "Year 12",
+   "campaign": "VTAC",
+   "title": "There's still time to <Preference RMIT>",
+   "audience": "Year 12",
+   "theme": "VTAC final push",
+   "ctaPrimary": "VTAC final push",
+   "ctaSecondary": "",
+   "ctaTertiary": "",
+   "q": "How do I order RMIT vs my backups so I don't get locked out of a better offer?",
+   "qstage": "Decide"
+  },
+  {
+   "id": "there-s-still-time-to-preference-rmit-2",
+   "stage": "Submit",
+   "date": "26 Sep",
+   "year": "Year 12",
+   "campaign": "VTAC",
+   "title": "There's still time to <Preference RMIT>",
+   "audience": "Year 12 - SNAP variation",
+   "theme": "VTAC final push — SNAP variation",
+   "ctaPrimary": "VTAC final push — SNAP variation",
+   "ctaSecondary": "",
+   "ctaTertiary": "",
+   "q": "How do I order RMIT vs my backups so I don't get locked out of a better offer?",
+   "qstage": "Decide"
+  },
+  {
+   "id": "good-luck-on-your-exams",
+   "stage": "Wait",
+   "date": "20 Oct",
+   "year": "Year 12",
+   "campaign": "VTAC",
+   "title": "Good luck on your exams!",
+   "audience": "Year 12 (exc. DDINTON)",
+   "theme": "Adds Study@RMIT contact details",
+   "ctaPrimary": "Adds Study@RMIT contact details",
+   "ctaSecondary": "",
+   "ctaTertiary": "",
+   "q": "",
+   "qstage": ""
+  },
+  {
+   "id": "cop-explained",
+   "stage": "Wait",
+   "date": "19 Nov",
+   "year": "Year 12",
+   "campaign": "COP",
+   "title": "COP Explained",
+   "audience": "Year 12 (exc. DDINTON & SNAP)",
+   "theme": "Key dates COP",
+   "ctaPrimary": "Key dates COP",
+   "ctaSecondary": "",
+   "ctaTertiary": "",
+   "q": "How does Change of Preference work?",
+   "qstage": "Wait"
+  },
+  {
+   "id": "cop-explained-2",
+   "stage": "Wait",
+   "date": "19 Nov",
+   "year": "Year 12",
+   "campaign": "COP",
+   "title": "COP Explained",
+   "audience": "Year 12 SNAP (exc. DDINTON)",
+   "theme": "Key dates COP + scholarship + SNAP Explained",
+   "ctaPrimary": "Key dates COP",
+   "ctaSecondary": "scholarship",
+   "ctaTertiary": "SNAP Explained",
+   "q": "How does Change of Preference work?",
+   "qstage": "Wait"
+  },
+  {
+   "id": "thanks-for-preferencing-rmit",
+   "stage": "Wait",
+   "date": "30 Nov",
+   "year": "Year 12",
+   "campaign": "COP",
+   "title": "Thanks for preferencing RMIT",
+   "audience": "Year 12 #1 preference",
+   "theme": "",
+   "ctaPrimary": "",
+   "ctaSecondary": "",
+   "ctaTertiary": "",
+   "q": "",
+   "qstage": ""
+  },
+  {
+   "id": "explore-a-future-with-rmit",
+   "stage": "Wait",
+   "date": "30 Nov",
+   "year": "Year 12",
+   "campaign": "COP",
+   "title": "Explore a future with RMIT",
+   "audience": "Year 12 - COBL #2-8",
+   "theme": "It's not too late to make a course your #1",
+   "ctaPrimary": "It's not too late to make a course your #1",
+   "ctaSecondary": "",
+   "ctaTertiary": "",
+   "q": "How do I order RMIT vs my backups so I don't get locked out of a better offer?",
+   "qstage": "Decide"
+  },
+  {
+   "id": "explore-a-future-with-rmit-2",
+   "stage": "Wait",
+   "date": "30 Nov",
+   "year": "Year 12",
+   "campaign": "COP",
+   "title": "Explore a future with RMIT",
+   "audience": "Year 12 - STEM #2-8",
+   "theme": "It's not too late to make a course your #1",
+   "ctaPrimary": "It's not too late to make a course your #1",
+   "ctaSecondary": "",
+   "ctaTertiary": "",
+   "q": "How do I order RMIT vs my backups so I don't get locked out of a better offer?",
+   "qstage": "Decide"
+  },
+  {
+   "id": "explore-a-future-with-rmit-3",
+   "stage": "Wait",
+   "date": "30 Nov",
+   "year": "Year 12",
+   "campaign": "COP",
+   "title": "Explore a future with RMIT",
+   "audience": "Year 12 - DSC #2-8",
+   "theme": "It's not too late to make a course your #1",
+   "ctaPrimary": "It's not too late to make a course your #1",
+   "ctaSecondary": "",
+   "ctaTertiary": "",
+   "q": "How do I order RMIT vs my backups so I don't get locked out of a better offer?",
+   "qstage": "Decide"
+  },
+  {
+   "id": "explore-a-future-with-rmit-4",
+   "stage": "Wait",
+   "date": "30 Nov",
+   "year": "Year 12",
+   "campaign": "COP",
+   "title": "Explore a future with RMIT",
+   "audience": "Year 12 - No preference",
+   "theme": "It's not too late to make a course your #1",
+   "ctaPrimary": "It's not too late to make a course your #1",
+   "ctaSecondary": "",
+   "ctaTertiary": "",
+   "q": "How do I order RMIT vs my backups so I don't get locked out of a better offer?",
+   "qstage": "Decide"
+  },
+  {
+   "id": "vtac-results-are-released-today",
+   "stage": "Offer",
+   "date": "10 Dec",
+   "year": "Year 12",
+   "campaign": "COP",
+   "title": "VTAC results are released today",
+   "audience": "Year 12",
+   "theme": "COP hotline until 12pm 13 Dec + guaranteed Pathways if the ATAR fell short",
+   "ctaPrimary": "COP hotline until 12pm 13 Dec",
+   "ctaSecondary": "guaranteed Pathways if the ATAR fell short",
+   "ctaTertiary": "",
+   "q": "When is ATAR release day, and what time do VTAC results go online?",
+   "qstage": "Wait"
+  },
+  {
+   "id": "change-of-preference-closes-today",
+   "stage": "Offer",
+   "date": "12 Dec",
+   "year": "Year 12",
+   "campaign": "COP",
+   "title": "Change of preference closes today",
+   "audience": "Year 12",
+   "theme": "COP closes 12pm — we're still open for questions",
+   "ctaPrimary": "COP closes 12pm — we're still open for questions",
+   "ctaSecondary": "",
+   "ctaTertiary": "",
+   "q": "How does Change of Preference work?",
+   "qstage": "Wait"
+  },
+  {
+   "id": "explore-a-future-with-rmit-5",
+   "stage": "Offer",
+   "date": "23 Dec",
+   "year": "Year 12",
+   "campaign": "COP - TBC",
+   "title": "Explore a future with RMIT",
+   "audience": "Year 12",
+   "theme": "VTAC offers released today + upcoming rounds + ATAR calculator + pathways",
+   "ctaPrimary": "VTAC offers released today",
+   "ctaSecondary": "upcoming rounds",
+   "ctaTertiary": "ATAR calculator + pathways",
+   "q": "When do VTAC Round 1 offers come out, and what happens if I reject one?",
+   "qstage": "Wait"
+  }
+ ],
+ "questions": [
+  {
+   "stage": "Understand",
+   "q": "What subjects do I actually need to take in Year 11 and 12?"
+  },
+  {
+   "stage": "Understand",
+   "q": "Do I want to aim for university, vocational training (TAFE), or go straight to work?"
+  },
+  {
+   "stage": "Understand",
+   "q": "Which jobs and industries does [Field] actually lead to — and are they hiring?"
+  },
+  {
+   "stage": "Understand",
+   "q": "Is a TAFE or applied pathway a faster route into my field than a degree?"
+  },
+  {
+   "stage": "Understand",
+   "q": "What will I actually study — units, majors, and structure year by year?"
+  },
+  {
+   "stage": "Consider",
+   "q": "What ATAR am I tracking for? Can I get in early so I can stop stressing?"
+  },
+  {
+   "stage": "Consider",
+   "q": "Should I study at [Uni A] or [Uni B]? Which has the better vibe and location?"
+  },
+  {
+   "stage": "Consider",
+   "q": "Does this course include work experience, internships or industry placements?"
+  },
+  {
+   "stage": "Consider",
+   "q": "How much will it cost me — fees, transport, and can I study close to home?"
+  },
+  {
+   "stage": "Consider",
+   "q": "Can I study this on campus, blended or fully online?"
+  },
+  {
+   "stage": "Consider",
+   "q": "Which VCE subjects are prerequisites for this course, and what if I haven't done them?"
+  },
+  {
+   "stage": "Decide",
+   "q": "Is RMIT definitely the right first choice, or a plan B backup on my list?"
+  },
+  {
+   "stage": "Decide",
+   "q": "What is the exact process to start my application, and what dates do I need to meet?"
+  },
+  {
+   "stage": "Decide",
+   "q": "Am I eligible for a scholarship or fee support, and when do I apply?"
+  },
+  {
+   "stage": "Decide",
+   "q": "How do I order RMIT vs my backups so I don't get locked out of a better offer?"
+  },
+  {
+   "stage": "Decide",
+   "q": "What are the VTAC and course codes I need to preference this course?"
+  },
+  {
+   "stage": "Begin",
+   "q": "What do I actually need to have ready on my computer before I open the portal?"
+  },
+  {
+   "stage": "Begin",
+   "q": "Do I need to find my Year 11 results, write a personal statement, or submit a portfolio?"
+  },
+  {
+   "stage": "Begin",
+   "q": "Can I use my digital ATAR / digital ID to apply, or do I need physical documents?"
+  },
+  {
+   "stage": "Submit",
+   "q": "Is my course list locked in, or can I still change my mind after I hit submit?"
+  },
+  {
+   "stage": "Submit",
+   "q": "Why is this upload failing?"
+  },
+  {
+   "stage": "Submit",
+   "q": "If something goes wrong mid-submission, how quickly can I get help?"
+  },
+  {
+   "stage": "Submit",
+   "q": "Will I get a confirmation that my application actually went through?"
+  },
+  {
+   "stage": "Wait",
+   "q": "When is ATAR release day, and what time do VTAC results go online?"
+  },
+  {
+   "stage": "Wait",
+   "q": "How does Change of Preference work?"
+  },
+  {
+   "stage": "Wait",
+   "q": "When do VTAC Round 1 offers come out, and what happens if I reject one?"
+  },
+  {
+   "stage": "Wait",
+   "q": "Where will my results and offer actually land — will it come to my phone or portal?"
+  },
+  {
+   "stage": "Wait",
+   "q": "What support is there if I'm stressed while I wait?"
+  },
+  {
+   "stage": "Offer",
+   "q": "If I accept a backup offer, can I still get a higher preference in Round 2?"
+  },
+  {
+   "stage": "Offer",
+   "q": "When is the reply deadline, and what if I miss it?"
+  },
+  {
+   "stage": "Offer",
+   "q": "Can I defer a TAFE offer, or is that only for uni degrees?"
+  },
+  {
+   "stage": "Offer",
+   "q": "How long can I defer for, and does deferring affect my scholarship or place?"
+  },
+  {
+   "stage": "Offer",
+   "q": "Can I change my preferences now to get an offer in Round 2?"
+  },
+  {
+   "stage": "Offer",
+   "q": "Is there an RMIT diploma or associate degree I can jump into instead?"
+  },
+  {
+   "stage": "Offer",
+   "q": "Do I need to contact RMIT directly to apply for a pathway course?"
+  },
+  {
+   "stage": "Offer",
+   "q": "Which RMIT diploma or TAFE pathway guarantees credit into my original degree?"
+  },
+  {
+   "stage": "Offer",
+   "q": "Will a pathway cost me more or take longer overall than a direct entry?"
+  },
+  {
+   "stage": "Enrol",
+   "q": "Which subjects do I need to choose for my first semester?"
+  },
+  {
+   "stage": "Enrol",
+   "q": "Who can I talk to if I hit a technical problem?"
+  },
+  {
+   "stage": "Enrol",
+   "q": "Why do I have to do these tests? I already got a place, right?"
+  },
+  {
+   "stage": "Enrol",
+   "q": "How do I log in for the first time — where's my temporary password?"
+  },
+  {
+   "stage": "Enrol",
+   "q": "Where do I actually go to enrol?"
+  },
+  {
+   "stage": "Enrol",
+   "q": "How do I get timetabling and class-selection help before semester starts?"
+  },
+  {
+   "stage": "Enrol",
+   "q": "What study-skills or peer support is there if I fall behind early?"
+  }
+ ]
+}

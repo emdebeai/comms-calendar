@@ -199,7 +199,7 @@ export function MonthBand({ expandedMonths, onSetLevel }: MonthBandProps) {
               onClick={() => onSetLevel(m, level === 1 ? 2 : 0)}
               title={level === 1 ? "Expand to day-by-day view" : "Back to month view"}
               aria-label={`${monthLabel(m)} — ${level === 1 ? "week view; click for day view" : "day view; click to collapse"}`}
-              className={`absolute inset-y-[3px] cursor-pointer overflow-hidden rounded-md border border-grey-40 bg-card text-xs shadow-sm hover:border-rmit-blue-interactive/60 ${FOCUS_RING}`}
+              className={`absolute inset-y-[3px] cursor-pointer rounded-md border border-grey-40 bg-card text-xs shadow-sm hover:border-rmit-blue-interactive/60 ${FOCUS_RING}`}
               style={{ left, width }}
             >
               <>
@@ -210,7 +210,10 @@ export function MonthBand({ expandedMonths, onSetLevel }: MonthBandProps) {
                     non-uniform; positioning off scaleX keeps every number sitting
                     exactly on its own gridline and dot. */}
                 {level === 1
-                  ? WEEKS.slice(1).map((w) => {
+                  ? // All four buckets — the first week's label used to hide
+                    // under the old solid month chip; the label has its own
+                    // line now, so 1–7 renders like the rest.
+                    WEEKS.map((w) => {
                       // Centre on the week's midpoint, but clamp so a wide label
                       // (e.g. "29–31") near the narrow week-view month's right
                       // edge can't overhang and clip.
@@ -220,33 +223,41 @@ export function MonthBand({ expandedMonths, onSetLevel }: MonthBandProps) {
                       return (
                         <span
                           key={w.start}
-                          className="absolute top-[5px] -translate-x-1/2 font-normal whitespace-nowrap text-grey-60"
+                          className="absolute bottom-[1px] -translate-x-1/2 leading-4 font-normal whitespace-nowrap text-grey-60"
                           style={{ left: pos }}
                         >
                           {w.label}
                         </span>
                       );
                     })
-                  : /* day view — a number on every day line (day 1 sits under
-                       the month-name chip, which paints over it) */
-                    Array.from({ length: 30 }, (_, i) => i + 1).map((d) => (
-                      <span
-                        key={d}
-                        className="absolute top-[5px] -translate-x-1/2 font-normal text-grey-60"
-                        style={{ left: scaleX(m + (d - 1) / 30) - left }}
-                      >
-                        {d}
-                      </span>
-                    ))}
-                {/* Month name — solid chip carrying the year/stage context (an
+                  : /* Day view — a number on every day line, on the band's
+                       SECOND line so the sticky month chip above can never
+                       cover them. Clamped at both ends so day 1 and day 30
+                       aren't cut off by the strip's rounded clip. */
+                    Array.from({ length: 30 }, (_, i) => i + 1).map((d) => {
+                      const EDGE = 8;
+                      const x = scaleX(m + (d - 1) / 30) - left;
+                      return (
+                        <span
+                          key={d}
+                          className="absolute bottom-[1px] -translate-x-1/2 leading-4 font-normal text-grey-60"
+                          style={{ left: Math.min(Math.max(x, EDGE), width - EDGE) }}
+                        >
+                          {d}
+                        </span>
+                      );
+                    })}
+                {/* Month name — chip carrying the year/stage context (an
                     expanded month replaces its collapsed cell, so it labels
-                    itself). Sticky to the gutter edge: it rides the month's left
-                    edge while the month is in view, but pins just past the
+                    itself), on the band's TOP line beside the collapsed
+                    months' names. Sticky to the gutter edge: it rides the
+                    month's left edge while the month is in view, but pins
+                    just past the
                     gutter once you scroll into the month — so it can never slide
                     over the gutter/Reset-zoom control. */}
-                <span className="pointer-events-none absolute inset-y-0 left-0 right-0 z-10 flex items-start pt-px">
+                <span className="pointer-events-none absolute inset-x-0 top-0 z-10 flex h-4 items-start">
                   <span
-                    className="rounded-r-md bg-card py-0.5 pr-2 pl-2 font-semibold whitespace-nowrap text-grey-90"
+                    className="pr-2 pl-2 leading-4 font-semibold whitespace-nowrap text-grey-90"
                     style={stickyLabel}
                   >
                     {monthLabel(m)}
