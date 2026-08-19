@@ -75,11 +75,18 @@ function questionCell(r: Row): string {
            placeholder="Type the question it answers" autocomplete="off" class="${CTRL} mt-1.5">`
       : "";
 
-  // Keep our proposal visible once they've moved away from it — otherwise the
-  // thing they're correcting disappears the moment they correct it.
+  // The full current selection as wrapping text, so a clipped <select> never
+  // hides the question. Plus a muted note of what we originally picked.
+  const label =
+    sel === NONE ? "Doesn&rsquo;t answer a student question"
+    : sel === UNSURE ? "Not sure"
+    : sel === OTHER ? ""
+    : sel ? esc(sel)
+    : "";
+  const current = label ? `<p class="mt-1.5 text-sm text-grey-90">${label}</p>` : "";
   const ours =
     r.q && sel !== r.q
-      ? `<p class="mt-1.5 text-xs text-grey-60">We picked: ${esc(r.q)}</p>`
+      ? `<p class="mt-0.5 text-xs text-grey-60">We picked: ${esc(r.q)}</p>`
       : !r.q
         ? `<p class="mt-1.5 text-xs text-grey-60">We didn&rsquo;t pick one.</p>`
         : "";
@@ -90,10 +97,10 @@ function questionCell(r: Row): string {
       <option value="${UNSURE}"${sel === UNSURE ? " selected" : ""}>Not sure</option>
       ${groups}
       <option value="${NONE}"${sel === NONE ? " selected" : ""}>Doesn&rsquo;t answer a student question</option>
-    </select>${custom}${ours}`;
+    </select>${current}${custom}${ours}`;
 }
 
-function row(r: Row, i: number): string {
+function row(r: Row): string {
   const a = answers.get(r.id);
   const done = !!a?.verdict;
   return `<tr data-id="${esc(r.id)}" class="${done ? "bg-tint-green/30" : ""} hover:bg-grey-10">
@@ -109,30 +116,35 @@ function row(r: Row, i: number): string {
       <td class="${TD} min-w-56">
         <span class="text-sm font-semibold text-grey-90">${esc(r.title)}</span>
         <span class="mt-0.5 block text-xs text-grey-70">${esc(r.audience)}</span>
-        ${r.theme ? `<span class="mt-0.5 block text-xs text-grey-60">${esc(r.theme)}</span>` : ""}
       </td>
       <td class="${TD} whitespace-nowrap">
         <span class="rounded-full bg-grey-20 px-2 py-0.5 text-xs text-grey-70">${esc(r.campaign)}</span>
         <span class="mt-1 block rounded-full bg-tint-blue px-2 py-0.5 text-center text-xs text-rmit-blue">${esc(r.stage)}</span>
       </td>
-      <td class="${TD} min-w-80">${questionCell(r)}</td>
-      <td class="${TD} min-w-40">
-        <input type="text" data-field="ctaPrimary" value="${esc(a?.ctaPrimary ?? r.ctaPrimary)}"
-          placeholder="Primary CTA" autocomplete="off" class="${CTRL}">
-      </td>
-      <td class="${TD} min-w-40">
-        <input type="text" data-field="ctaSecondary" value="${esc(a?.ctaSecondary ?? r.ctaSecondary)}"
-          placeholder="Secondary CTA" autocomplete="off" class="${CTRL}">
-      </td>
-      <td class="${TD} min-w-40">
-        <input type="text" data-field="ctaTertiary" value="${esc(a?.ctaTertiary ?? r.ctaTertiary)}"
-          placeholder="Tertiary CTA" autocomplete="off" class="${CTRL}">
+      <td class="${TD} w-80 min-w-72">${questionCell(r)}</td>
+      <td class="${TD} w-72 min-w-64">
+        <div class="flex flex-col gap-1.5">
+          <label class="flex items-center gap-2">
+            <span class="w-14 shrink-0 text-xs text-grey-60">1st</span>
+            <input type="text" data-field="ctaPrimary" value="${esc(a?.ctaPrimary ?? r.ctaPrimary)}"
+              placeholder="Primary CTA" autocomplete="off" class="${CTRL}">
+          </label>
+          <label class="flex items-center gap-2">
+            <span class="w-14 shrink-0 text-xs text-grey-60">2nd</span>
+            <input type="text" data-field="ctaSecondary" value="${esc(a?.ctaSecondary ?? r.ctaSecondary)}"
+              placeholder="Secondary CTA" autocomplete="off" class="${CTRL}">
+          </label>
+          <label class="flex items-center gap-2">
+            <span class="w-14 shrink-0 text-xs text-grey-60">3rd</span>
+            <input type="text" data-field="ctaTertiary" value="${esc(a?.ctaTertiary ?? r.ctaTertiary)}"
+              placeholder="Tertiary CTA" autocomplete="off" class="${CTRL}">
+          </label>
+        </div>
       </td>
       <td class="${TD} min-w-44">
         <input type="text" data-field="notes" value="${esc(a?.notes ?? "")}"
           placeholder="Optional note" autocomplete="off" class="${CTRL}">
       </td>
-      <td class="${TD} text-right text-xs text-grey-60">#${i + 1}</td>
     </tr>`;
 }
 
@@ -190,14 +202,11 @@ function render() {
               <th class="${TH}">eDM</th>
               <th class="${TH}">Campaign / stage</th>
               <th class="${TH}">Question it answers</th>
-              <th class="${TH}">Primary CTA</th>
-              <th class="${TH}">Secondary CTA</th>
-              <th class="${TH}">Tertiary CTA</th>
+              <th class="${TH}">CTAs (1st / 2nd / 3rd)</th>
               <th class="${TH}">Notes</th>
-              <th class="${TH} text-right">#</th>
             </tr>
           </thead>
-          <tbody>${ROWS.filter(visible).map((r) => row(r, ROWS.indexOf(r))).join("")}</tbody>
+          <tbody>${ROWS.filter(visible).map((r) => row(r)).join("")}</tbody>
         </table>
       </div>
 
