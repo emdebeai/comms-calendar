@@ -210,7 +210,10 @@ export function MonthBand({ expandedMonths, onSetLevel }: MonthBandProps) {
                     non-uniform; positioning off scaleX keeps every number sitting
                     exactly on its own gridline and dot. */}
                 {level === 1
-                  ? WEEKS.slice(1).map((w) => {
+                  ? // All four buckets — the first week's label used to hide
+                    // under the old solid month chip; the label has its own
+                    // line now, so 1–7 renders like the rest.
+                    WEEKS.map((w) => {
                       // Centre on the week's midpoint, but clamp so a wide label
                       // (e.g. "29–31") near the narrow week-view month's right
                       // edge can't overhang and clip.
