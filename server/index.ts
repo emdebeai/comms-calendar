@@ -1,10 +1,19 @@
 import "dotenv/config";
 import cors from "cors";
 import express from "express";
-import { addComm, addFeedback, getComms, getFeedback, getEdmReview, saveEdmAnswer } from "./dataStore";
-import { isGraphConfigured } from "./graph";
-import { isRedisConfigured } from "./redis";
-import { COMMS_COLUMNS } from "../src/lib/commsSchema";
+import {
+  addComm,
+  addFeedback,
+  getComms,
+  getFeedback,
+  getEdmReview,
+  saveEdmAnswer,
+} from "./dataStore.js";
+import { isGraphConfigured } from "./graph.js";
+import { isRedisConfigured } from "./redis.js";
+import { COLLECTIONS, DATASETS } from "./registry.js";
+import { appendToCollection, readCollection, readDataset } from "./stores.js";
+import { COMMS_COLUMNS } from "../src/lib/commsSchema.js";
 
 const app = express();
 app.use(cors());
@@ -82,6 +91,62 @@ app.post("/api/edm-review", async (req, res) => {
       return;
     }
     res.status(201).json(await saveEdmAnswer(req.body));
+  } catch (err) {
+    res.status(500).json({ error: (err as Error).message });
+  }
+});
+
+// ── Generic dataset / collection routes ───────────────────────────────────
+// Dev mirrors of api/dataset/[name].ts and api/collection/[name].ts, so a new
+// CSV ingestion or review works the same locally and deployed. See
+// server/registry.ts to add one.
+app.get("/api/dataset/:name", async (req, res) => {
+  const { name } = req.params;
+  if (!DATASETS[name]) return void res.status(404).json({ error: `Unknown dataset "${name}"` });
+  if (!isRedisConfigured()) {
+    return void res.status(503).json({
+      error: "No Redis configured — set KV_REST_API_URL / KV_REST_API_TOKEN in .env.",
+    });
+  }
+  try {
+    const envelope = await readDataset(name);
+    if (!envelope) {
+      return void res
+        .status(404)
+        .json({ error: `Dataset "${name}" has not been seeded yet — run \`npm run seed\`.` });
+    }
+    res.json(envelope);
+  } catch (err) {
+    res.status(500).json({ error: (err as Error).message });
+  }
+});
+
+app.get("/api/collection/:name", async (req, res) => {
+  const { name } = req.params;
+  if (!COLLECTIONS[name]) return void res.status(404).json({ error: `Unknown collection "${name}"` });
+  try {
+    res.json(await readCollection(name));
+  } catch (err) {
+    res.status(500).json({ error: (err as Error).message });
+  }
+});
+
+app.post("/api/collection/:name", async (req, res) => {
+  const { name } = req.params;
+  const def = COLLECTIONS[name];
+  if (!def) return void res.status(404).json({ error: `Unknown collection "${name}"` });
+  try {
+    const itemId = (req.body ?? {})[def.itemKey];
+    if (typeof itemId !== "string" || !itemId.trim()) {
+      return void res.status(400).json({ error: `${def.itemKey} is required` });
+    }
+    const entry = {
+      ...req.body,
+      [def.itemKey]: itemId.trim(),
+      updatedAt: new Date().toISOString(),
+    };
+    await appendToCollection(name, entry);
+    res.status(201).json(entry);
   } catch (err) {
     res.status(500).json({ error: (err as Error).message });
   }

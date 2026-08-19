@@ -19,6 +19,26 @@ npm run dev
 
 `npm run build` type-checks and produces a production build in `dist/`.
 
+## Remote data (Redis)
+
+Two shapes, both declared in **`server/registry.ts`** — that file is the one to
+edit when adding a future CSV ingestion or review page:
+
+| Shape | What it holds | Read | Write |
+|---|---|---|---|
+| **Dataset** | Reference data built from a CSV in git (e.g. the eDM send list) | `/api/dataset/<name>` | `npm run seed` |
+| **Collection** | Review answers and comments | `/api/collection/<name>` | same URL, `POST` |
+
+Git stays the source of truth for datasets: `npm run seed` rebuilds each one
+from its sources and pushes it, so refreshing the live data is a seed, not a
+redeploy — and a bad ingest is fixed by correcting the CSV and reseeding, never
+by editing the store. If a page can't reach Redis it falls back to the snapshot
+committed next to it and says so; **writes never degrade** — a failed save keeps
+the answer on screen with the reason.
+
+Both API routes are dynamic (`api/dataset/[name].ts`, `api/collection/[name].ts`),
+so adding datasets or reviews never adds a serverless function.
+
 ## Where the data lives
 
 Comms are read from **`server/data/comms.csv`** (see `src/lib/commsSchema.ts`

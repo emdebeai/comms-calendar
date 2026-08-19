@@ -22,12 +22,13 @@
 // runs). TypeScript and tsx both map the .js specifier back to the .ts source.
 import type { FeedbackEntry } from "../src/data/types.js";
 import { appendTableRow, isGraphConfigured, readTable, tableNames } from "../server/graph.js";
-import {
-  appendFeedbackToRedis,
-  isRedisConfigured,
-  readFeedbackFromRedis,
-  type FeedbackStore as Store,
-} from "../server/redis.js";
+import { isRedisConfigured } from "../server/redis.js";
+import { appendToCollection, readCollection } from "../server/stores.js";
+
+type Store = Record<string, FeedbackEntry[]>;
+
+/** Registry name for this collection — see server/registry.ts. */
+const COLLECTION = "feedback";
 
 interface Req {
   method?: string;
@@ -71,7 +72,9 @@ export default async function handler(req: Req, res: Res) {
 
   try {
     if (req.method === "GET") {
-      return res.status(200).json(graph ? await readFromGraph() : await readFeedbackFromRedis());
+      return res
+        .status(200)
+        .json(graph ? await readFromGraph() : ((await readCollection(COLLECTION)) as Store));
     }
 
     if (req.method === "POST") {
@@ -101,7 +104,7 @@ export default async function handler(req: Req, res: Res) {
           entry.createdAt,
         ]);
       } else {
-        await appendFeedbackToRedis(commId, entry);
+        await appendToCollection(COLLECTION, { commId, ...entry });
       }
       return res.status(201).json(entry);
     }

@@ -1,19 +1,12 @@
-// Shared Redis-over-REST client (Vercel KV / Upstash) for the feedback store.
+// Redis-over-REST transport (Vercel KV / Upstash).
 //
-// This is the same store the deployed Vercel function uses; it's factored out
-// here so BOTH entry points share one implementation and one key:
-//   - api/feedback.ts   — the deployed serverless function
-//   - server/dataStore.ts — the local Express dev server (npm run dev)
+// Pure plumbing: find the credentials, run one command. The data *shapes* that
+// sit on top — datasets and collections — live in server/stores.ts.
 //
-// It sits alongside server/graph.ts (the SharePoint/Graph client) as the second
-// "remote store" the app can talk to. Notes are RPUSHed to a single list, one
-// JSON item per note carrying its commId, then grouped on read — append-only, so
-// two people commenting at once can't overwrite each other (no read-modify-write).
-import type { FeedbackEntry } from "../src/data/types";
-
-export type FeedbackStore = Record<string, FeedbackEntry[]>;
-
-export const FEEDBACK_LIST_KEY = "comms-calendar:feedback";
+// This is the single place that knows how to reach Redis, shared by every entry
+// point: the Express dev server (server/index.ts), the Vercel functions under
+// api/, and the seed script (scripts/seed-datasets.ts). Keeping it in one file
+// is why the store-name prefix handling below only had to be solved once.
 
 function redisEnv(): { url: string; token: string } | null {
   // Standard Vercel KV / Upstash names first.
@@ -42,12 +35,13 @@ function redisEnv(): { url: string; token: string } | null {
   return url && token ? { url: url.replace(/\/$/, ""), token } : null;
 }
 
-/** True once a Redis (Vercel KV / Upstash) is configured via env. */
+/** True once a Redis (Vercel KV / Upstash) is reachable via env. */
 export function isRedisConfigured(): boolean {
   return redisEnv() !== null;
 }
 
-async function redis(command: unknown[]): Promise<unknown> {
+/** Run one command, e.g. ["SET", key, json] or ["LRANGE", key, "0", "-1"]. */
+export async function redisCommand<T = unknown>(command: unknown[]): Promise<T> {
   const env = redisEnv();
   if (!env) throw new Error("redis not configured");
   const res = await fetch(env.url, {
@@ -56,26 +50,5 @@ async function redis(command: unknown[]): Promise<unknown> {
     body: JSON.stringify(command),
   });
   if (!res.ok) throw new Error(`redis ${res.status}: ${await res.text().catch(() => "")}`);
-  return ((await res.json()) as { result?: unknown }).result;
-}
-
-/** Entries are stored one-per-list-item with their commId, then grouped on
- *  read — append-only, so concurrent notes never clobber each other. */
-export async function readFeedbackFromRedis(): Promise<FeedbackStore> {
-  const items = (await redis(["LRANGE", FEEDBACK_LIST_KEY, "0", "-1"])) as string[];
-  const store: FeedbackStore = {};
-  for (const raw of items ?? []) {
-    try {
-      const { commId, ...entry } = JSON.parse(raw) as FeedbackEntry & { commId: string };
-      if (commId) (store[commId] ??= []).push(entry as FeedbackEntry);
-    } catch {
-      // one malformed row shouldn't lose the rest of the thread
-    }
-  }
-  return store;
-}
-
-/** Append one already-built entry (id + createdAt set by the caller). */
-export async function appendFeedbackToRedis(commId: string, entry: FeedbackEntry): Promise<void> {
-  await redis(["RPUSH", FEEDBACK_LIST_KEY, JSON.stringify({ commId, ...entry })]);
+  return ((await res.json()) as { result?: T }).result as T;
 }
