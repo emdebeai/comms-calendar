@@ -119,7 +119,9 @@ export let TOTAL_W = baseScaleX(MONTHS) + 140;
 export const LABEL_W = 184; // sticky team-label gutter
 export const STAGE_H = 36;
 export const YEAR_H = 30;
-export const MONTH_H = 38; // two lines: month name + tiny "Yr 12 · Consider" context
+export const MONTH_H = 42; // two lines: month name + tiny "Yr 12 · Consider" context
+// (42 = 2 × 16px text lines + padding; an expanded month puts its sticky
+// label on line 1 and its day/week ticks on line 2, so they never collide)
 export const MOMENT_H = 68; // moment-that-matters label track (three mini-lines)
 
 // Student journey lane — an OPTIONAL lane under the stage/year rows, toggled
