@@ -64,7 +64,7 @@ function selected(r: Row): string {
   return r.q;                                    // confirmed as-is
 }
 
-const TH = "border-b border-grey-30 px-3 py-2 text-left text-xs font-semibold tracking-wide text-grey-70 uppercase";
+const TH = "border-b border-grey-30 px-3 py-2 text-left text-xs font-semibold tracking-widest text-grey-70 uppercase";
 const TD = "border-b border-grey-30 px-3 py-3 align-top";
 const CTRL =
   "w-full rounded-md border border-grey-30 bg-card px-2.5 py-2 text-sm text-grey-90 placeholder:text-grey-70 " +
@@ -136,17 +136,17 @@ function row(r: Row): string {
         <div class="flex flex-col gap-1.5">
           <label class="flex items-center gap-2">
             <span class="w-14 shrink-0 text-xs text-grey-60">1st</span>
-            <input type="text" data-field="ctaPrimary" value="${esc(a?.ctaPrimary ?? r.ctaPrimary)}"
+            <input type="text" data-field="ctaPrimary" aria-label="Primary CTA" value="${esc(a?.ctaPrimary ?? r.ctaPrimary)}"
               placeholder="Primary CTA" autocomplete="off" class="${CTRL}">
           </label>
           <label class="flex items-center gap-2">
             <span class="w-14 shrink-0 text-xs text-grey-60">2nd</span>
-            <input type="text" data-field="ctaSecondary" value="${esc(a?.ctaSecondary ?? r.ctaSecondary)}"
+            <input type="text" data-field="ctaSecondary" aria-label="Secondary CTA" value="${esc(a?.ctaSecondary ?? r.ctaSecondary)}"
               placeholder="Secondary CTA" autocomplete="off" class="${CTRL}">
           </label>
           <label class="flex items-center gap-2">
             <span class="w-14 shrink-0 text-xs text-grey-60">3rd</span>
-            <input type="text" data-field="ctaTertiary" value="${esc(a?.ctaTertiary ?? r.ctaTertiary)}"
+            <input type="text" data-field="ctaTertiary" aria-label="Tertiary CTA" value="${esc(a?.ctaTertiary ?? r.ctaTertiary)}"
               placeholder="Tertiary CTA" autocomplete="off" class="${CTRL}">
           </label>
         </div>

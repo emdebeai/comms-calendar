@@ -12,7 +12,7 @@ export function TokenText({ text }: { text: string }) {
         /^\{\{[^}]+\}\}$/.test(p) ? (
           <code
             key={i}
-            className="rounded bg-grey-90/8 px-1 font-mono font-medium"
+            className="rounded-sm bg-grey-90/8 px-1 font-mono font-medium"
           >
             {p}
           </code>

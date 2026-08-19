@@ -563,7 +563,7 @@ export default function App() {
         </h1>
         <div className="mt-2 flex items-center gap-2 text-xs text-grey-70">
           <span>Prospective student type</span>
-          <span className="rounded-md bg-tint-blue px-2 py-0.5 font-semibold uppercase tracking-wide text-rmit-blue">
+          <span className="rounded-md bg-tint-blue px-2 py-0.5 font-semibold uppercase tracking-widest text-rmit-blue">
             DOM SL
           </span>
         </div>

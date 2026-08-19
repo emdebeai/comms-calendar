@@ -74,7 +74,7 @@ export function PersonaDock({
           aria-expanded={open}
           aria-label="Domestic school leaver — segment filters"
           title="Filter the map by how sends are tailored"
-          className={`flex h-8 items-center gap-1.5 rounded-full px-3 text-xs font-semibold uppercase tracking-wide transition-colors ${FOCUS_RING} ${
+          className={`flex h-8 items-center gap-1.5 rounded-full px-3 text-xs font-semibold uppercase tracking-widest transition-colors ${FOCUS_RING} ${
             open || count > 0
               ? "bg-rmit-blue text-white"
               : "bg-tint-blue text-rmit-blue hover:bg-tint-blue/70"
@@ -106,7 +106,7 @@ export function PersonaDock({
                   onClick={() => onSelectEquity(on ? null : c)}
                   aria-pressed={on}
                   title={`${EQUITY_FULL_NAMES[c] ?? c} — show only comms tailored to this cohort`}
-                  className={`flex h-8 items-center rounded-full px-3 text-xs font-semibold uppercase tracking-wide transition-colors ${FOCUS_RING} ${
+                  className={`flex h-8 items-center rounded-full px-3 text-xs font-semibold uppercase tracking-widest transition-colors ${FOCUS_RING} ${
                     on
                       ? "bg-rmit-blue text-white"
                       : "bg-tint-blue text-rmit-blue hover:bg-tint-blue/70"

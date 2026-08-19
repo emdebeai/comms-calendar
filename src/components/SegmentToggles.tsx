@@ -24,7 +24,7 @@ export function SegmentToggles({ axes, selection, counts, onSelect, onClearAll }
     "rounded-full px-2.5 py-1 text-xs font-medium transition-colors " + FOCUS_RING;
 
   return (
-    <div className="max-w-3xl rounded-xl border border-grey-30 bg-card p-3.5 shadow-xl">
+    <div className="max-w-3xl rounded-lg border border-grey-30 bg-card p-3.5 shadow-xl">
       <div className="mb-2.5 flex items-center justify-between">
         <span className="text-xs text-grey-70">
           Focus the map on a segment. Sends that go to everyone stay visible.

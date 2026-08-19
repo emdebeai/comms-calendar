@@ -167,7 +167,7 @@ export function ControlDock({
             <div
               role="dialog"
               aria-label="Legend and tips"
-              className="animate-pop-in absolute right-0 bottom-full mb-3 w-72 rounded-xl border border-grey-30 bg-card p-3.5 text-xs text-grey-70 shadow-xl"
+              className="animate-pop-in absolute right-0 bottom-full mb-3 w-72 rounded-lg border border-grey-30 bg-card p-3.5 text-xs text-grey-70 shadow-xl"
             >
               <div className="flex flex-col gap-2.5">
                 <span className="flex items-start gap-2">
@@ -203,9 +203,9 @@ export function ControlDock({
                 <span className="leading-relaxed">
                   <span className="font-medium text-grey-90">Zoom a month</span> — click its header,
                   Ctrl/⌘ + scroll (or pinch) over it, or press{" "}
-                  <kbd className="rounded border border-grey-30 bg-grey-10 px-1 font-sans">+</kbd> /{" "}
-                  <kbd className="rounded border border-grey-30 bg-grey-10 px-1 font-sans">−</kbd> /{" "}
-                  <kbd className="rounded border border-grey-30 bg-grey-10 px-1 font-sans">0</kbd>.
+                  <kbd className="rounded-sm border border-grey-30 bg-grey-10 px-1 font-sans">+</kbd> /{" "}
+                  <kbd className="rounded-sm border border-grey-30 bg-grey-10 px-1 font-sans">−</kbd> /{" "}
+                  <kbd className="rounded-sm border border-grey-30 bg-grey-10 px-1 font-sans">0</kbd>.
                 </span>
               </div>
             </div>
