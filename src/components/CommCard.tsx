@@ -1,5 +1,5 @@
 import { useLayoutEffect, useRef, useState } from "react";
-import { ArrowRight, Link2, MessageCircle, Users } from "lucide-react";
+import { Link2, MessageCircle, MousePointerClick, Users } from "lucide-react";
 import type { Comm } from "../data/types";
 import { CARD_W, PILL_H, commPos, monthLabel } from "../lib/scale";
 import { markerAccent } from "../lib/designConfig";
@@ -166,9 +166,9 @@ export function CommCard({
             panel (explicit "Not recorded" row) and the request spreadsheet
             instead. Never fabricate a default here. */}
         {!isEvent && comm.cta && (
-          <span className="mt-0.5 block truncate text-xs leading-tight text-grey-80">
-            {comm.cta}
-            <ArrowRight size={11} strokeWidth={2} className="ml-1 inline-block align-middle" aria-hidden />
+          <span className="mt-0.5 flex items-center gap-1 text-xs leading-tight text-grey-70">
+            <MousePointerClick size={10} strokeWidth={2} className="shrink-0" aria-hidden />
+            <span className="truncate">{comm.cta}</span>
           </span>
         )}
       </span>
