@@ -8,7 +8,14 @@
 // Answers are stored append-only, one entry per save, and the latest entry
 // per comm id wins on read — so two reviewers working at the same time can
 // never overwrite each other mid-write.
-import { appendTableRow, isGraphConfigured, readTable } from "../server/graph";
+// Relative imports carry explicit .js extensions — see the note in
+// api/feedback.ts. Node's ESM loader can't resolve extensionless specifiers.
+import { appendTableRow, isGraphConfigured, readTable } from "../server/graph.js";
+import { isRedisConfigured } from "../server/redis.js";
+import { appendToCollection, readCollection } from "../server/stores.js";
+
+/** Registry name for this collection — see server/registry.ts. */
+const COLLECTION = "edm-review";
 
 export interface EdmAnswer {
   /** comm id from server/data/comms.csv (the slugified title) */
@@ -36,28 +43,10 @@ interface Res {
   json(body: unknown): void;
 }
 
-const LIST_KEY = "comms-calendar:edm-review";
 const TABLE = process.env.EXCEL_EDM_REVIEW_TABLE || "EdmReviewTable";
 
-function redisEnv(): { url: string; token: string } | null {
-  const url = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
-  return url && token ? { url: url.replace(/\/$/, ""), token } : null;
-}
-
-async function redis(command: unknown[]): Promise<unknown> {
-  const env = redisEnv();
-  if (!env) throw new Error("redis not configured");
-  const res = await fetch(env.url, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${env.token}`, "Content-Type": "application/json" },
-    body: JSON.stringify(command),
-  });
-  if (!res.ok) throw new Error(`redis ${res.status}: ${await res.text().catch(() => "")}`);
-  return ((await res.json()) as { result?: unknown }).result;
-}
-
-/** Append-only log, last write per comm wins. */
+/** Append-only log, last write per comm wins. Redis reads collapse in
+ *  server/stores.ts ("latest" mode); this is the Graph equivalent. */
 function collapse(entries: EdmAnswer[]): Answers {
   const out: Answers = {};
   for (const e of entries) {
@@ -66,19 +55,6 @@ function collapse(entries: EdmAnswer[]): Answers {
     if (!prev || (e.updatedAt ?? "") >= (prev.updatedAt ?? "")) out[e.commId] = e;
   }
   return out;
-}
-
-async function readFromRedis(): Promise<Answers> {
-  const items = (await redis(["LRANGE", LIST_KEY, "0", "-1"])) as string[];
-  const parsed: EdmAnswer[] = [];
-  for (const raw of items ?? []) {
-    try {
-      parsed.push(JSON.parse(raw) as EdmAnswer);
-    } catch {
-      // skip a malformed row rather than lose the rest
-    }
-  }
-  return collapse(parsed);
 }
 
 async function readFromGraph(): Promise<Answers> {
@@ -101,7 +77,7 @@ async function readFromGraph(): Promise<Answers> {
 
 export default async function handler(req: Req, res: Res) {
   const graph = isGraphConfigured();
-  const kv = redisEnv() !== null;
+  const kv = isRedisConfigured();
 
   if (!graph && !kv) {
     return res.status(503).json({
@@ -113,7 +89,9 @@ export default async function handler(req: Req, res: Res) {
 
   try {
     if (req.method === "GET") {
-      return res.status(200).json(graph ? await readFromGraph() : await readFromRedis());
+      return res
+        .status(200)
+        .json(graph ? await readFromGraph() : ((await readCollection(COLLECTION)) as Answers));
     }
 
     if (req.method === "POST") {
@@ -147,7 +125,7 @@ export default async function handler(req: Req, res: Res) {
           entry.updatedAt,
         ]);
       } else {
-        await redis(["RPUSH", LIST_KEY, JSON.stringify(entry)]);
+        await appendToCollection(COLLECTION, { ...entry });
       }
       return res.status(201).json(entry);
     }

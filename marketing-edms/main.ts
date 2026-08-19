@@ -5,7 +5,11 @@
 // /api/edm-review as you go; a failed save keeps your answer on screen and
 // says why, rather than pretending.
 import "../src/index.css";
-import data from "./data.json";
+// The committed snapshot of the send list + question set. The live copy lives
+// in Redis and is served by /api/dataset/edm-review (pushed by `npm run seed`);
+// this import is the fallback so the page still renders — with a notice — when
+// the store can't be reached. See the boot section at the bottom.
+import snapshot from "./data.json";
 
 interface Row {
   id: string; date: string; year: string; campaign: string; title: string;
@@ -18,16 +22,19 @@ interface Answer {
   reviewer?: string; updatedAt: string;
 }
 
-const ROWS = data.rows as Row[];
-const QUESTIONS = data.questions as { stage: string; q: string }[];
+// Swapped out wholesale if the live dataset loads — hence `let`, not `const`.
+let ROWS = snapshot.rows as Row[];
+let QUESTIONS = snapshot.questions as { stage: string; q: string }[];
 
 // Journey order, so the dropdown's groups read in the order a student meets
 // them rather than however the source file happens to list them.
 const STAGE_ORDER = ["Understand", "Consider", "Decide", "Begin", "Submit", "Wait", "Offer", "Enrol"];
-const BY_STAGE = STAGE_ORDER.map((stage) => ({
-  stage,
-  questions: QUESTIONS.filter((q) => q.stage === stage).map((q) => q.q),
-})).filter((g) => g.questions.length);
+const groupByStage = () =>
+  STAGE_ORDER.map((stage) => ({
+    stage,
+    questions: QUESTIONS.filter((q) => q.stage === stage).map((q) => q.q),
+  })).filter((g) => g.questions.length);
+let BY_STAGE = groupByStage();
 
 const NONE = "__none__";     // "doesn't answer a student question"
 const OTHER = "__other__";   // something not on the map yet — free text
@@ -36,6 +43,9 @@ const UNSURE = "__unsure__"; // reviewer isn't sure yet
 const answers = new Map<string, Answer>();
 let reviewer = localStorage.getItem("edm-review-reviewer") ?? "";
 let filter: "all" | "todo" | "done" = "all";
+// Rendered as part of the page (not poked into the DOM) so it survives the
+// re-render that follows every answer.
+let dataNote = "";
 
 const esc = (s: string) =>
   String(s ?? "").replace(/[&<>"']/g, (c) =>
@@ -166,6 +176,7 @@ function render() {
         </ul>
       </div>
       <div id="banner" class="mt-4"></div>
+      ${dataNote}
 
       <div class="sticky top-0 z-20 -mx-5 mt-5 border-b border-grey-30 bg-surface px-5 py-3">
         <div class="flex flex-wrap items-center justify-between gap-3">
@@ -329,7 +340,42 @@ document.addEventListener("click", (ev) => {
 });
 
 // ── boot ──────────────────────────────────────────────────────────────────
+// Render the bundled snapshot immediately so the table is never blank, then
+// upgrade to the live dataset if it's reachable. Reads degrade (stale copy +
+// notice); writes never do — a failed save says so, in save() above.
 render();
+
+interface DatasetEnvelope {
+  data: { rows: Row[]; questions: { stage: string; q: string }[] };
+  seededAt: string;
+}
+
+fetch("/api/dataset/edm-review")
+  .then(async (res) => {
+    if (!res.ok) {
+      const body = (await res.json().catch(() => null)) as { error?: string } | null;
+      throw new Error(body?.error || `The server returned ${res.status}`);
+    }
+    return res.json() as Promise<DatasetEnvelope>;
+  })
+  .then((envelope) => {
+    const { rows, questions } = envelope.data ?? {};
+    if (!Array.isArray(rows) || !rows.length || !Array.isArray(questions)) {
+      throw new Error("The live dataset came back empty or malformed.");
+    }
+    ROWS = rows;
+    QUESTIONS = questions;
+    BY_STAGE = groupByStage();
+    dataNote = "";
+    render();
+  })
+  .catch((err: Error) => {
+    // The snapshot is already on screen; just be honest that it may be stale.
+    dataNote = `<div class="mt-4 rounded-lg border border-grey-30 bg-card px-4 py-3 text-sm text-grey-80">
+      Showing the built-in copy of the eDM list. ${esc(err.message)}
+      Your answers still save normally.</div>`;
+    render();
+  });
 fetch("/api/edm-review")
   .then(async (res) => {
     if (!res.ok) {

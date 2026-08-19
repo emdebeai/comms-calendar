@@ -8,6 +8,7 @@
     "dev:client": "vite",
     "dev:api": "tsx watch server/index.ts",
     "build": "tsc -b && vite build",
+    "seed": "tsx scripts/seed-datasets.ts",
     "build:standalone": "tsc -b && VITE_STANDALONE=true VITE_SINGLEFILE=true vite build --outDir dist-standalone",
     "preview": "vite preview"
   },

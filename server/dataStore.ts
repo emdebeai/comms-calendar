@@ -2,15 +2,17 @@ import { randomUUID } from "node:crypto";
 import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { parseCsvRows } from "../src/lib/csv";
+import { parseCsvRows } from "../src/lib/csv.js";
 import {
   COMMS_COLUMNS,
   normalizeCommRow,
   parseCommRows,
   type CommsParseResult,
-} from "../src/lib/commsSchema";
-import type { Comm, FeedbackEntry } from "../src/data/types";
-import { appendTableRow, isGraphConfigured, readTable, tableNames } from "./graph";
+} from "../src/lib/commsSchema.js";
+import type { Comm, FeedbackEntry } from "../src/data/types.js";
+import { appendTableRow, isGraphConfigured, readTable, tableNames } from "./graph.js";
+import { isRedisConfigured } from "./redis.js";
+import { appendToCollection, readCollection } from "./stores.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const CSV_PATH = path.join(__dirname, "data", "comms.csv");
@@ -66,8 +68,14 @@ async function appendFileLine(filePath: string, line: string): Promise<void> {
 
 // ── Feedback ────────────────────────────────────────────────────────────
 
+// Same precedence as the deployed Vercel function (api/feedback.ts):
+// SharePoint Graph → Redis (Vercel KV / Upstash) → local JSON file. So
+// `npm run dev` with KV env vars set captures to the same Upstash the
+// deployed site uses; with none set it stays on server/data/feedback.json.
 export async function getFeedback(): Promise<FeedbackStore> {
-  return isGraphConfigured() ? readFeedbackFromGraph() : readFeedbackFromJson();
+  if (isGraphConfigured()) return readFeedbackFromGraph();
+  if (isRedisConfigured()) return (await readCollection("feedback")) as FeedbackStore;
+  return readFeedbackFromJson();
 }
 
 async function readFeedbackFromJson(): Promise<FeedbackStore> {
@@ -119,6 +127,8 @@ export async function addFeedback(
       entry.metricValue ?? "",
       entry.createdAt,
     ]);
+  } else if (isRedisConfigured()) {
+    await appendToCollection("feedback", { commId, ...entry });
   } else {
     const store = await readFeedbackFromJson();
     (store[commId] ??= []).push(entry);
@@ -144,6 +154,11 @@ export interface EdmAnswer {
 }
 
 export async function getEdmReview(): Promise<Record<string, EdmAnswer>> {
+  // Same precedence as feedback: Redis when configured (so dev and the
+  // deployed site share one store), otherwise the local JSON file.
+  if (isRedisConfigured()) {
+    return (await readCollection("edm-review")) as Record<string, EdmAnswer>;
+  }
   try {
     return JSON.parse(await readFile(EDM_REVIEW_PATH, "utf-8")) as Record<string, EdmAnswer>;
   } catch {
@@ -153,6 +168,11 @@ export async function getEdmReview(): Promise<Record<string, EdmAnswer>> {
 
 export async function saveEdmAnswer(input: EdmAnswer): Promise<EdmAnswer> {
   const entry: EdmAnswer = { ...input, updatedAt: new Date().toISOString() };
+  if (isRedisConfigured()) {
+    await appendToCollection("edm-review", { ...entry });
+    return entry;
+  }
+  // Local file is read-modify-write, which is fine for a single dev machine.
   const store = await getEdmReview();
   store[entry.commId] = entry;
   await writeFile(EDM_REVIEW_PATH, JSON.stringify(store, null, 2), "utf-8");

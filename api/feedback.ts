@@ -15,10 +15,20 @@
 //
 // The site-wide Basic Auth middleware also covers /api/*, so these writes
 // are only reachable by someone who already has the prototype password.
-import type { FeedbackEntry } from "../src/data/types";
-import { appendTableRow, isGraphConfigured, readTable, tableNames } from "../server/graph";
+// NOTE: relative imports below carry explicit .js extensions. package.json sets
+// "type": "module", so the compiled function runs under Node's ESM loader, which
+// does NOT resolve extensionless relative specifiers — without them the function
+// dies at module load with ERR_MODULE_NOT_FOUND (a 500, before any handler code
+// runs). TypeScript and tsx both map the .js specifier back to the .ts source.
+import type { FeedbackEntry } from "../src/data/types.js";
+import { appendTableRow, isGraphConfigured, readTable, tableNames } from "../server/graph.js";
+import { isRedisConfigured } from "../server/redis.js";
+import { appendToCollection, readCollection } from "../server/stores.js";
 
 type Store = Record<string, FeedbackEntry[]>;
+
+/** Registry name for this collection — see server/registry.ts. */
+const COLLECTION = "feedback";
 
 interface Req {
   method?: string;
@@ -27,42 +37,6 @@ interface Req {
 interface Res {
   status(code: number): Res;
   json(body: unknown): void;
-}
-
-const LIST_KEY = "comms-calendar:feedback";
-
-function redisEnv(): { url: string; token: string } | null {
-  const url = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
-  return url && token ? { url: url.replace(/\/$/, ""), token } : null;
-}
-
-async function redis(command: unknown[]): Promise<unknown> {
-  const env = redisEnv();
-  if (!env) throw new Error("redis not configured");
-  const res = await fetch(env.url, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${env.token}`, "Content-Type": "application/json" },
-    body: JSON.stringify(command),
-  });
-  if (!res.ok) throw new Error(`redis ${res.status}: ${await res.text().catch(() => "")}`);
-  return ((await res.json()) as { result?: unknown }).result;
-}
-
-/** Entries are stored one-per-list-item with their commId, then grouped on
- *  read — append-only, so concurrent notes never clobber each other. */
-async function readFromRedis(): Promise<Store> {
-  const items = (await redis(["LRANGE", LIST_KEY, "0", "-1"])) as string[];
-  const store: Store = {};
-  for (const raw of items ?? []) {
-    try {
-      const { commId, ...entry } = JSON.parse(raw) as FeedbackEntry & { commId: string };
-      if (commId) (store[commId] ??= []).push(entry as FeedbackEntry);
-    } catch {
-      // one malformed row shouldn't lose the rest of the thread
-    }
-  }
-  return store;
 }
 
 async function readFromGraph(): Promise<Store> {
@@ -86,7 +60,7 @@ async function readFromGraph(): Promise<Store> {
 
 export default async function handler(req: Req, res: Res) {
   const graph = isGraphConfigured();
-  const kv = redisEnv() !== null;
+  const kv = isRedisConfigured();
 
   if (!graph && !kv) {
     return res.status(503).json({
@@ -98,7 +72,9 @@ export default async function handler(req: Req, res: Res) {
 
   try {
     if (req.method === "GET") {
-      return res.status(200).json(graph ? await readFromGraph() : await readFromRedis());
+      return res
+        .status(200)
+        .json(graph ? await readFromGraph() : ((await readCollection(COLLECTION)) as Store));
     }
 
     if (req.method === "POST") {
@@ -128,7 +104,7 @@ export default async function handler(req: Req, res: Res) {
           entry.createdAt,
         ]);
       } else {
-        await redis(["RPUSH", LIST_KEY, JSON.stringify({ commId, ...entry })]);
+        await appendToCollection(COLLECTION, { commId, ...entry });
       }
       return res.status(201).json(entry);
     }
