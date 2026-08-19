@@ -70,13 +70,21 @@ export async function readCollection(name: string): Promise<CollectionStore> {
   }
 
   if (def.mode === "thread") {
+    // Deletions are append-only tombstones ({__deletedId}), so the log stays
+    // clobber-free. Collect them first, then drop the matching entries.
+    const deleted = new Set<string>();
+    for (const entry of parsed) {
+      if (typeof entry.__deletedId === "string") deleted.add(entry.__deletedId);
+    }
     // The item id is the grouping key, so it's stripped from each entry —
     // callers get Record<itemId, Entry[]>, which is the shape the pages expect.
     const out: Record<string, Entry[]> = {};
     for (const entry of parsed) {
+      if (typeof entry.__deletedId === "string") continue; // tombstone, not a comment
       const id = entry[def.itemKey];
       if (typeof id !== "string" || !id) continue;
       const { [def.itemKey]: _omit, ...rest } = entry;
+      if (typeof rest.id === "string" && deleted.has(rest.id)) continue; // deleted
       (out[id] ??= []).push(rest);
     }
     return out;
@@ -104,4 +112,20 @@ export async function appendToCollection(name: string, entry: Entry): Promise<vo
     throw new Error(`${def.itemKey} is required`);
   }
   await redisCommand(["RPUSH", collectionKey(name), JSON.stringify(entry)]);
+}
+
+/** Delete one entry by id — append-only, via a {__deletedId} tombstone that
+ *  readCollection filters out. "thread" collections only. */
+export async function removeFromCollection(
+  name: string,
+  itemId: string,
+  entryId: string,
+): Promise<void> {
+  const def = COLLECTIONS[name];
+  if (!def) throw new Error(`unknown collection "${name}"`);
+  await redisCommand([
+    "RPUSH",
+    collectionKey(name),
+    JSON.stringify({ [def.itemKey]: itemId, __deletedId: entryId }),
+  ]);
 }

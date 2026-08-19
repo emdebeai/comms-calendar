@@ -6,6 +6,7 @@ import {
   addFeedback,
   getComms,
   getFeedback,
+  deleteFeedback,
   getEdmReview,
   saveEdmAnswer,
 } from "./dataStore.js";
@@ -46,6 +47,32 @@ app.post("/api/comms", async (req, res) => {
   }
 });
 
+// Admin key gates comment deletion (a second gate above the site password).
+const ADMIN_KEY = process.env.FEEDBACK_ADMIN_KEY || "touchpoints-admin";
+const adminOk = (req: { headers: Record<string, string | string[] | undefined> }) => {
+  const h = req.headers["x-admin-key"];
+  const key = Array.isArray(h) ? h[0] : h;
+  return typeof key === "string" && key.length > 0 && key === ADMIN_KEY;
+};
+
+app.delete("/api/feedback", async (req, res) => {
+  try {
+    if (!adminOk(req)) {
+      res.status(401).json({ error: "Admin key required to delete." });
+      return;
+    }
+    const { commId, entryId } = req.body ?? {};
+    if (!commId || !entryId) {
+      res.status(400).json({ error: "commId and entryId are required" });
+      return;
+    }
+    await deleteFeedback(commId, entryId);
+    res.status(200).json({ ok: true, commId, entryId });
+  } catch (err) {
+    res.status(500).json({ error: (err as Error).message });
+  }
+});
+
 app.get("/api/feedback", async (_req, res) => {
   try {
     res.json(await getFeedback());
@@ -56,6 +83,10 @@ app.get("/api/feedback", async (_req, res) => {
 
 app.post("/api/feedback", async (req, res) => {
   try {
+    if (req.body?.action === "verifyAdmin") {
+      res.status(200).json({ ok: adminOk(req) });
+      return;
+    }
     const { commId, author, comment, metricLabel, metricValue } = req.body ?? {};
     if (!commId || !comment) {
       res.status(400).json({ error: "commId and comment are required" });

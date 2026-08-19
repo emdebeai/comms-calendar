@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { GraduationCap, Info, Link2, Moon, Rows3, Sun } from "lucide-react";
+import { GraduationCap, Info, Link2, Moon, Rows3, Shield, ShieldCheck, Sun } from "lucide-react";
 import type { CommType } from "../data/types";
 import { FOCUS_RING } from "../lib/styles";
 import { HoverTip } from "./HoverTip";
@@ -20,6 +20,8 @@ interface Props {
   onToggleAllLanes: () => void;
   theme: "light" | "dark";
   onToggleTheme: () => void;
+  isAdmin: boolean;
+  onToggleAdmin: () => void;
 }
 
 /** Sleek floating control dock — pinned bottom-centre, frosted, always in
@@ -39,6 +41,8 @@ export function ControlDock({
   onToggleAllLanes,
   theme,
   onToggleTheme,
+  isAdmin,
+  onToggleAdmin,
 }: Props) {
   const allActive = activeTypes.size === ALL_TYPES.length;
   const [legendOpen, setLegendOpen] = useState(false);
@@ -228,6 +232,25 @@ export function ControlDock({
             <Moon size={15} strokeWidth={2} aria-hidden />
           )}
           <HoverTip label={theme === "dark" ? "Light mode" : "Dark mode"} />
+        </button>
+
+        {/* Admin — unlocks comment deletion (a second gate above the site
+            password). Prompts for the key; a filled shield means unlocked. */}
+        <button
+          type="button"
+          onClick={onToggleAdmin}
+          aria-pressed={isAdmin}
+          aria-label={isAdmin ? "Lock admin (comment deletion)" : "Unlock admin to delete comments"}
+          className={`${iconBtn} ${
+            isAdmin ? "bg-header text-white" : "text-grey-70 hover:bg-grey-20"
+          }`}
+        >
+          {isAdmin ? (
+            <ShieldCheck size={15} strokeWidth={1.75} aria-hidden />
+          ) : (
+            <Shield size={15} strokeWidth={1.75} aria-hidden />
+          )}
+          <HoverTip label={isAdmin ? "Admin: unlocked" : "Admin"} />
         </button>
       </div>
     </div>

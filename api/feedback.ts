@@ -23,16 +23,27 @@
 import type { FeedbackEntry } from "../src/data/types.js";
 import { appendTableRow, isGraphConfigured, readTable, tableNames } from "../server/graph.js";
 import { isRedisConfigured } from "../server/redis.js";
-import { appendToCollection, readCollection } from "../server/stores.js";
+import { appendToCollection, readCollection, removeFromCollection } from "../server/stores.js";
 
 type Store = Record<string, FeedbackEntry[]>;
 
 /** Registry name for this collection — see server/registry.ts. */
 const COLLECTION = "feedback";
 
+// Deleting a comment needs the admin key (a second gate above the site-wide
+// Basic Auth). Set FEEDBACK_ADMIN_KEY in the environment; the prototype
+// default lets it work out of the box behind the existing password.
+const ADMIN_KEY = process.env.FEEDBACK_ADMIN_KEY || "touchpoints-admin";
+function adminOk(req: Req): boolean {
+  const h = req.headers?.["x-admin-key"];
+  const key = Array.isArray(h) ? h[0] : h;
+  return typeof key === "string" && key.length > 0 && key === ADMIN_KEY;
+}
+
 interface Req {
   method?: string;
   body?: unknown;
+  headers?: Record<string, string | string[] | undefined>;
 }
 interface Res {
   status(code: number): Res;
@@ -75,6 +86,27 @@ export default async function handler(req: Req, res: Res) {
       return res
         .status(200)
         .json(graph ? await readFromGraph() : ((await readCollection(COLLECTION)) as Store));
+    }
+
+    if (req.method === "POST" && (req.body as Record<string, unknown>)?.action === "verifyAdmin") {
+      return res.status(200).json({ ok: adminOk(req) });
+    }
+
+    if (req.method === "DELETE") {
+      if (!adminOk(req)) return res.status(401).json({ error: "Admin key required to delete." });
+      const body = (req.body ?? {}) as Record<string, unknown>;
+      const commId = typeof body.commId === "string" ? body.commId.trim() : "";
+      const entryId = typeof body.entryId === "string" ? body.entryId.trim() : "";
+      if (!commId || !entryId) {
+        return res.status(400).json({ error: "commId and entryId are required" });
+      }
+      if (graph) {
+        return res
+          .status(501)
+          .json({ error: "Deleting from the SharePoint workbook is not supported yet." });
+      }
+      await removeFromCollection(COLLECTION, commId, entryId);
+      return res.status(200).json({ ok: true, commId, entryId });
     }
 
     if (req.method === "POST") {

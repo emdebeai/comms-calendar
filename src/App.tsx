@@ -23,7 +23,13 @@ import { Minimap } from "./components/Minimap";
 import { Landing } from "./components/Landing";
 import { linkedCommIds } from "./data/studentExperience";
 import type { CommType, FeedbackEntry, Comm } from "./data/types";
-import { addFeedbackEntry, loadFeedback, type FeedbackStore } from "./lib/feedback";
+import {
+  addFeedbackEntry,
+  deleteFeedbackEntry,
+  loadFeedback,
+  verifyAdminKey,
+  type FeedbackStore,
+} from "./lib/feedback";
 import { FOCUS_RING } from "./lib/styles";
 import { loadComms } from "./lib/loadComms";
 import {
@@ -137,6 +143,39 @@ export default function App() {
   const toggleAllLanes = () =>
     setCollapsedLanes(allLanesCollapsed ? new Set() : new Set(COLLAPSIBLE_LANES));
   const [feedback, setFeedback] = useState<FeedbackStore>({});
+  // Admin unlock — a second gate (above the site password) for deleting
+  // comments. The key is held for the browser session once verified.
+  const [adminKey, setAdminKey] = useState<string | null>(
+    () => sessionStorage.getItem("cc-admin-key"),
+  );
+  const isAdmin = adminKey !== null;
+  const toggleAdmin = useCallback(async () => {
+    if (adminKey !== null) {
+      sessionStorage.removeItem("cc-admin-key");
+      setAdminKey(null);
+      return;
+    }
+    const key = window.prompt("Enter the admin key to manage comments:");
+    if (!key) return;
+    const ok = await verifyAdminKey(key.trim());
+    if (ok) {
+      sessionStorage.setItem("cc-admin-key", key.trim());
+      setAdminKey(key.trim());
+    } else {
+      window.alert("That admin key was not accepted.");
+    }
+  }, [adminKey]);
+  const removeFeedback = useCallback(
+    async (commId: string, entryId: string) => {
+      if (adminKey === null) return;
+      await deleteFeedbackEntry(commId, entryId, adminKey);
+      setFeedback((prev) => ({
+        ...prev,
+        [commId]: (prev[commId] ?? []).filter((e) => e.id !== entryId),
+      }));
+    },
+    [adminKey],
+  );
   const [openCommId, setOpenCommId] = useState<string | null>(null);
   const [openCampaignId, setOpenCampaignId] = useState<string | null>(null);
   // Measured card heights (id → px), reported by each CommCard. Feeds back
@@ -809,6 +848,8 @@ export default function App() {
         onToggleAllLanes={toggleAllLanes}
         theme={theme}
         onToggleTheme={toggleTheme}
+        isAdmin={isAdmin}
+        onToggleAdmin={toggleAdmin}
       />
       )}
 
@@ -850,6 +891,7 @@ export default function App() {
           entries={feedback[openComm.id] ?? []}
           onClose={() => setOpenCommId(null)}
           onAdd={(entry) => addFeedback(openComm.id, entry)}
+          onDelete={isAdmin ? (entryId) => removeFeedback(openComm.id, entryId) : undefined}
         />
       )}
 
@@ -870,6 +912,7 @@ export default function App() {
           entries={feedback[openCampaign.id] ?? []}
           onClose={() => setOpenCampaignId(null)}
           onAdd={(entry) => addFeedback(openCampaign.id, entry)}
+          onDelete={isAdmin ? (entryId) => removeFeedback(openCampaign.id, entryId) : undefined}
         />
       )}
 

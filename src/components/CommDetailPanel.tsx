@@ -16,6 +16,8 @@ interface Props {
   entries: FeedbackEntry[];
   onClose: () => void;
   onAdd: (entry: Omit<FeedbackEntry, "id" | "createdAt">) => void;
+  /** admin only — delete a comment by id */
+  onDelete?: (entryId: string) => void;
 }
 
 // Quiet Notion-style property row: sentence-case regular-weight label that
@@ -32,7 +34,7 @@ function AttributeRow({ label, value }: { label: string; value?: string | null }
   );
 }
 
-export function CommDetailPanel({ comm, allComms, entries, onClose, onAdd }: Props) {
+export function CommDetailPanel({ comm, allComms, entries, onClose, onAdd, onDelete }: Props) {
   const Icon = COMM_ICONS[comm.type];
   const colors = COMM_COLORS[comm.type];
 
@@ -159,7 +161,7 @@ export function CommDetailPanel({ comm, allComms, entries, onClose, onAdd }: Pro
           </>
         )}
 
-        <FeedbackThread entries={entries} />
+        <FeedbackThread entries={entries} onDelete={onDelete} />
       </div>
 
       <FeedbackComposer onAdd={onAdd} />

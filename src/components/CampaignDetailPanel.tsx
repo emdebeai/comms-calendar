@@ -11,6 +11,8 @@ interface Props {
   entries: FeedbackEntry[];
   onClose: () => void;
   onAdd: (entry: Omit<FeedbackEntry, "id" | "createdAt">) => void;
+  /** admin only — delete a comment by id */
+  onDelete?: (entryId: string) => void;
 }
 
 function AttributeRow({ label, value }: { label: string; value?: string | null }) {
@@ -25,7 +27,7 @@ function AttributeRow({ label, value }: { label: string; value?: string | null }
 
 /** Detail panel for a media-schedule channel — same shell and feedback
  *  thread as comms, with plan attributes that mostly don't have data yet. */
-export function CampaignDetailPanel({ campaign, entries, onClose, onAdd }: Props) {
+export function CampaignDetailPanel({ campaign, entries, onClose, onAdd, onDelete }: Props) {
   const range = campaignRangeLabel(campaign.from, campaign.to);
   // ~4.35 weeks per month float unit
   const weeks = Math.max(1, Math.round((campaign.to - campaign.from) * 4.35));
@@ -62,7 +64,7 @@ export function CampaignDetailPanel({ campaign, entries, onClose, onAdd }: Props
           note below if you have them.
         </p>
 
-        <FeedbackThread entries={entries} />
+        <FeedbackThread entries={entries} onDelete={onDelete} />
       </div>
 
       <FeedbackComposer onAdd={onAdd} />

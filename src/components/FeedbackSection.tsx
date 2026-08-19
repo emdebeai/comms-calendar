@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { MessageSquarePlus } from "lucide-react";
+import { MessageSquarePlus, Trash2 } from "lucide-react";
 import type { FeedbackEntry } from "../data/types";
 import { EYEBROW, FOCUS_RING } from "../lib/styles";
 
@@ -21,7 +21,13 @@ function formatTimestamp(iso: string): string {
 }
 
 /** Feedback thread heading + entries — placed inside the panel's scroll area. */
-export function FeedbackThread({ entries }: { entries: FeedbackEntry[] }) {
+export function FeedbackThread({
+  entries,
+  onDelete,
+}: {
+  entries: FeedbackEntry[];
+  onDelete?: (entryId: string) => void;
+}) {
   return (
     <>
       <h3 className={`mt-6 text-grey-70 ${EYEBROW}`}>Feedback &amp; metrics</h3>
@@ -37,7 +43,22 @@ export function FeedbackThread({ entries }: { entries: FeedbackEntry[] }) {
               <li key={entry.id}>
                 <div className="flex items-baseline justify-between gap-2">
                   <span className="text-sm font-semibold text-grey-90">{entry.author}</span>
-                  <span className="text-xs text-grey-70">{formatTimestamp(entry.createdAt)}</span>
+                  <span className="flex items-center gap-2">
+                    <span className="text-xs text-grey-70">{formatTimestamp(entry.createdAt)}</span>
+                    {onDelete && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (window.confirm("Delete this comment? This can't be undone."))
+                            onDelete(entry.id);
+                        }}
+                        aria-label={`Delete comment by ${entry.author}`}
+                        className={`rounded-md p-0.5 text-grey-60 transition-colors hover:text-danger ${FOCUS_RING}`}
+                      >
+                        <Trash2 size={13} strokeWidth={2} aria-hidden />
+                      </button>
+                    )}
+                  </span>
                 </div>
                 <p className="mt-0.5 text-sm text-grey-80">{entry.comment}</p>
                 {entry.metricLabel && (

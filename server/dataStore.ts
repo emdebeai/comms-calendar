@@ -12,7 +12,7 @@ import {
 import type { Comm, FeedbackEntry } from "../src/data/types.js";
 import { appendTableRow, isGraphConfigured, readTable, tableNames } from "./graph.js";
 import { isRedisConfigured } from "./redis.js";
-import { appendToCollection, readCollection } from "./stores.js";
+import { appendToCollection, readCollection, removeFromCollection } from "./stores.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const CSV_PATH = path.join(__dirname, "data", "comms.csv");
@@ -135,6 +135,24 @@ export async function addFeedback(
     await writeFile(FEEDBACK_PATH, JSON.stringify(store, null, 2), "utf-8");
   }
   return entry;
+}
+
+/** Delete one comment. Redis uses an append-only tombstone; the local JSON
+ *  store removes it in place. SharePoint deletion isn't supported yet. */
+export async function deleteFeedback(commId: string, entryId: string): Promise<void> {
+  if (isGraphConfigured()) {
+    throw new Error("Deleting from the SharePoint workbook is not supported yet.");
+  }
+  if (isRedisConfigured()) {
+    await removeFromCollection("feedback", commId, entryId);
+    return;
+  }
+  const store = await readFeedbackFromJson();
+  if (store[commId]) {
+    store[commId] = store[commId].filter((e) => e.id !== entryId);
+    if (store[commId].length === 0) delete store[commId];
+    await writeFile(FEEDBACK_PATH, JSON.stringify(store, null, 2), "utf-8");
+  }
 }
 
 // ── eDM question review (/marketing-edms) ─────────────────────────────────
