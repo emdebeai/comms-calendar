@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { GraduationCap, Info, Link2, Moon, Rows3, Shield, ShieldCheck, Sun } from "lucide-react";
+import { GraduationCap, Home, Info, Link2, Moon, Rows3, Shield, ShieldCheck, Sun } from "lucide-react";
 import type { CommType } from "../data/types";
 import { FOCUS_RING } from "../lib/styles";
 import { HoverTip } from "./HoverTip";
@@ -22,6 +22,7 @@ interface Props {
   onToggleTheme: () => void;
   isAdmin: boolean;
   onToggleAdmin: () => void;
+  onGoHome: () => void;
 }
 
 /** Sleek floating control dock — pinned bottom-centre, frosted, always in
@@ -43,6 +44,7 @@ export function ControlDock({
   onToggleTheme,
   isAdmin,
   onToggleAdmin,
+  onGoHome,
 }: Props) {
   const allActive = activeTypes.size === ALL_TYPES.length;
   const [legendOpen, setLegendOpen] = useState(false);
@@ -70,6 +72,13 @@ export function ControlDock({
   return (
     <div className="fixed bottom-5 left-1/2 z-40 -translate-x-1/2">
       <div className="flex items-center gap-0.5 rounded-full border border-grey-30 bg-card/70 px-2 py-1.5 shadow-xl backdrop-blur-md">
+        {/* Back to the landing page */}
+        <button type="button" onClick={onGoHome} aria-label="Back to start" className={`${iconBtn} text-grey-70 hover:bg-grey-20`}>
+          <Home size={15} strokeWidth={1.75} aria-hidden />
+          <HoverTip label="Back to start" />
+        </button>
+        <span className="mx-1 h-5 w-px bg-grey-30" aria-hidden />
+
         {/* All types (reset) */}
         <button
           type="button"

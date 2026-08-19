@@ -93,6 +93,10 @@ export default function App() {
     sessionStorage.setItem("cc-entered", "1");
     setEntered(true);
   }, []);
+  const goHome = useCallback(() => {
+    sessionStorage.removeItem("cc-entered");
+    setEntered(false);
+  }, []);
   const [rawComms, setRawComms] = useState<Comm[] | null>(null);
   // Detail-panel edits, keyed by comm id — merged onto the loaded comms below.
   const [commEdits, setCommEdits] = useState<CommEdits>({});
@@ -609,7 +613,7 @@ export default function App() {
     };
   }, []);
 
-  if (!entered) return <Landing onEnter={enterMap} />;
+  if (!entered) return <Landing onEnter={enterMap} theme={theme} onToggleTheme={toggleTheme} />;
 
   return (
     <div ref={scrollerRef} className="h-screen overflow-auto bg-surface font-sans text-grey-90">
@@ -869,6 +873,7 @@ export default function App() {
         onToggleTheme={toggleTheme}
         isAdmin={isAdmin}
         onToggleAdmin={toggleAdmin}
+        onGoHome={goHome}
       />
       )}
 
