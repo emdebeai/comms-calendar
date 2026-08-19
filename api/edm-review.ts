@@ -8,7 +8,9 @@
 // Answers are stored append-only, one entry per save, and the latest entry
 // per comm id wins on read — so two reviewers working at the same time can
 // never overwrite each other mid-write.
-import { appendTableRow, isGraphConfigured, readTable } from "../server/graph";
+// Relative imports carry explicit .js extensions — see the note in
+// api/feedback.ts. Node's ESM loader can't resolve extensionless specifiers.
+import { appendTableRow, isGraphConfigured, readTable } from "../server/graph.js";
 
 export interface EdmAnswer {
   /** comm id from server/data/comms.csv (the slugified title) */

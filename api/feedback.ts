@@ -15,14 +15,19 @@
 //
 // The site-wide Basic Auth middleware also covers /api/*, so these writes
 // are only reachable by someone who already has the prototype password.
-import type { FeedbackEntry } from "../src/data/types";
-import { appendTableRow, isGraphConfigured, readTable, tableNames } from "../server/graph";
+// NOTE: relative imports below carry explicit .js extensions. package.json sets
+// "type": "module", so the compiled function runs under Node's ESM loader, which
+// does NOT resolve extensionless relative specifiers — without them the function
+// dies at module load with ERR_MODULE_NOT_FOUND (a 500, before any handler code
+// runs). TypeScript and tsx both map the .js specifier back to the .ts source.
+import type { FeedbackEntry } from "../src/data/types.js";
+import { appendTableRow, isGraphConfigured, readTable, tableNames } from "../server/graph.js";
 import {
   appendFeedbackToRedis,
   isRedisConfigured,
   readFeedbackFromRedis,
   type FeedbackStore as Store,
-} from "../server/redis";
+} from "../server/redis.js";
 
 interface Req {
   method?: string;
