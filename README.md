@@ -34,6 +34,21 @@ running:
 | Deployed to Vercel | `api/feedback.ts` → Redis (Vercel KV / Upstash), or SharePoint once Graph is set up | Yes |
 | Single-file build (`build:standalone`) | The viewer's own `localStorage` | No — it says so in the UI |
 
+### `/marketing-edms` — the eDM question review
+
+A standalone page (no React) for marketing to confirm which student question
+each eDM answers. It reads `marketing-edms/data.json`, generated from the same
+sources the map uses so it can't drift:
+
+```bash
+node scripts/build-edm-review.mjs   # after editing comms.csv or the question links
+```
+
+Answers save per-send to `/api/edm-review` — `server/data/edm-review.json` in
+dev, Redis or SharePoint on the deployed site (same store hierarchy as
+comments, see `api/edm-review.ts`). The page is behind the same site password.
+Pull the answers back with `GET /api/edm-review`.
+
 To switch the deployed site on, add a Redis from **Vercel → Storage → Create →
 Upstash for Redis** and connect it to the project; Vercel injects
 `KV_REST_API_URL` / `KV_REST_API_TOKEN` and the function starts using it on the

@@ -1,7 +1,7 @@
 import "dotenv/config";
 import cors from "cors";
 import express from "express";
-import { addComm, addFeedback, getComms, getFeedback } from "./dataStore";
+import { addComm, addFeedback, getComms, getFeedback, getEdmReview, saveEdmAnswer } from "./dataStore";
 import { isGraphConfigured } from "./graph";
 import { COMMS_COLUMNS } from "../src/lib/commsSchema";
 
@@ -64,6 +64,29 @@ app.post("/api/feedback", async (req, res) => {
 });
 
 const port = Number(process.env.API_PORT) || 5174;
+// eDM question review — the /marketing-edms page (dev only; production uses
+// api/edm-review.ts).
+app.get("/api/edm-review", async (_req, res) => {
+  try {
+    res.json(await getEdmReview());
+  } catch (err) {
+    res.status(500).json({ error: (err as Error).message });
+  }
+});
+
+app.post("/api/edm-review", async (req, res) => {
+  try {
+    const { commId } = req.body ?? {};
+    if (!commId) {
+      res.status(400).json({ error: "commId is required" });
+      return;
+    }
+    res.status(201).json(await saveEdmAnswer(req.body));
+  } catch (err) {
+    res.status(500).json({ error: (err as Error).message });
+  }
+});
+
 app.listen(port, () => {
   console.log(`[api] listening on http://localhost:${port}`);
   console.log(`[api] data source: ${isGraphConfigured() ? "SharePoint Excel (Graph)" : "local files (server/data/)"}`);

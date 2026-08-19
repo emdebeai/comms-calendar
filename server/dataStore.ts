@@ -15,6 +15,7 @@ import { appendTableRow, isGraphConfigured, readTable, tableNames } from "./grap
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const CSV_PATH = path.join(__dirname, "data", "comms.csv");
 const FEEDBACK_PATH = path.join(__dirname, "data", "feedback.json");
+const EDM_REVIEW_PATH = path.join(__dirname, "data", "edm-review.json");
 
 export type FeedbackStore = Record<string, FeedbackEntry[]>;
 export type NewCommInput = Record<(typeof COMMS_COLUMNS)[number], string>;
@@ -123,5 +124,34 @@ export async function addFeedback(
     (store[commId] ??= []).push(entry);
     await writeFile(FEEDBACK_PATH, JSON.stringify(store, null, 2), "utf-8");
   }
+  return entry;
+}
+
+// ── eDM question review (/marketing-edms) ─────────────────────────────────
+// Marketing's answers to "does this eDM answer the question we've assigned
+// it?". Local dev writes a JSON file; the deployed site uses the serverless
+// api/edm-review.ts (SharePoint or Redis). Keyed by comm id, last write wins.
+export interface EdmAnswer {
+  commId: string;
+  verdict: string;
+  question?: string;
+  notes?: string;
+  reviewer?: string;
+  updatedAt: string;
+}
+
+export async function getEdmReview(): Promise<Record<string, EdmAnswer>> {
+  try {
+    return JSON.parse(await readFile(EDM_REVIEW_PATH, "utf-8")) as Record<string, EdmAnswer>;
+  } catch {
+    return {};
+  }
+}
+
+export async function saveEdmAnswer(input: EdmAnswer): Promise<EdmAnswer> {
+  const entry: EdmAnswer = { ...input, updatedAt: new Date().toISOString() };
+  const store = await getEdmReview();
+  store[entry.commId] = entry;
+  await writeFile(EDM_REVIEW_PATH, JSON.stringify(store, null, 2), "utf-8");
   return entry;
 }
