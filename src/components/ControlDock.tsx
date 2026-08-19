@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { GraduationCap, Info, Link2, Moon, Rows3, Sun } from "lucide-react";
 import type { CommType } from "../data/types";
 import { FOCUS_RING } from "../lib/styles";
+import { HoverTip } from "./HoverTip";
 import { COMM_COLORS, COMM_ICONS, COMM_LABELS } from "./icons";
 
 const ALL_TYPES = Object.keys(COMM_ICONS) as CommType[];
@@ -60,7 +61,7 @@ export function ControlDock({
     };
   }, [legendOpen]);
 
-  const iconBtn = `flex h-8 w-8 items-center justify-center rounded-full transition-colors ${FOCUS_RING}`;
+  const iconBtn = `group relative flex h-8 w-8 items-center justify-center rounded-full transition-colors ${FOCUS_RING}`;
 
   return (
     <div className="fixed bottom-5 left-1/2 z-40 -translate-x-1/2">
@@ -70,12 +71,12 @@ export function ControlDock({
           type="button"
           onClick={onResetTypes}
           aria-pressed={allActive}
-          title="Show all types"
-          className={`flex h-8 items-center rounded-full px-3 text-xs font-medium transition-colors ${FOCUS_RING} ${
+          className={`group relative flex h-8 items-center rounded-full px-3 text-xs font-medium transition-colors ${FOCUS_RING} ${
             allActive ? "bg-header text-white" : "text-grey-70 hover:bg-grey-20"
           }`}
         >
           All
+          <HoverTip label="Show all types" />
         </button>
 
         {/* Type filters — icon-only, tinted when selected; icon colour is the
@@ -93,12 +94,12 @@ export function ControlDock({
               onClick={() => onToggleType(t)}
               aria-pressed={on}
               aria-label={COMM_LABELS[t]}
-              title={COMM_LABELS[t]}
               className={`${iconBtn} ${c.text} ${
                 selected ? c.chip : `hover:bg-grey-20 ${dimmed ? "opacity-40" : ""}`
               }`}
             >
               <Icon size={15} strokeWidth={1.75} aria-hidden />
+              <HoverTip label={COMM_LABELS[t]} />
             </button>
           );
         })}
@@ -112,12 +113,12 @@ export function ControlDock({
           onClick={onToggleStudentLayer}
           aria-pressed={showStudentLayer}
           aria-label={showStudentLayer ? "Hide student journey" : "Show student journey"}
-          title="Student journey"
           className={`${iconBtn} ${
             showStudentLayer ? "bg-header text-white" : "text-grey-70 hover:bg-grey-20"
           }`}
         >
           <GraduationCap size={15} strokeWidth={1.75} aria-hidden />
+          <HoverTip label="Student journey" />
         </button>
 
         {/* Overview — collapse every lane to its compact touchpoint strip so
@@ -127,12 +128,12 @@ export function ControlDock({
           onClick={onToggleAllLanes}
           aria-pressed={allLanesCollapsed}
           aria-label={allLanesCollapsed ? "Expand all lanes" : "Overview — collapse all lanes"}
-          title="Overview — all lanes as touchpoint rows"
           className={`${iconBtn} ${
             allLanesCollapsed ? "bg-header text-white" : "text-grey-70 hover:bg-grey-20"
           }`}
         >
           <Rows3 size={15} strokeWidth={1.75} aria-hidden />
+          <HoverTip label="Overview — all lanes as rows" />
         </button>
 
         {/* Trigger lines */}
@@ -141,12 +142,12 @@ export function ControlDock({
           onClick={onToggleLines}
           aria-pressed={showLines}
           aria-label={showLines ? "Hide trigger lines" : "Show trigger lines"}
-          title="Trigger lines"
           className={`${iconBtn} ${
             showLines ? "bg-header text-white" : "text-grey-70 hover:bg-grey-20"
           }`}
         >
           <Link2 size={15} strokeWidth={1.75} aria-hidden />
+          <HoverTip label="Trigger lines" />
         </button>
 
         {/* Legend & tips */}
@@ -156,12 +157,12 @@ export function ControlDock({
             onClick={() => setLegendOpen((o) => !o)}
             aria-expanded={legendOpen}
             aria-label="Legend and tips"
-            title="Legend & tips"
             className={`${iconBtn} ${
               legendOpen ? "bg-grey-20 text-grey-90" : "text-grey-70 hover:bg-grey-20"
             }`}
           >
             <Info size={15} strokeWidth={1.75} aria-hidden />
+            {!legendOpen && <HoverTip label="Legend & tips" />}
           </button>
           {legendOpen && (
             <div
@@ -219,7 +220,6 @@ export function ControlDock({
           type="button"
           onClick={onToggleTheme}
           aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-          title={theme === "dark" ? "Light mode" : "Dark mode"}
           className={`${iconBtn} text-grey-70 hover:bg-grey-20`}
         >
           {theme === "dark" ? (
@@ -227,6 +227,7 @@ export function ControlDock({
           ) : (
             <Moon size={15} strokeWidth={2} aria-hidden />
           )}
+          <HoverTip label={theme === "dark" ? "Light mode" : "Dark mode"} />
         </button>
       </div>
     </div>
