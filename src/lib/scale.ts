@@ -272,12 +272,8 @@ function buildLanes(
     outbound("marketing", "Marketing — eDMs", "Outbound eDMs"),
     outbound("admissions", "Admissions", "Outbound"),
     outbound("conversion", "Conversion", "Outbound"),
-    // VTAC — a third party, not an RMIT team: its own section, sending the
-    // student the newsletter cadence directly.
-    { id: "divider-vtac", label: "External sender", kind: "divider", height: DIVIDER_H, chipStrip: false },
-    outbound("vtac", "VTAC", "Direct to the student"),
-    // Paid media + always-on — its own lane so the schedules read as a
-    // programme, not as Marketing's footnote.
+    // Paid media + always-on — RMIT's own programme, so it sits with the RMIT
+    // lanes (above the external-sender divider), not below it.
     {
       id: "campaigns",
       label: "Digital and out-of-home campaigns",
@@ -286,6 +282,10 @@ function buildLanes(
       chipStrip: false,
       height: collapsed.has("campaigns") ? COLLAPSED_LANE_H : campaignsLaneHeight(),
     },
+    // VTAC — a third party, not an RMIT team: its own section, sending the
+    // student the newsletter cadence directly.
+    { id: "divider-vtac", label: "External sender", kind: "divider", height: DIVIDER_H, chipStrip: false },
+    outbound("vtac", "VTAC", "Direct to the student"),
     { id: "divider-inbound", label: "Inbound Engagement", kind: "divider", height: DIVIDER_H, chipStrip: false },
     inbound("digital", "Digital"),
     inbound("study", "Study@RMIT"),

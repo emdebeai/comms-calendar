@@ -148,7 +148,11 @@ export function Timeline({
     const fromAxes = [c.campus, c.eventState, c.preference, c.college]
       .filter(Boolean)
       .join(" · ");
-    return c.audience?.replace(/\s+/g, " ") || fromAxes || undefined;
+    const v = c.audience?.replace(/\s+/g, " ") || fromAxes || undefined;
+    // A bare "Year 10/11/12" just repeats the school-year band the card sits
+    // in — drop it; keep richer audiences (SNAP, DDINTON, campus splits, …).
+    if (v && /^year\s*1[0-2]$/i.test(v.trim())) return undefined;
+    return v;
   };
 
   // Which outbound lanes have no comms at all — so we can label them "none
