@@ -10,6 +10,7 @@ import data from "./data.json";
 interface Row {
   id: string; date: string; year: string; campaign: string; title: string;
   audience: string; theme: string; stage: string; q: string; qstage: string;
+  ctaPrimary: string; ctaSecondary: string; ctaTertiary: string;
 }
 interface Answer {
   commId: string; verdict: string; question?: string; notes?: string;
@@ -116,15 +117,15 @@ function row(r: Row, i: number): string {
       </td>
       <td class="${TD} min-w-80">${questionCell(r)}</td>
       <td class="${TD} min-w-40">
-        <input type="text" data-field="ctaPrimary" value="${esc(a?.ctaPrimary ?? "")}"
+        <input type="text" data-field="ctaPrimary" value="${esc(a?.ctaPrimary ?? r.ctaPrimary)}"
           placeholder="Primary CTA" autocomplete="off" class="${CTRL}">
       </td>
       <td class="${TD} min-w-40">
-        <input type="text" data-field="ctaSecondary" value="${esc(a?.ctaSecondary ?? "")}"
+        <input type="text" data-field="ctaSecondary" value="${esc(a?.ctaSecondary ?? r.ctaSecondary)}"
           placeholder="Secondary CTA" autocomplete="off" class="${CTRL}">
       </td>
       <td class="${TD} min-w-40">
-        <input type="text" data-field="ctaTertiary" value="${esc(a?.ctaTertiary ?? "")}"
+        <input type="text" data-field="ctaTertiary" value="${esc(a?.ctaTertiary ?? r.ctaTertiary)}"
           placeholder="Tertiary CTA" autocomplete="off" class="${CTRL}">
       </td>
       <td class="${TD} min-w-44">

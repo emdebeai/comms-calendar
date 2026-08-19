@@ -63,6 +63,9 @@ for (const r of csv.slice(1)) {
     year: { "10": "Year 10", "11": "Year 11", "12": "Year 12", Post: "Post-school" }[sy] ?? sy,
     campaign: col(r, "campaign"), title,
     audience: col(r, "audience"), theme: col(r, "theme"),
+    ctaPrimary: col(r, "cta"),
+    ctaSecondary: col(r, "secondary_cta_1"),
+    ctaTertiary: col(r, "secondary_cta_2"),
   });
 }
 rows.sort((a, b) => a.sort - b.sort);
@@ -80,7 +83,7 @@ const stageStarts = [...expSrc.matchAll(/stage:\s*"([^"]+)",\s*\n\s*timing:/g)];
 stageStarts.forEach((m, i) => {
   const seg = expSrc.slice(m.index, stageStarts[i + 1]?.index ?? expSrc.length);
   const qs = [];
-  for (const q of seg.matchAll(/heading:\s*"Questions",\s*\n\s*items:\s*\[([\s\S]*?)\]/g)) {
+  for (const q of seg.matchAll(/heading:\s*"Questions",\s*\n\s*items:\s*\[([\s\S]*?)\n\s*\],/g)) {
     for (const item of q[1].matchAll(/"((?:[^"\\]|\\.)*)"/g)) qs.push(item[1].replace(/\\"/g, '"'));
   }
   stageQs[m[1]] = qs;

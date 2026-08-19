@@ -49,6 +49,20 @@ dev, Redis or SharePoint on the deployed site (same store hierarchy as
 comments, see `api/edm-review.ts`). The page is behind the same site password.
 Pull the answers back with `GET /api/edm-review`.
 
+**Applying the answers to the map** is one gated command, not a hand edit:
+
+```bash
+node scripts/apply-edm-review.mjs                          # local dev answers
+node scripts/apply-edm-review.mjs https://<site>/api/edm-review   # deployed (uses BASIC_AUTH_*)
+```
+
+It rebuilds `QUESTION_LINKS` in `src/data/studentExperience.ts` (confirmed
+answers kept, "wrong" reassigned, "none" unlinked) and writes each send's
+three CTAs into the `cta` / `secondary_cta_1` / `secondary_cta_2` columns of
+`comms.csv`. It leaves "Not sure" answers and free-text "Other" questions for
+you, prints a summary of exactly what changed, and never commits — run it,
+read the summary, `git diff`, then commit.
+
 To switch the deployed site on, add a Redis from **Vercel → Storage → Create →
 Upstash for Redis** and connect it to the project; Vercel injects
 `KV_REST_API_URL` / `KV_REST_API_TOKEN` and the function starts using it on the

@@ -30,59 +30,59 @@ id,team,title,cta,type,school_year,month,day,moment,triggers,secondary_cta_1,sec
 ,recruitment,Open Day – Brunswick registration confirmation,,Email,12,Aug,2,,,,,,,,,,,,,,,,brunswick,
 ,Recruitment,Open Day – City,,Event,12,Aug,9,openday-y12,,,,,,,,,SNAP presented on the day (presentation / postcards),,,,,,city,
 ,Recruitment,Open Day – Brunswick,,Event,12,Aug,9,openday-y12,,,,,,,,,SNAP presented on the day (presentation / postcards),,,,,,brunswick,
-,Marketing,Here's a glimpse of 2026,,email,12,Mar,17,,,,,,54.3%,3.7%,marketo,,Year 12,,Nurture SL,Key dates for 2026 + we'll be in touch throughout the year + April School Holiday Tours,,,,
-,Marketing,Here's a glimpse of 2026,,email,10,Mar,17,,,,,,51.8%,4.2%,marketo,,Yr 10,,Nurture SL,Key dates for 2026 + we'll be in touch throughout the year + April School Holiday Tours,,,,
-,Marketing,Here's a glimpse of 2026,,email,11,Mar,17,,,,,,52.6%,3.5%,marketo,,Yr 11,,Nurture SL,Key dates for 2026 + we'll be in touch throughout the year + April School Holiday Tours,,,,
-,Marketing,What is vocational study?,,email,12,Apr,22,,,,,,50.6%,0.9%,marketo,,Year 12,,Nurture SL,What is it series — TAFE vs university + kinds of VE courses,,,,
-,Marketing,What is vocational study?,,email,11,Apr,22,,,,,,49.0%,1.7%,marketo,,Yr 11,,Nurture SL,What is it series — TAFE vs university + kinds of VE courses,,,,
-,Marketing,What is vocational study?,,email,10,Apr,22,,,,,,49.0%,1.7%,marketo,,Yr 10,,Nurture SL,What is it series — TAFE vs university + kinds of VE courses,,,,
-,Marketing,What to know about scholarships?,,email,12,Apr,29,,,,,,54.1%,8.4%,marketo,,Year 12,,Nurture SL,What is it series — how scholarships work + showcase,,,,
-,Marketing,What to know about scholarships?,,email,11,Apr,29,,,,,,50.2%,6.1%,marketo,,Y11,,Nurture SL,What is it series — how scholarships work + showcase,,,,
-,Marketing,What to know about scholarships?,,email,10,Apr,29,,,,,,50.2%,6.1%,marketo,,Y10,,Nurture SL,What is it series — how scholarships work + showcase,,,,
-,Marketing,What are pathways?,,email,12,May,13,,,,,,55.2%,2.4%,marketo,,Year 12,,Nurture SL,What is it series — pathways as alternate entry if the ATAR falls short,,,,
-,Marketing,What are pathways?,,email,11,May,13,,,,,,52.6%,2.4%,marketo,,Yr 11,,Nurture SL,What is it series — pathways as alternate entry if the ATAR falls short,,,,
-,Marketing,What are pathways?,,email,10,May,13,,,,,,52.6%,2.4%,marketo,,Yr 10,,Nurture SL,What is it series — pathways as alternate entry if the ATAR falls short,,,,
-,Marketing,Discover Melbourne,,email,12,May,29,,,,,,51.9%,1.5%,marketo,,Year 12,,Nurture SL,Uni guide and tips + Open Day mention,,,,
-,Marketing,Moving to Melbourne,,email,12,May,29,,,,,,47.8%,3.4%,marketo,,Regional Yr 12,,Nurture SL,Moving to Melbourne / uni guide + Open Day mention,,,regional,
-,Marketing,Discover Melbourne,,email,11,May,29,,,,,,48.8%,2.0%,marketo,,Yr 11,,Nurture SL,Uni guide and tips + Open Day mention,,,,
-,Marketing,Discover Melbourne,,email,10,May,29,,,,,,48.8%,2.0%,marketo,,Yr 10,,Nurture SL,Uni guide and tips + Open Day mention,,,,
-,Marketing,Only at Open Day can you...,,email,12,May,19,openday-y12,,,,,68.6%,12.5%,marketo,,New Open Day leads (SL & NSL),,Open Day,Initial Open Day messaging and highlights,,,,
-,Marketing,Register for Open Day and win,,email,12,Jun,10,openday-y12,,,,,,,marketo,,Interest Area,,Open Day,Register for a chance to win + first peek at the vibe,,,,
-,Marketing,Only at Bundoora,,email,12,Jun,18,openday-y12,,,,,,,marketo,,Registered Bundoora,,Open Day,Virtual tour of the Bundoora campus,,,bundoora,registered
-,Marketing,Only at the City Campus,,email,12,Jun,18,openday-y12,,,,,,,marketo,,Registered City,,Open Day,Virtual tour of the City campus,,,city,registered
-,Marketing,Only at Brunswick,,email,12,Jun,18,openday-y12,,,,,,,marketo,,Registered Brunswick,,Open Day,Virtual tour of the Brunswick campus,,,brunswick,registered
-,Marketing,Best questions to ask on the day,,email,12,Jun,30,openday-y12,,,,,,,marketo,,Registered Bundoora,,Open Day,Best questions to ask on the day and who to ask them to,,,bundoora,registered
-,Marketing,Best questions to ask on the day,,email,12,Jun,30,openday-y12,,,,,,,marketo,,Registered City,,Open Day,Best questions to ask on the day and who to ask them to,,,city,registered
-,Marketing,Best questions to ask on the day,,email,12,Jun,30,openday-y12,,,,,,,marketo,,Registered Brunswick,,Open Day,Best questions to ask on the day and who to ask them to,,,brunswick,registered
-,Marketing,Only at RMIT Open Day,,email,12,Jul,2,openday-y12,,,,,,,marketo,,Yr 10-12 - unregistered,,Open Day,Why you won't want to miss RMIT Open Day 2026,,,,unregistered
-,Marketing,Only at RMIT Open Day,,email,10,Jul,2,openday-y10,,,,,,,marketo,,Yr 10-12 - unregistered,,Open Day,Why you won't want to miss RMIT Open Day 2026,,,,unregistered
-,Marketing,Only at RMIT Open Day,,email,11,Jul,2,openday-y11,,,,,,,marketo,,Yr 10-12 - unregistered,,Open Day,Why you won't want to miss RMIT Open Day 2026,,,,unregistered
-,Marketing,The Open Day guide is live,,email,12,Jul,15,openday-y12,,,,,,,marketo,,Registered - Interest Areas,,Open Day,Download the full guide or your study area,,,,registered
-,Marketing,The Open Day guide is live,,email,12,Jul,15,openday-y12,,,,,,,marketo,,Operational Interest Areas,,Open Day,Download the full guide or your study area,,,,registered
-,Marketing,What to know about Open Day,,email,12,Jul,24,openday-y12,,,,,,,marketo,,Registered (Campus Specific) SL + NSL,,Open Day,"Food, prayer space, sensory space, shuttle bus, parking",,,,registered
-,Marketing,What to know about Open Day,,email,12,Jul,24,openday-y12,,,,,,,marketo,,"Unregistered (All campus, excluding Bundoora leads) SL + NSL",,Open Day,Logistics + Open Day is for everyone,,,,unregistered
-,Marketing,What to know about Open Day - Bundoora push,,email,12,Jul,24,openday-y12,,,,,,,marketo,,"Unregistered (IA Education, trades and health) SL + NSL",,Open Day,Logistics — Bundoora push,,,,unregistered
-,Marketing,What's next after Open Day,,email,12,Aug,25,,,,,,,,marketo,,Year 12,,VTAC,VTAC launch + events to look forward to (S4AD etc),,,,
-,Marketing,What's next after Open Day,,email,11,Aug,25,,,,,,,,marketo,,Year 11,,VTAC,VTAC launch + events to look forward to (S4AD etc),,,,
-,Marketing,What's next after Open Day,,email,10,Aug,25,,,,,,,,marketo,,Year 10,,VTAC,VTAC launch + events to look forward to (S4AD etc),,,,
-,Marketing,We're here to help <Preference RMIT>,,email,12,Sep,10,vtac-close,,,,,,,marketo,,Year 12,,VTAC,VTAC services and event + here to help,,,,
+,Marketing,Here's a glimpse of 2026,Key dates for 2026,email,12,Mar,17,,,we'll be in touch throughout the year,April School Holiday Tours,,54.3%,3.7%,marketo,,Year 12,,Nurture SL,Key dates for 2026 + we'll be in touch throughout the year + April School Holiday Tours,,,,
+,Marketing,Here's a glimpse of 2026,Key dates for 2026,email,10,Mar,17,,,we'll be in touch throughout the year,April School Holiday Tours,,51.8%,4.2%,marketo,,Yr 10,,Nurture SL,Key dates for 2026 + we'll be in touch throughout the year + April School Holiday Tours,,,,
+,Marketing,Here's a glimpse of 2026,Key dates for 2026,email,11,Mar,17,,,we'll be in touch throughout the year,April School Holiday Tours,,52.6%,3.5%,marketo,,Yr 11,,Nurture SL,Key dates for 2026 + we'll be in touch throughout the year + April School Holiday Tours,,,,
+,Marketing,What is vocational study?,What is it series — TAFE vs university,email,12,Apr,22,,,kinds of VE courses,,,50.6%,0.9%,marketo,,Year 12,,Nurture SL,What is it series — TAFE vs university + kinds of VE courses,,,,
+,Marketing,What is vocational study?,What is it series — TAFE vs university,email,11,Apr,22,,,kinds of VE courses,,,49.0%,1.7%,marketo,,Yr 11,,Nurture SL,What is it series — TAFE vs university + kinds of VE courses,,,,
+,Marketing,What is vocational study?,What is it series — TAFE vs university,email,10,Apr,22,,,kinds of VE courses,,,49.0%,1.7%,marketo,,Yr 10,,Nurture SL,What is it series — TAFE vs university + kinds of VE courses,,,,
+,Marketing,What to know about scholarships?,What is it series — how scholarships work,email,12,Apr,29,,,showcase,,,54.1%,8.4%,marketo,,Year 12,,Nurture SL,What is it series — how scholarships work + showcase,,,,
+,Marketing,What to know about scholarships?,What is it series — how scholarships work,email,11,Apr,29,,,showcase,,,50.2%,6.1%,marketo,,Y11,,Nurture SL,What is it series — how scholarships work + showcase,,,,
+,Marketing,What to know about scholarships?,What is it series — how scholarships work,email,10,Apr,29,,,showcase,,,50.2%,6.1%,marketo,,Y10,,Nurture SL,What is it series — how scholarships work + showcase,,,,
+,Marketing,What are pathways?,What is it series — pathways as alternate entry if the ATAR falls short,email,12,May,13,,,,,,55.2%,2.4%,marketo,,Year 12,,Nurture SL,What is it series — pathways as alternate entry if the ATAR falls short,,,,
+,Marketing,What are pathways?,What is it series — pathways as alternate entry if the ATAR falls short,email,11,May,13,,,,,,52.6%,2.4%,marketo,,Yr 11,,Nurture SL,What is it series — pathways as alternate entry if the ATAR falls short,,,,
+,Marketing,What are pathways?,What is it series — pathways as alternate entry if the ATAR falls short,email,10,May,13,,,,,,52.6%,2.4%,marketo,,Yr 10,,Nurture SL,What is it series — pathways as alternate entry if the ATAR falls short,,,,
+,Marketing,Discover Melbourne,Uni guide and tips,email,12,May,29,,,Open Day mention,,,51.9%,1.5%,marketo,,Year 12,,Nurture SL,Uni guide and tips + Open Day mention,,,,
+,Marketing,Moving to Melbourne,Moving to Melbourne / uni guide,email,12,May,29,,,Open Day mention,,,47.8%,3.4%,marketo,,Regional Yr 12,,Nurture SL,Moving to Melbourne / uni guide + Open Day mention,,,regional,
+,Marketing,Discover Melbourne,Uni guide and tips,email,11,May,29,,,Open Day mention,,,48.8%,2.0%,marketo,,Yr 11,,Nurture SL,Uni guide and tips + Open Day mention,,,,
+,Marketing,Discover Melbourne,Uni guide and tips,email,10,May,29,,,Open Day mention,,,48.8%,2.0%,marketo,,Yr 10,,Nurture SL,Uni guide and tips + Open Day mention,,,,
+,Marketing,Only at Open Day can you...,Initial Open Day messaging and highlights,email,12,May,19,openday-y12,,,,,68.6%,12.5%,marketo,,New Open Day leads (SL & NSL),,Open Day,Initial Open Day messaging and highlights,,,,
+,Marketing,Register for Open Day and win,Register for a chance to win,email,12,Jun,10,openday-y12,,first peek at the vibe,,,,,marketo,,Interest Area,,Open Day,Register for a chance to win + first peek at the vibe,,,,
+,Marketing,Only at Bundoora,Virtual tour of the Bundoora campus,email,12,Jun,18,openday-y12,,,,,,,marketo,,Registered Bundoora,,Open Day,Virtual tour of the Bundoora campus,,,bundoora,registered
+,Marketing,Only at the City Campus,Virtual tour of the City campus,email,12,Jun,18,openday-y12,,,,,,,marketo,,Registered City,,Open Day,Virtual tour of the City campus,,,city,registered
+,Marketing,Only at Brunswick,Virtual tour of the Brunswick campus,email,12,Jun,18,openday-y12,,,,,,,marketo,,Registered Brunswick,,Open Day,Virtual tour of the Brunswick campus,,,brunswick,registered
+,Marketing,Best questions to ask on the day,Best questions to ask on the day and who to ask them to,email,12,Jun,30,openday-y12,,,,,,,marketo,,Registered Bundoora,,Open Day,Best questions to ask on the day and who to ask them to,,,bundoora,registered
+,Marketing,Best questions to ask on the day,Best questions to ask on the day and who to ask them to,email,12,Jun,30,openday-y12,,,,,,,marketo,,Registered City,,Open Day,Best questions to ask on the day and who to ask them to,,,city,registered
+,Marketing,Best questions to ask on the day,Best questions to ask on the day and who to ask them to,email,12,Jun,30,openday-y12,,,,,,,marketo,,Registered Brunswick,,Open Day,Best questions to ask on the day and who to ask them to,,,brunswick,registered
+,Marketing,Only at RMIT Open Day,Why you won't want to miss RMIT Open Day 2026,email,12,Jul,2,openday-y12,,,,,,,marketo,,Yr 10-12 - unregistered,,Open Day,Why you won't want to miss RMIT Open Day 2026,,,,unregistered
+,Marketing,Only at RMIT Open Day,Why you won't want to miss RMIT Open Day 2026,email,10,Jul,2,openday-y10,,,,,,,marketo,,Yr 10-12 - unregistered,,Open Day,Why you won't want to miss RMIT Open Day 2026,,,,unregistered
+,Marketing,Only at RMIT Open Day,Why you won't want to miss RMIT Open Day 2026,email,11,Jul,2,openday-y11,,,,,,,marketo,,Yr 10-12 - unregistered,,Open Day,Why you won't want to miss RMIT Open Day 2026,,,,unregistered
+,Marketing,The Open Day guide is live,Download the full guide or your study area,email,12,Jul,15,openday-y12,,,,,,,marketo,,Registered - Interest Areas,,Open Day,Download the full guide or your study area,,,,registered
+,Marketing,The Open Day guide is live,Download the full guide or your study area,email,12,Jul,15,openday-y12,,,,,,,marketo,,Operational Interest Areas,,Open Day,Download the full guide or your study area,,,,registered
+,Marketing,What to know about Open Day,"Food, prayer space, sensory space, shuttle bus, parking",email,12,Jul,24,openday-y12,,,,,,,marketo,,Registered (Campus Specific) SL + NSL,,Open Day,"Food, prayer space, sensory space, shuttle bus, parking",,,,registered
+,Marketing,What to know about Open Day,Logistics,email,12,Jul,24,openday-y12,,Open Day is for everyone,,,,,marketo,,"Unregistered (All campus, excluding Bundoora leads) SL + NSL",,Open Day,Logistics + Open Day is for everyone,,,,unregistered
+,Marketing,What to know about Open Day - Bundoora push,Logistics — Bundoora push,email,12,Jul,24,openday-y12,,,,,,,marketo,,"Unregistered (IA Education, trades and health) SL + NSL",,Open Day,Logistics — Bundoora push,,,,unregistered
+,Marketing,What's next after Open Day,VTAC launch,email,12,Aug,25,,,events to look forward to (S4AD etc),,,,,marketo,,Year 12,,VTAC,VTAC launch + events to look forward to (S4AD etc),,,,
+,Marketing,What's next after Open Day,VTAC launch,email,11,Aug,25,,,events to look forward to (S4AD etc),,,,,marketo,,Year 11,,VTAC,VTAC launch + events to look forward to (S4AD etc),,,,
+,Marketing,What's next after Open Day,VTAC launch,email,10,Aug,25,,,events to look forward to (S4AD etc),,,,,marketo,,Year 10,,VTAC,VTAC launch + events to look forward to (S4AD etc),,,,
+,Marketing,We're here to help <Preference RMIT>,VTAC services and event,email,12,Sep,10,vtac-close,,here to help,,,,,marketo,,Year 12,,VTAC,VTAC services and event + here to help,,,,
 ,Marketing,Become an RMIT Student for a Day,,email,11,Sep,10,,,,,,,,marketo,,Year 11,,S4AD,,,,,
 ,Marketing,Become an RMIT Student for a Day,,email,10,Sep,10,,,,,,,,marketo,,Year 10,,S4AD,,,,,
-,Marketing,Why choose RMIT?,,email,12,Sep,17,vtac-close,,,,,,,marketo,,Y12,,VTAC,"Hard sell — KSPs, tailored by IA or campus",,,,
-,Marketing,There's still time to <Preference RMIT>,,email,12,Sep,24,vtac-close,,,,,,,marketo,,Year 12,,VTAC,VTAC final push,,,,
-,Marketing,There's still time to <Preference RMIT>,,email,12,Sep,26,vtac-close,,,,,,,marketo,,Year 12 - SNAP variation,,VTAC,VTAC final push — SNAP variation,,,,
-,Marketing,Good luck on your exams!,,email,12,Oct,20,vce-exams,,,,,,,marketo,,Year 12 (exc. DDINTON),,VTAC,Adds Study@RMIT contact details,,,,
-,Marketing,Good luck on your exams!,,email,11,Oct,20,,,,,,,,marketo,,Year 11,,VTAC,Mental health tips,,,,
-,Marketing,Good luck on your exams!,,email,10,Oct,20,,,,,,,,marketo,,Year 10,,VTAC,Mental health tips,,,,
-,Marketing,COP Explained,,email,12,Nov,19,cop,,,,,,,marketo,,Year 12 (exc. DDINTON & SNAP),,COP,Key dates COP,,,,
-,Marketing,COP Explained,,email,12,Nov,19,cop,,,,,,,marketo,,Year 12 SNAP (exc. DDINTON),,COP,Key dates COP + scholarship + SNAP Explained,,,,
+,Marketing,Why choose RMIT?,"Hard sell — KSPs, tailored by IA or campus",email,12,Sep,17,vtac-close,,,,,,,marketo,,Y12,,VTAC,"Hard sell — KSPs, tailored by IA or campus",,,,
+,Marketing,There's still time to <Preference RMIT>,VTAC final push,email,12,Sep,24,vtac-close,,,,,,,marketo,,Year 12,,VTAC,VTAC final push,,,,
+,Marketing,There's still time to <Preference RMIT>,VTAC final push — SNAP variation,email,12,Sep,26,vtac-close,,,,,,,marketo,,Year 12 - SNAP variation,,VTAC,VTAC final push — SNAP variation,,,,
+,Marketing,Good luck on your exams!,Adds Study@RMIT contact details,email,12,Oct,20,vce-exams,,,,,,,marketo,,Year 12 (exc. DDINTON),,VTAC,Adds Study@RMIT contact details,,,,
+,Marketing,Good luck on your exams!,Mental health tips,email,11,Oct,20,,,,,,,,marketo,,Year 11,,VTAC,Mental health tips,,,,
+,Marketing,Good luck on your exams!,Mental health tips,email,10,Oct,20,,,,,,,,marketo,,Year 10,,VTAC,Mental health tips,,,,
+,Marketing,COP Explained,Key dates COP,email,12,Nov,19,cop,,,,,,,marketo,,Year 12 (exc. DDINTON & SNAP),,COP,Key dates COP,,,,
+,Marketing,COP Explained,Key dates COP,email,12,Nov,19,cop,,scholarship,SNAP Explained,,,,marketo,,Year 12 SNAP (exc. DDINTON),,COP,Key dates COP + scholarship + SNAP Explained,,,,
 ,Marketing,What's next for you after year 10 or 11,,email,10,Nov,19,,,,,,,,marketo,,Year 10,,COP,,,,,
-,Marketing,Skills you can take from school to uni,,email,11,Nov,19,,,,,,,,marketo,,Year 11,,COP,The milestone of moving to Year 12,,,,
+,Marketing,Skills you can take from school to uni,The milestone of moving to Year 12,email,11,Nov,19,,,,,,,,marketo,,Year 11,,COP,The milestone of moving to Year 12,,,,
 ,Marketing,Thanks for preferencing RMIT,,email,12,Nov,30,cop,,,,,,,marketo,,Year 12 #1 preference,,COP,,#1,,,
-,Marketing,Explore a future with RMIT,,email,12,Nov,30,cop,,,,,,,marketo,,Year 12 - COBL #2-8,,COP,It's not too late to make a course your #1,#2-8,COBL,,
-,Marketing,Explore a future with RMIT,,email,12,Nov,30,cop,,,,,,,marketo,,Year 12 - STEM #2-8,,COP,It's not too late to make a course your #1,#2-8,STEM,,
-,Marketing,Explore a future with RMIT,,email,12,Nov,30,cop,,,,,,,marketo,,Year 12 - DSC #2-8,,COP,It's not too late to make a course your #1,#2-8,DSC,,
-,Marketing,Explore a future with RMIT,,email,12,Nov,30,cop,,,,,,,marketo,,Year 12 - No preference,,COP,It's not too late to make a course your #1,none,,,
-,Marketing,VTAC results are released today,,email,12,Dec,10,results,,,,,,,marketo,,Year 12,,COP,COP hotline until 12pm 13 Dec + guaranteed Pathways if the ATAR fell short,,,,
-,Marketing,Change of preference closes today,,email,12,Dec,12,cop,,,,,,,marketo,,Year 12,,COP,COP closes 12pm — we're still open for questions,,,,
-,Marketing,Explore a future with RMIT,,email,12,Dec,23,offers,,,,,,,marketo,,Year 12,,COP - TBC,VTAC offers released today + upcoming rounds + ATAR calculator + pathways,,,,
+,Marketing,Explore a future with RMIT,It's not too late to make a course your #1,email,12,Nov,30,cop,,,,,,,marketo,,Year 12 - COBL #2-8,,COP,It's not too late to make a course your #1,#2-8,COBL,,
+,Marketing,Explore a future with RMIT,It's not too late to make a course your #1,email,12,Nov,30,cop,,,,,,,marketo,,Year 12 - STEM #2-8,,COP,It's not too late to make a course your #1,#2-8,STEM,,
+,Marketing,Explore a future with RMIT,It's not too late to make a course your #1,email,12,Nov,30,cop,,,,,,,marketo,,Year 12 - DSC #2-8,,COP,It's not too late to make a course your #1,#2-8,DSC,,
+,Marketing,Explore a future with RMIT,It's not too late to make a course your #1,email,12,Nov,30,cop,,,,,,,marketo,,Year 12 - No preference,,COP,It's not too late to make a course your #1,none,,,
+,Marketing,VTAC results are released today,COP hotline until 12pm 13 Dec,email,12,Dec,10,results,,guaranteed Pathways if the ATAR fell short,,,,,marketo,,Year 12,,COP,COP hotline until 12pm 13 Dec + guaranteed Pathways if the ATAR fell short,,,,
+,Marketing,Change of preference closes today,COP closes 12pm — we're still open for questions,email,12,Dec,12,cop,,,,,,,marketo,,Year 12,,COP,COP closes 12pm — we're still open for questions,,,,
+,Marketing,Explore a future with RMIT,VTAC offers released today,email,12,Dec,23,offers,,upcoming rounds,ATAR calculator + pathways,,,,marketo,,Year 12,,COP - TBC,VTAC offers released today + upcoming rounds + ATAR calculator + pathways,,,,
