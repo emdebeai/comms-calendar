@@ -199,7 +199,7 @@ export function MonthBand({ expandedMonths, onSetLevel }: MonthBandProps) {
               onClick={() => onSetLevel(m, level === 1 ? 2 : 0)}
               title={level === 1 ? "Expand to day-by-day view" : "Back to month view"}
               aria-label={`${monthLabel(m)} — ${level === 1 ? "week view; click for day view" : "day view; click to collapse"}`}
-              className={`absolute inset-y-[3px] cursor-pointer rounded-md border border-grey-40 bg-card text-xs shadow-sm hover:border-rmit-blue-interactive/60 ${FOCUS_RING}`}
+              className={`absolute inset-y-[3px] cursor-pointer overflow-hidden rounded-md border border-grey-40 bg-card text-xs shadow-sm hover:border-rmit-blue-interactive/60 ${FOCUS_RING}`}
               style={{ left, width }}
             >
               <>
