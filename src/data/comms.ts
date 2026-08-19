@@ -534,30 +534,30 @@ export const inbound: InboundLaneData[] = [
     // Zeros are
     // months where the channel logged nothing. The Feb → Aug gap is real
     // (nothing in the extract between the two runs), so lines break there.
-    seriesNote: "Salesforce — SL enquiries by channel, students only (Yr 12 / completed VCE) · Aug 2025 – Feb 2026, placed by calendar month",
+    seriesNote: "Salesforce — SL enquiries, students only (Yr 12 / completed VCE) · Aug 2025 – Feb 2026, in extract order",
     channels: [
       { label: "Phone", color: "--color-indigo", points: [
-        { month: 24.5, value: 214 }, { month: 25.5, value: 58 },
+        { month: 36.5, value: 214 }, { month: 37.5, value: 58 },
         { month: 31.5, value: 33 }, { month: 32.5, value: 26 }, { month: 33.5, value: 28 }, { month: 34.5, value: 28 }, { month: 35.5, value: 395 },
       ]},
       { label: "Chat", color: "--color-teal", points: [
-        { month: 24.5, value: 140 }, { month: 25.5, value: 64 },
+        { month: 36.5, value: 140 }, { month: 37.5, value: 64 },
         { month: 31.5, value: 193 }, { month: 32.5, value: 177 }, { month: 33.5, value: 110 }, { month: 34.5, value: 36 }, { month: 35.5, value: 347 },
       ]},
       { label: "Webform", color: "--color-rmit-blue-interactive", points: [
-        { month: 24.5, value: 34 }, { month: 25.5, value: 15 },
+        { month: 36.5, value: 34 }, { month: 37.5, value: 15 },
         { month: 31.5, value: 113 }, { month: 32.5, value: 78 }, { month: 33.5, value: 63 }, { month: 34.5, value: 58 }, { month: 35.5, value: 45 },
       ]},
       { label: "Face-to-face", color: "--color-pink", points: [
-        { month: 24.5, value: 28 }, { month: 25.5, value: 6 },
+        { month: 36.5, value: 28 }, { month: 37.5, value: 6 },
         { month: 31.5, value: 0 }, { month: 32.5, value: 0 }, { month: 33.5, value: 0 }, { month: 34.5, value: 7 }, { month: 35.5, value: 38 },
       ]},
       { label: "Email", color: "--color-purple", points: [
-        { month: 24.5, value: 0 }, { month: 25.5, value: 0 },
+        { month: 36.5, value: 0 }, { month: 37.5, value: 0 },
         { month: 31.5, value: 29 }, { month: 32.5, value: 17 }, { month: 33.5, value: 28 }, { month: 34.5, value: 3 }, { month: 35.5, value: 0 },
       ]},
       { label: "Meeting", color: "--color-amber", points: [
-        { month: 24.5, value: 0 }, { month: 25.5, value: 0 },
+        { month: 36.5, value: 0 }, { month: 37.5, value: 0 },
         { month: 31.5, value: 3 }, { month: 32.5, value: 1 }, { month: 33.5, value: 4 }, { month: 34.5, value: 0 }, { month: 35.5, value: 0 },
       ]},
     ],

@@ -23,34 +23,36 @@ function pointLabel(month: number, weekly: boolean): string {
 const TIP_CLASS =
   "pointer-events-none absolute z-50 rounded-md bg-tooltip px-2 py-1 text-xs whitespace-nowrap text-white shadow-md";
 
+/** Split points into contiguous runs — a gap of more than 1.5 months breaks
+ *  the line (e.g. the Feb → Aug hole in the Study@RMIT extract). */
+function splitRuns<T extends { month: number }>(pts: T[]): T[][] {
+  const sorted = [...pts].sort((a, b) => a.month - b.month);
+  const out: T[][] = [];
+  let cur: T[] = [];
+  for (const p of sorted) {
+    if (cur.length && p.month - cur[cur.length - 1].month > 1.5) {
+      out.push(cur);
+      cur = [];
+    }
+    cur.push(p);
+  }
+  if (cur.length) out.push(cur);
+  return out;
+}
+
 export function InboundLane({ data }: { data: InboundLaneData }) {
   const lane = laneById(data.id);
   const h = lane.height;
   const yFor = (v: number) => h - 10 - (Math.min(v, 100) / 100) * (h - 34);
   // Hovered sample x (canvas px) — null when the pointer is off the lane.
   const [hoverX, setHoverX] = useState<number | null>(null);
+  // Channel lanes show total volume by default; a click splits them by channel.
+  const [showChannels, setShowChannels] = useState(false);
 
-  // ── Multi-line mode ──────────────────────────────────────────────────
+  // ── Channel lane ─────────────────────────────────────────────────────
   if (data.channels && data.channels.length > 0) {
     const channels = data.channels;
-    const max = Math.max(...channels.flatMap((c) => c.points.map((p) => p.value)), 1);
-    const cy = (v: number) => h - 12 - (v / max) * (h - 46);
-    // split a channel's points into contiguous runs (gap > 1.5 months breaks)
-    const runs = (pts: { month: number; value: number }[]) => {
-      const sorted = [...pts].sort((a, b) => a.month - b.month);
-      const out: (typeof sorted)[] = [];
-      let cur: typeof sorted = [];
-      for (const p of sorted) {
-        if (cur.length && p.month - cur[cur.length - 1].month > 1.5) {
-          out.push(cur);
-          cur = [];
-        }
-        cur.push(p);
-      }
-      if (cur.length) out.push(cur);
-      return out;
-    };
-    // All sample months (shared grid) → nearest one to the pointer.
+    // Shared sample grid + nearest-to-pointer (used by both total and split).
     const grid = [...new Set(channels.flatMap((c) => c.points.map((p) => p.month)))].sort(
       (a, b) => a - b,
     );
@@ -60,9 +62,134 @@ export function InboundLane({ data }: { data: InboundLaneData }) {
         : grid.reduce((best, m) =>
             Math.abs(scaleX(m) - hoverX) < Math.abs(scaleX(best) - hoverX) ? m : best,
           );
-    // Only bite when the pointer is near a sample (within ~a month's width).
     const hoverLive =
       hoverMonth !== null && hoverX !== null && Math.abs(scaleX(hoverMonth) - hoverX) < 60;
+
+    // Full by-channel figures as a text alternative (WCAG 1.1.1), rendered in
+    // BOTH modes — so the visual total/split toggle is a sighted-mouse
+    // convenience and no data is ever locked behind it.
+    const channelTable = (
+      <table className="sr-only">
+        <caption>{lane.label} inbound enquiries per month, by channel</caption>
+        <thead>
+          <tr>
+            <th scope="col">Channel</th>
+            {grid.map((m) => (
+              <th key={m} scope="col">
+                {pointLabel(m, false)}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {channels.map((c) => (
+            <tr key={c.label}>
+              <th scope="row">{c.label}</th>
+              {grid.map((m) => (
+                <td key={m}>{c.points.find((p) => p.month === m)?.value ?? "no data"}</td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    );
+
+    // ── Total mode (default): one curve summing every channel per month ──
+    if (!showChannels) {
+      const totals = grid.map((m) => ({
+        month: m,
+        value: channels.reduce((s, c) => s + (c.points.find((p) => p.month === m)?.value ?? 0), 0),
+      }));
+      const max = Math.max(...totals.map((t) => t.value), 1);
+      const cy = (v: number) => h - 12 - (v / max) * (h - 46);
+      const hoverTotal = hoverLive ? totals.find((t) => t.month === hoverMonth)?.value : undefined;
+      return (
+        <Fragment>
+          {channelTable}
+          <svg
+            className="absolute left-0 z-10 cursor-pointer"
+            style={{ top: lane.top }}
+            width={TOTAL_W}
+            height={h}
+            role="img"
+            aria-label={`${lane.label} total inbound enquiries over time — full figures in the table above`}
+            onMouseMove={(e) => setHoverX(e.nativeEvent.offsetX)}
+            onMouseLeave={() => setHoverX(null)}
+            onClick={() => setShowChannels(true)}
+          >
+            {data.seriesNote && (
+              <text x={LABEL_W + 12} y={16} className="fill-grey-60 text-xs">
+                {data.seriesNote}
+              </text>
+            )}
+            <text x={LABEL_W + 12} y={30} className="fill-rmit-blue-interactive text-xs font-medium">
+              Total enquiries · click to split by channel
+            </text>
+            {splitRuns(totals).map((run, ri) => {
+              const line = run
+                .map((p) => `${scaleX(p.month).toFixed(1)},${cy(p.value).toFixed(1)}`)
+                .join(" L");
+              const base = `L${scaleX(run[run.length - 1].month).toFixed(1)},${h - 12} L${scaleX(run[0].month).toFixed(1)},${h - 12} Z`;
+              return (
+                <g key={ri}>
+                  <path d={`M${line} ${base}`} fill="var(--color-tint-blue)" opacity={0.85} />
+                  <path
+                    d={`M${line}`}
+                    fill="none"
+                    stroke="var(--color-rmit-blue-interactive)"
+                    strokeWidth={1.75}
+                    strokeLinejoin="round"
+                  />
+                </g>
+              );
+            })}
+            {totals.map((t) => (
+              <circle
+                key={t.month}
+                cx={scaleX(t.month)}
+                cy={cy(t.value)}
+                r={hoverLive && t.month === hoverMonth ? 3.5 : 2.5}
+                fill="var(--color-rmit-blue-interactive)"
+              />
+            ))}
+            {/* Why Jan/Feb sit past Dec: they are the chronological tail of the
+                Aug 2025 – Feb 2026 extract, placed after Dec rather than at the
+                band start so the single run reads left-to-right in real order. */}
+            <text
+              x={Math.min(scaleX(36.5), TOTAL_W - 130)}
+              y={58}
+              textAnchor="middle"
+              className="fill-grey-70 text-xs"
+            >
+              Jan &amp; Feb 2026 · extract tail, shown after Dec
+            </text>
+            {hoverLive && (
+              <line
+                x1={scaleX(hoverMonth!)}
+                x2={scaleX(hoverMonth!)}
+                y1={38}
+                y2={h - 12}
+                stroke="var(--color-grey-40)"
+                strokeDasharray="3 3"
+              />
+            )}
+          </svg>
+          {hoverLive && hoverTotal !== undefined && (
+            <div
+              className={TIP_CLASS}
+              style={{ left: Math.min(scaleX(hoverMonth!) + 10, TOTAL_W - 160), top: lane.top + 40 }}
+            >
+              <span className="font-semibold">{pointLabel(hoverMonth!, false)}</span>{" "}
+              {hoverTotal.toLocaleString()} enquiries
+            </div>
+          )}
+        </Fragment>
+      );
+    }
+
+    // ── Split mode: one line per channel, sharing a single scale ─────────
+    const max = Math.max(...channels.flatMap((c) => c.points.map((p) => p.value)), 1);
+    const cy = (v: number) => h - 12 - (v / max) * (h - 46);
     const tipRows = hoverLive
       ? channels
           .map((c) => ({
@@ -73,45 +200,19 @@ export function InboundLane({ data }: { data: InboundLaneData }) {
           .filter((r) => r.value !== undefined)
           .sort((a, b) => (b.value ?? 0) - (a.value ?? 0))
       : [];
-    const months = [...new Set(channels.flatMap((c) => c.points.map((p) => p.month)))].sort(
-      (a, b) => a - b,
-    );
     return (
       <Fragment>
-        {/* Text alternative for the chart — real values, not a description
-            (WCAG 1.1.1); the hover tooltips are a sighted-user convenience. */}
-        <table className="sr-only">
-          <caption>{lane.label} inbound enquiries per month, by channel</caption>
-          <thead>
-            <tr>
-              <th scope="col">Channel</th>
-              {months.map((m) => (
-                <th key={m} scope="col">
-                  {pointLabel(m, false)}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {channels.map((c) => (
-              <tr key={c.label}>
-                <th scope="row">{c.label}</th>
-                {months.map((m) => (
-                  <td key={m}>{c.points.find((p) => p.month === m)?.value ?? "no data"}</td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        {channelTable}
         <svg
-          className="absolute left-0 z-10"
+          className="absolute left-0 z-10 cursor-pointer"
           style={{ top: lane.top }}
           width={TOTAL_W}
           height={h}
           role="img"
-          aria-label={`${lane.label} inbound enquiries by channel over time — full figures in the adjacent table`}
+          aria-label={`${lane.label} inbound enquiries by channel over time — full figures in the table above`}
           onMouseMove={(e) => setHoverX(e.nativeEvent.offsetX)}
           onMouseLeave={() => setHoverX(null)}
+          onClick={() => setShowChannels(false)}
         >
           {data.seriesNote && (
             <text x={LABEL_W + 12} y={16} className="fill-grey-60 text-xs">
@@ -130,9 +231,16 @@ export function InboundLane({ data }: { data: InboundLaneData }) {
               </g>
             );
           })}
+          <text
+            x={LABEL_W + 12 + channels.length * 104 + 8}
+            y={31.5}
+            className="fill-rmit-blue-interactive text-xs font-medium"
+          >
+            · click to combine
+          </text>
           {/* shaded area + line per channel run */}
           {channels.map((c) =>
-            runs(c.points).map((run, ri) => {
+            splitRuns(c.points).map((run, ri) => {
               const line = run
                 .map((p) => `${scaleX(p.month).toFixed(1)},${cy(p.value).toFixed(1)}`)
                 .join(" L");
@@ -174,6 +282,15 @@ export function InboundLane({ data }: { data: InboundLaneData }) {
               strokeDasharray="3 3"
             />
           )}
+          {/* Jan/Feb placement note — see total-mode comment above. */}
+          <text
+            x={Math.min(scaleX(36.5), TOTAL_W - 130)}
+            y={58}
+            textAnchor="middle"
+            className="fill-grey-70 text-xs"
+          >
+            Jan &amp; Feb 2026 · extract tail, shown after Dec
+          </text>
         </svg>
         {hoverLive && tipRows.length > 0 && (
           <div
