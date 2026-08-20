@@ -63,34 +63,32 @@ export function PersonaIntroModal({ onClose }: { onClose: () => void }) {
         onClick={(e) => e.stopPropagation()}
         onKeyDown={onKeyDown}
       >
-        {/* Identity band — this is a person, not a policy */}
-        <div className="rounded-t-lg bg-header px-8 pt-7 pb-6 text-white">
-          <span className="flex items-center gap-3">
-            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white/15">
+        <div className="p-8">
+          {/* Identity — a person, on the card (no banner) */}
+          <div className="flex items-center gap-3">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-tint-blue text-rmit-blue">
               <GraduationCap size={22} strokeWidth={2} aria-hidden />
             </span>
             <span>
-              <span className={`block text-white/60 ${EYEBROW}`}>Persona 01 · DOM SL</span>
-              <h2 id="persona-intro-title" className="mt-0.5 text-xl font-semibold">
+              <span className={`block text-rmit-blue ${EYEBROW}`}>Persona 01 · DOM SL</span>
+              <h2 id="persona-intro-title" className="mt-0.5 text-xl font-semibold text-grey-90">
                 Domestic school leaver
               </h2>
             </span>
-          </span>
+          </div>
           <div className="mt-4 flex flex-wrap gap-1.5">
             {IDENTITY.map((chip) => (
               <span
                 key={chip}
-                className="rounded-full bg-white/15 px-2.5 py-1 text-xs font-medium text-white"
+                className="rounded-full border border-grey-30 px-2.5 py-1 text-xs font-medium text-grey-80"
               >
                 {chip}
               </span>
             ))}
           </div>
-        </div>
 
-        <div className="p-8 pt-6">
           {/* Stat grid — numbers carry the story, sources on the info marks */}
-          <dl className="grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-3">
+          <dl className="mt-7 grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-3">
             {STATS.map((s) => (
               <div key={s.label}>
                 <dt className="sr-only">{s.label}</dt>
