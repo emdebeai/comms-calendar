@@ -42,7 +42,12 @@ export function Landing({ onEnter, theme, onToggleTheme }: LandingProps) {
   const [page, setPage] = useState<Page>("home");
   // Page switches are state changes, not navigations, so the browser keeps
   // the old scroll position. Every page opens from the top.
-  useEffect(() => window.scrollTo(0, 0), [page]);
+  // Braced body on purpose: a concise arrow would return scrollTo's return
+  // value, which React would call as the effect cleanup on unmount — and
+  // browser extensions that patch scrollTo can make that a non-function.
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [page]);
   return (
     <div className="min-h-screen bg-surface font-sans text-grey-90">
       <SiteNav page={page} setPage={setPage} theme={theme} onToggleTheme={onToggleTheme} />
