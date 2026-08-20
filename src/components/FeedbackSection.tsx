@@ -30,7 +30,7 @@ export function FeedbackThread({
 }) {
   return (
     <>
-      <h3 className={`mt-6 text-grey-70 ${EYEBROW}`}>Feedback &amp; metrics</h3>
+      <h3 className={`mt-6 border-t border-grey-30 pt-6 text-grey-70 ${EYEBROW}`}>Feedback &amp; metrics</h3>
       {/* Live region so newly added notes are announced to screen readers. */}
       <div aria-live="polite">
         {entries.length === 0 ? (

@@ -129,6 +129,13 @@ function Home({ onEnter, setPage }: { onEnter: () => void; setPage: (p: Page) =>
           <span className="font-bold text-rmit-blue">timely</span> in engagements with future
           students.
         </p>
+        <div className="mt-5 flex max-w-3xl flex-col gap-4">
+          {INTRO.body.map((para) => (
+            <p key={para.slice(0, 24)} className="text-base leading-relaxed text-grey-80">
+              {para}
+            </p>
+          ))}
+        </div>
       </section>
 
       {/* The four qualities the work supports */}

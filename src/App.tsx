@@ -655,7 +655,7 @@ export default function App() {
         href="#comms-list"
         className="absolute left-2 top-2 z-50 -translate-y-16 rounded-md bg-header px-3 py-2 text-sm font-medium text-white transition-transform focus:translate-y-0"
       >
-        Skip to communications list
+        Skip to touch points list
       </a>
       {/* Announces zoom-level changes (gesture or keyboard) to assistive tech,
           matching the visual reflow sighted users see. */}
@@ -783,8 +783,8 @@ export default function App() {
                 meaning through colour + position (WCAG 1.3.1). Hidden visually,
                 read in DOM order by assistive tech. Reflects the active type
                 filter so it matches what's shown on the canvas. */}
-            <section id="comms-list" className="sr-only" aria-label="Communications list">
-              <h2>Communications{activeTypes.size < ALL_TYPES.length ? " (filtered)" : ""}</h2>
+            <section id="comms-list" className="sr-only" aria-label="Touch points list">
+              <h2>Touch points{activeTypes.size < ALL_TYPES.length ? " (filtered)" : ""}</h2>
               <ul>
                 {layout.comms
                   .filter((c) => activeTypes.has(c.type))
@@ -863,7 +863,7 @@ export default function App() {
             ) : (
               <span className="text-grey-80">
                 Showing <span className="font-semibold text-grey-90">{shownCount}</span> of{" "}
-                {layout.comms.length} comms
+                {layout.comms.length} touch points
                 {activeFilterLabel && (
                   <span className="text-grey-70"> — {activeFilterLabel}</span>
                 )}

@@ -5,7 +5,7 @@ import { linkedQuestions } from "../data/studentExperience";
 import type { Comm, CommType, FeedbackEntry } from "../data/types";
 import { commDateLabel } from "../lib/scale";
 import { SEGMENT_AXES } from "../lib/segments";
-import { EYEBROW } from "../lib/styles";
+import { EYEBROW, FOCUS_RING } from "../lib/styles";
 import { DetailPanelShell } from "./DetailPanelShell";
 import { TokenText } from "./TokenText";
 import { FeedbackComposer, FeedbackThread } from "./FeedbackSection";
@@ -118,7 +118,7 @@ function AttributeRow({ label, value }: { label: string; value?: string | null }
   if (!value) return null;
   return (
     <div className="flex gap-3 py-1">
-      <dt className="w-28 shrink-0 text-sm text-grey-70">{label}</dt>
+      <dt className="w-32 shrink-0 text-sm text-grey-70">{label}</dt>
       <dd className="min-w-0 text-sm text-grey-90">{value}</dd>
     </div>
   );
@@ -165,14 +165,15 @@ export function CommDetailPanel({ comm, allComms, entries, onClose, onAdd, onDel
       icon={<Icon size={16} strokeWidth={1.75} aria-hidden />}
       onClose={onClose}
     >
-      <div className="flex-1 overflow-y-auto p-5">
-        {onEdit && (
-          <div className="mb-3 flex justify-end">
+      <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex items-center justify-between gap-3">
+          <h3 className={`text-grey-70 ${EYEBROW}`}>Details</h3>
+          {onEdit && (
             <button
               type="button"
               onClick={() => setEditing((e) => !e)}
               aria-pressed={editing}
-              className="flex items-center gap-1.5 rounded-md border border-grey-30 px-2.5 py-1 text-xs font-medium text-grey-80 hover:bg-grey-10"
+              className={`flex items-center gap-1.5 rounded-md border border-grey-30 px-2.5 py-1 text-xs font-medium text-grey-80 hover:bg-grey-10 ${FOCUS_RING}`}
             >
               {editing ? (
                 <>
@@ -180,18 +181,18 @@ export function CommDetailPanel({ comm, allComms, entries, onClose, onAdd, onDel
                 </>
               ) : (
                 <>
-                  <Pencil size={13} strokeWidth={2} aria-hidden /> Edit details
+                  <Pencil size={13} strokeWidth={2} aria-hidden /> Edit
                 </>
               )}
             </button>
-          </div>
-        )}
+          )}
+        </div>
         {editing && onEdit ? (
-          <EditForm key={comm.id} comm={comm} onEdit={onEdit} />
+          <div className="mt-3">
+            <EditForm key={comm.id} comm={comm} onEdit={onEdit} />
+          </div>
         ) : (
         <>
-        {/* ── Attributes ── */}
-        <h3 className={`text-grey-70 ${EYEBROW}`}>Details</h3>
         <dl className="mt-2">
           {/* Sits first so it reads straight on from the date in the header.
               Events only — AttributeRow renders nothing when it's unset. */}
@@ -210,7 +211,7 @@ export function CommDetailPanel({ comm, allComms, entries, onClose, onAdd, onDel
               /* explicit, not omitted — "we don't know the CTA" is a data gap
                  worth surfacing to the sending team, not hiding */
               <div className="flex gap-3 py-1">
-                <dt className="w-28 shrink-0 text-sm text-grey-70">Primary CTA</dt>
+                <dt className="w-32 shrink-0 text-sm text-grey-70">Primary CTA</dt>
                 <dd className="min-w-0 text-sm text-grey-70 italic">Not recorded</dd>
               </div>
             ))}
@@ -233,7 +234,7 @@ export function CommDetailPanel({ comm, allComms, entries, onClose, onAdd, onDel
             so this section doubles as a key for the persona-dock toggles. */}
         {(comm.audience || comm.campaign || comm.theme || tailoringChips.length > 0) && (
           <>
-            <h3 className={`mt-6 text-grey-70 ${EYEBROW}`}>Audience & Tailoring</h3>
+            <h3 className={`mt-6 border-t border-grey-30 pt-6 text-grey-70 ${EYEBROW}`}>Audience &amp; Tailoring</h3>
             <dl className="mt-2">
               <AttributeRow label="Audience" value={comm.audience} />
               <AttributeRow label="Campaign" value={comm.campaign} />
@@ -258,7 +259,7 @@ export function CommDetailPanel({ comm, allComms, entries, onClose, onAdd, onDel
         {/* ── Send performance — plain stats, whitespace does the work ── */}
         {comm.type !== "event" && (
           <>
-            <h3 className={`mt-6 text-grey-70 ${EYEBROW}`}>Performance</h3>
+            <h3 className={`mt-6 border-t border-grey-30 pt-6 text-grey-70 ${EYEBROW}`}>Performance</h3>
             {comm.openRate || comm.clickRate ? (
               <div className="mt-2 flex gap-10">
                 <div>

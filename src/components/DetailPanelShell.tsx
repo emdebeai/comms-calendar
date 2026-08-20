@@ -61,7 +61,7 @@ export function DetailPanelShell({ overline, title, iconChipClass, icon, onClose
         role="dialog"
         aria-modal="true"
         aria-labelledby="detail-panel-title"
-        className="animate-panel-in relative flex h-full w-96 max-w-full flex-col bg-card shadow-xl"
+        className="animate-panel-in relative flex h-full w-[28rem] max-w-full flex-col bg-card shadow-lg"
         onClick={(e) => e.stopPropagation()}
         onKeyDown={onKeyDown}
       >
