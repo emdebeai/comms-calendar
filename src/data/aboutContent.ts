@@ -1,6 +1,6 @@
-// Content for the landing-page reference sections. Scope/purpose copy is
-// deliberate lorem for now (to be written); the glossary and bibliography are
-// populated from the project's real terms and sources so they're useful today.
+// Content for the landing page: the verbatim scope/purpose statement and
+// four pillars, plus the reference sections (glossary and bibliography are real;
+// people and AI-use are structured placeholders).
 
 export interface AboutPage {
   slug: "bibliography" | "glossary" | "people" | "ai-policy";
@@ -8,17 +8,19 @@ export interface AboutPage {
   intro: string;
 }
 
-const LOREM =
-  "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.";
-
-/** Scope / purpose / why-a-map — placeholder copy (lorem) until written. */
+/** Scope / purpose. The statement is verbatim from the project brief; the
+ *  three emphasised words are rendered bold in the landing hero. */
 export const INTRO = {
   eyebrow: "Prospective student communications",
-  what: LOREM + " " + LOREM,
-  whyMap:
-    "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut enim ad minim veniam, quis " +
-    "nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
 };
+
+/** The four qualities the work supports — verbatim from the brief. */
+export const PILLARS: { title: string; blurb: string }[] = [
+  { title: "End-to-end", blurb: "Encompassing all stages of the journey from Understand to Enrol" },
+  { title: "Cross functional", blurb: "Representing all business areas within the portfolio" },
+  { title: "User-centric", blurb: "Centring and connecting to the prospective student experience" },
+  { title: "Scalable", blurb: "Built for teams to collaboratively develop, iterate and add nuance" },
+];
 
 export const PERSONAS = [
   {

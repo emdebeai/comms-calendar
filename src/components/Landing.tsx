@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowRight, Moon, Sun } from "lucide-react";
+import { ArrowRight, Layers, Moon, Route, Sun, Target, Users } from "lucide-react";
 import { FOCUS_RING } from "../lib/styles";
 import {
   ABOUT_PAGES,
@@ -9,8 +9,11 @@ import {
   INTRO,
   PEOPLE,
   PERSONAS,
+  PILLARS,
   type AboutPage,
 } from "../data/aboutContent";
+
+const PILLAR_ICONS = [Route, Users, Target, Layers];
 
 type Page = "home" | AboutPage["slug"];
 
@@ -98,7 +101,7 @@ function SiteNav({
 function Home({ onEnter, setPage }: { onEnter: () => void; setPage: (p: Page) => void }) {
   return (
     <div className="flex flex-col gap-10">
-      {/* Hero — scope / purpose (placeholder copy) */}
+      {/* Hero — scope / purpose (verbatim from the brief) */}
       <section>
         <p className="text-xs font-semibold uppercase tracking-widest text-grey-60">
           {INTRO.eyebrow}
@@ -106,13 +109,31 @@ function Home({ onEnter, setPage }: { onEnter: () => void; setPage: (p: Page) =>
         <h1 className="mt-3 max-w-3xl text-4xl font-bold leading-tight text-rmit-blue">
           Current State Touch Points
         </h1>
-        <p className="mt-4 max-w-2xl text-base leading-relaxed text-grey-80">{INTRO.what}</p>
+        <p className="mt-5 max-w-3xl text-2xl font-medium leading-snug text-grey-90">
+          This work will support the portfolio to be{" "}
+          <span className="font-bold text-rmit-blue">consistent</span>,{" "}
+          <span className="font-bold text-rmit-blue">relevant</span> and{" "}
+          <span className="font-bold text-rmit-blue">timely</span> in engagements with future
+          students.
+        </p>
       </section>
 
-      {/* Why a map */}
+      {/* The four qualities the work supports */}
       <section>
-        <h2 className="text-xl font-semibold text-grey-90">Why a map</h2>
-        <p className="mt-3 max-w-2xl text-base leading-relaxed text-grey-80">{INTRO.whyMap}</p>
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {PILLARS.map((p, i) => {
+            const Icon = PILLAR_ICONS[i];
+            return (
+              <div key={p.title}>
+                <div className="flex h-11 w-11 items-center justify-center rounded-full bg-tint-blue text-rmit-blue">
+                  <Icon size={20} strokeWidth={2} aria-hidden />
+                </div>
+                <p className="mt-3 text-base font-semibold text-grey-90">{p.title}</p>
+                <p className="mt-1 text-sm leading-relaxed text-grey-70">{p.blurb}</p>
+              </div>
+            );
+          })}
+        </div>
       </section>
 
       {/* Personas */}
