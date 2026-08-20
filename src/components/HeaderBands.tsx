@@ -160,35 +160,17 @@ export function MonthBand({ expandedMonths, onSetLevel }: MonthBandProps) {
       className="absolute top-0 left-0 border-b border-grey-30 bg-card"
       style={{ width: TOTAL_W, height: MONTH_H }}
     >
-      {/* Year/stage context runs — one sticky label per span, drawn BENEATH
-          the month buttons so an expanded month's opaque bar occludes it (a
-          run's sticky label can clamp left at its boundary and would otherwise
-          bleed grey text over the dark expanded bar). Collapsed month buttons
-          are transparent, so the label still shows under them. */}
-      {runs.map((r) => {
-        // A run touching an expanded month would pin its sticky label into the
-        // sliver beside that month's dark bar, doubling its context chip — drop
-        // the label there (keep the thin boundary tick). The expanded month
-        // shows its own "Dec · Yr 11 · Consider" chip anyway.
-        const nextToExpanded = expandedMonths.has(r.end) || expandedMonths.has(r.start - 1);
-        return (
-          <div
-            key={r.start}
-            aria-hidden
-            className="pointer-events-none absolute bottom-0 flex h-[15px] items-start justify-center border-l border-grey-20"
-            style={{ left: scaleX(r.start), width: scaleX(r.end) - scaleX(r.start) }}
-          >
-            {!nextToExpanded && (
-              <span
-                className="px-1 text-xs leading-none font-semibold whitespace-nowrap text-grey-80"
-                style={stickyLabel}
-              >
-                {r.label}
-              </span>
-            )}
-          </div>
-        );
-      })}
+      {/* Year-boundary ticks — the year LABELS live in the school-year band
+          above; repeating them here doubled up, so the runs keep only their
+          thin boundary line. */}
+      {runs.map((r) => (
+        <div
+          key={r.start}
+          aria-hidden
+          className="pointer-events-none absolute bottom-0 h-[15px] border-l border-grey-20"
+          style={{ left: scaleX(r.start), width: scaleX(r.end) - scaleX(r.start) }}
+        />
+      ))}
       {Array.from({ length: MONTHS }, (_, m) => {
         const left = scaleX(m);
         const width = scaleX(m + 1) - left;
