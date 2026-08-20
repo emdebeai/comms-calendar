@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { ChevronUp, GraduationCap } from "lucide-react";
+import { ChevronUp, GraduationCap, Info } from "lucide-react";
 import { SegmentToggles } from "./SegmentToggles";
 import {
   EQUITY_FULL_NAMES,
@@ -12,6 +12,8 @@ import { FOCUS_RING } from "../lib/styles";
 import { HoverTip } from "./HoverTip";
 
 interface Props {
+  /** reopen the persona introduction modal */
+  onAboutPersona: () => void;
   axes: { axis: SegmentAxis; values: string[] }[];
   selection: SegmentSelection;
   /** comms explicitly tagged per axis value — passed through to the toggles */
@@ -31,6 +33,7 @@ interface Props {
  *  above it, so the map can be filtered by tailoring axis without the toggles
  *  taking up header space. */
 export function PersonaDock({
+  onAboutPersona,
   axes,
   selection,
   counts,
@@ -92,6 +95,15 @@ export function PersonaDock({
             aria-hidden
           />
           {!open && <HoverTip label="Filter the map by how sends are tailored" />}
+        </button>
+        <button
+          type="button"
+          onClick={onAboutPersona}
+          aria-label="About this persona"
+          className={`group relative flex h-8 w-8 items-center justify-center rounded-full text-grey-70 hover:bg-grey-20 ${FOCUS_RING}`}
+        >
+          <Info size={14} strokeWidth={2} aria-hidden />
+          <HoverTip label="About this persona" />
         </button>
 
         {equityCohorts.length > 0 && (

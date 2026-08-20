@@ -923,6 +923,7 @@ export default function App() {
           toggles as a popover. */}
       {!PRINT_MODE && (
       <PersonaDock
+        onAboutPersona={() => setIntroOpen(true)}
         axes={segmentAxes}
         selection={segments}
         counts={segmentCounts}
