@@ -84,8 +84,25 @@ interface LandingProps {
 
 const CARD = "rounded-lg border border-grey-30 bg-card p-6";
 
+const PAGE_SLUGS = ["bibliography", "glossary", "people", "ai-policy"] as const;
+function pageFromHash(): Page {
+  const h = window.location.hash.replace(/^#\//, "");
+  return (PAGE_SLUGS as readonly string[]).includes(h) ? (h as Page) : "home";
+}
+
 export function Landing({ onEnter, theme, onToggleTheme }: LandingProps) {
-  const [page, setPage] = useState<Page>("home");
+  // Reference pages live in the URL hash (#/glossary, ...) so the browser's
+  // Back button steps back through them and they can be linked directly.
+  const [page, setPageState] = useState<Page>(pageFromHash);
+  const setPage = (p: Page) => {
+    window.location.hash = p === "home" ? "/" : `/${p}`;
+    setPageState(p);
+  };
+  useEffect(() => {
+    const onHash = () => setPageState(pageFromHash());
+    window.addEventListener("hashchange", onHash);
+    return () => window.removeEventListener("hashchange", onHash);
+  }, []);
   // Page switches are state changes, not navigations, so the browser keeps
   // the old scroll position. Every page opens from the top.
   // Braced body on purpose: a concise arrow would return scrollTo's return

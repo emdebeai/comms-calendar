@@ -81,22 +81,29 @@ const SEG_FROM_URL: SegmentSelection = (() => {
   return out;
 })();
 
+// The landing/map split lives in the URL hash so the browser's Back button
+// walks back through the flow (map -> landing) instead of leaving the site,
+// and #/map is shareable. Print mode and deep-linked filter URLs skip the door.
+const mapInHash = () => window.location.hash === "#/map";
+
 export default function App() {
-  // Landing splash gates the map (once per browser session). Print mode
-  // and any deep-linked URL filters skip it and go straight in.
   const [entered, setEntered] = useState(
-    () =>
-      PRINT_MODE ||
-      window.location.search.length > 0 || // deep-linked/shared view skips the door
-      sessionStorage.getItem("cc-entered") === "1",
+    () => PRINT_MODE || window.location.search.length > 0 || mapInHash(),
   );
   const enterMap = useCallback(() => {
-    sessionStorage.setItem("cc-entered", "1");
+    window.location.hash = "/map"; // pushes a history entry
     setEntered(true);
   }, []);
   const goHome = useCallback(() => {
-    sessionStorage.removeItem("cc-entered");
+    window.location.hash = "/";
     setEntered(false);
+  }, []);
+  // Back/forward: follow the hash.
+  useEffect(() => {
+    const onHash = () =>
+      setEntered(PRINT_MODE || window.location.search.length > 0 || mapInHash());
+    window.addEventListener("hashchange", onHash);
+    return () => window.removeEventListener("hashchange", onHash);
   }, []);
   // First visit to the map in this browser: introduce the persona. Print
   // and deep-linked exports skip it.
