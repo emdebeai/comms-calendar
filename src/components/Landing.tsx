@@ -198,7 +198,7 @@ function Home({ onEnter, setPage }: { onEnter: () => void; setPage: (p: Page) =>
                     {p.code}
                   </span>
                   <span className="rounded-full bg-grey-10 px-2 py-0.5 text-xs text-grey-60">
-                    Not mapped yet
+                    Planned
                   </span>
                 </div>
                 <p className="mt-3 text-base font-semibold text-grey-80">{p.name}</p>

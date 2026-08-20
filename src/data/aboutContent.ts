@@ -14,7 +14,6 @@ export const INTRO = {
   eyebrow: "Prospective student touch points",
   body: [
     "By creating and working from a holistic view of the future student experience, we will enable the business to consider the needs and goals of students at each step of the journey, as well as considering the journey as an end-to-end experience.",
-    "This will support discussions and decision making that is anchored in what a student is experiencing outside and beyond a discrete touchpoint.",
   ],
 };
 
@@ -30,19 +29,19 @@ export const PERSONAS = [
   {
     code: "DOM SL",
     name: "Domestic school leaver",
-    blurb: "Year 12 domestic student applying to RMIT through VTAC. The persona this map is built around.",
+    blurb: "Year 12 domestic student applying to RMIT through VTAC.",
     available: true,
   },
   {
     code: "NSL",
     name: "Domestic non-school leaver",
-    blurb: "Mature-age and returning domestic applicants. Not mapped yet.",
+    blurb: "Mature-age and returning domestic applicants.",
     available: false,
   },
   {
     code: "INTON",
     name: "International onshore",
-    blurb: "International students already in Australia. Not mapped yet.",
+    blurb: "International students already in Australia.",
     available: false,
   },
 ] as const;
