@@ -89,6 +89,7 @@ interface Props {
   /** collapsed swimlanes — their comms/campaigns/curves are hidden and the
    *  lane shrinks to its label strip */
   collapsedLanes: Set<string>;
+  hiddenLanes: Set<string>;
   onToggleLane: (laneId: string) => void;
 }
 
@@ -128,6 +129,7 @@ export function Timeline({
   onPinMoment,
   feedbackCount,
   collapsedLanes,
+  hiddenLanes,
   onToggleLane,
 }: Props) {
   // focusSet (question > moment > trigger precedence) is computed in App and
@@ -174,10 +176,11 @@ export function Timeline({
       !matchesSegment(c, segments) ||
       (equity !== null && c.equity !== equity),
   );
-  const hiddenForLines =
-    filteredForLines.length || hiddenIds.size
-      ? new Set([...hiddenIds, ...filteredForLines.map((c) => c.id)])
-      : hiddenIds;
+  const hiddenForLines = new Set([
+    ...hiddenIds,
+    ...filteredForLines.map((c) => c.id),
+    ...comms.filter((c) => hiddenLanes.has(c.team)).map((c) => c.id),
+  ]);
 
   // Alternating lane-stripe background, computed once so the canvas and the
   // sticky gutter stay in sync (divider lanes are skipped in the count).
@@ -420,6 +423,8 @@ export function Timeline({
             (the type icon carries what the card would say), so you can still
             read the cadence in the compact "all lanes" overview. */}
         {comms.map((c) => {
+          // Hidden lanes render nothing but their gutter label.
+          if (hiddenLanes.has(c.team)) return null;
           const filteredOut =
             !activeTypes.has(c.type) ||
             !matchesSegment(c, segments) ||
@@ -645,6 +650,7 @@ export function Timeline({
         {LANES.map((lane) => {
           const collapsible = lane.kind === "outbound" || lane.kind === "inbound";
           const collapsed = collapsedLanes.has(lane.id);
+          const hidden = hiddenLanes.has(lane.id);
           const isEmpty = lane.kind === "outbound" && !teamsWithComms.has(lane.id as Team);
           const count = commCountByTeam[lane.id] ?? 0;
 
@@ -692,7 +698,7 @@ export function Timeline({
               )}
               {collapsed && lane.kind === "outbound" && count > 0 && (
                 <span className="pl-[19px] text-xs text-grey-70">
-                  {count} touchpoint{count === 1 ? "" : "s"}
+                  {count} {hidden ? "hidden" : `touchpoint${count === 1 ? "" : "s"}`}
                 </span>
               )}
             </>
@@ -787,7 +793,7 @@ export function Timeline({
                 onToggleLane(lane.id);
               }}
               aria-expanded={!collapsed}
-              aria-label={`${lane.label} lane — ${collapsed ? "expand" : "collapse"}`}
+              aria-label={`${lane.label} lane — ${hidden ? "expand" : collapsed ? "hide" : "collapse"}`}
               className={`absolute left-0 flex w-full flex-col border-b border-grey-30 px-4 text-left hover:bg-grey-20 ${laneBg[lane.id]} ${FOCUS_RING}`}
               style={posStyle}
             >

@@ -159,9 +159,38 @@ export default function App() {
           // empty card area on first load.
           new Set(["admissions", "conversion", "marketing-events"]),
   );
+  // Fully-hidden lanes (a subset of collapsed): just the label strip, no
+  // marker stack. The lane toggle cycles expanded -> collapsed -> hidden.
+  const [hiddenLanes, setHiddenLanes] = useState<Set<string>>(new Set());
   const allLanesCollapsed = COLLAPSIBLE_LANES.every((id) => collapsedLanes.has(id));
-  const toggleAllLanes = () =>
-    setCollapsedLanes(allLanesCollapsed ? new Set() : new Set(COLLAPSIBLE_LANES));
+  const toggleAllLanes = () => {
+    if (allLanesCollapsed) {
+      setCollapsedLanes(new Set());
+      setHiddenLanes(new Set());
+    } else {
+      setCollapsedLanes(new Set(COLLAPSIBLE_LANES));
+    }
+  };
+  const cycleLane = (laneId: string) => {
+    const isCollapsed = collapsedLanes.has(laneId);
+    const isHidden = hiddenLanes.has(laneId);
+    if (!isCollapsed) {
+      setCollapsedLanes((prev) => new Set(prev).add(laneId)); // expanded -> collapsed
+    } else if (!isHidden) {
+      setHiddenLanes((prev) => new Set(prev).add(laneId)); // collapsed -> hidden
+    } else {
+      setCollapsedLanes((prev) => {
+        const n = new Set(prev);
+        n.delete(laneId);
+        return n;
+      });
+      setHiddenLanes((prev) => {
+        const n = new Set(prev);
+        n.delete(laneId);
+        return n;
+      });
+    }
+  };
   const [feedback, setFeedback] = useState<FeedbackStore>({});
   // Admin unlock — a second gate (above the site password) for deleting
   // comments. The key is held for the browser session once verified.
@@ -289,9 +318,10 @@ export default function App() {
             collapsedLanes,
             showStudentLayer,
             filteredIds,
+            hiddenLanes,
           )
         : null,
-    [comms, expandedMonths, cardHeights, expandedCampaigns, collapsedLanes, showStudentLayer, filteredIds],
+    [comms, expandedMonths, cardHeights, expandedCampaigns, collapsedLanes, showStudentLayer, filteredIds, hiddenLanes],
   );
 
   // ── Focus + filter state (drives what dims) ──────────────────────────────
@@ -380,9 +410,10 @@ export default function App() {
             collapsedLanes,
             showStudentLayer,
             filteredIds,
+            hiddenLanes,
           )
         : null,
-    [comms, effectiveExpanded, cardHeights, expandedCampaigns, collapsedLanes, showStudentLayer, filteredIds],
+    [comms, effectiveExpanded, cardHeights, expandedCampaigns, collapsedLanes, showStudentLayer, filteredIds, hiddenLanes],
   );
 
   // How many comms the active lenses leave lit — feeds the "N of M shown"
@@ -745,14 +776,8 @@ export default function App() {
               onPinMoment={(id) => setPinnedMoment((p) => (p === id ? null : id))}
               feedbackCount={(commId) => feedback[commId]?.length ?? 0}
               collapsedLanes={collapsedLanes}
-              onToggleLane={(laneId) =>
-                setCollapsedLanes((prev) => {
-                  const next = new Set(prev);
-                  if (next.has(laneId)) next.delete(laneId);
-                  else next.add(laneId);
-                  return next;
-                })
-              }
+              hiddenLanes={hiddenLanes}
+              onToggleLane={cycleLane}
             />
             {/* Text alternative to the visual timeline canvas, which conveys
                 meaning through colour + position (WCAG 1.3.1). Hidden visually,

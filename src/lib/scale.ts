@@ -428,6 +428,7 @@ export function layoutTimeline(
   collapsedLanes: Set<string> = new Set(),
   studentLayer = false,
   filteredIds: Set<string> = new Set(),
+  hiddenLanes: Set<string> = new Set(),
 ): TimelineLayout {
   // Set the header height before anything reads it (buildLanes anchors every
   // lane's `top` to HEADER_H).
@@ -482,6 +483,12 @@ export function layoutTimeline(
     // Collapsed lanes stack their comms as small icon markers (fixed footprint,
     // no fold cap) so volume reads as stack height; expanded lanes pack full
     // cards with the usual fold. Same skyline algorithm either way.
+    // Hidden lanes shrink to just their label strip: no cards, no markers.
+    if (hiddenLanes.has(team)) {
+      nextCardArea[team] = MARKER_SIZE;
+      nextPlaced[team] = [];
+      continue;
+    }
     const collapsed = collapsedLanes.has(team);
     const footW = collapsed ? MARKER_W : CARD_W;
     const gapY = collapsed ? MARKER_GAP : ROW_GAP;
