@@ -132,7 +132,7 @@ export const AI_POLICY = {
       heading: "What AI never saw",
       points: [
         "No student personal identifiers. The enquiry data used contains no names, contact details or IDs.",
-        "Staff names appear only in ordinary work context (document authorship, comments and review attributions), handled as routine work product. No other staff personal information was used.",
+        "No staff personal information, beyond a first name a person may choose to attach to a comment or review.",
         "The raw student feedback (voice-of-customer) verbatims were never imported into this tool or given to AI in bulk. They were thematically analysed outside this environment, and only the resulting themes and a small number of de-identified illustrative quotes are used here.",
         "No sensitive information as defined by Victorian privacy law (such as racial or ethnic origin or health information) about any individual. Equity cohorts (SNAP, Indigenous Access) appear only as audience tags on communications, never as data about a person.",
         "No individual-level student records of any kind are used anywhere in the map; every figure is aggregate or cohort-level.",
