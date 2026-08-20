@@ -130,12 +130,15 @@ export const MOMENT_H = 68; // moment-that-matters label track (three mini-lines
 // light up its linked comms in place, no panel in the way. The deep-dive panel
 // (voice/needs/decisions/actions) opens from the small info button per stage.
 // See StudentJourneyLane.
-// Coverage-first: at rest the band shows only each stage's voice + coverage
-// read-out (short). Expanding one stage reveals its questions and grows the
-// band. STUDENT_LANE_H is a live binding layoutTimeline updates before it
-// recomputes HEADER_H; the lane component reads the same binding at render.
-export const STUDENT_LANE_COLLAPSED_H = 140;
-export const STUDENT_LANE_EXPANDED_H = 320;
+// Coverage-first: at rest the band is a thin ribbon — each stage's N/M + dots,
+// nothing else, so it barely costs any vertical space. Opening a stage adds a
+// full-width detail panel below (voice + questions across the width, not a
+// cramped column). STUDENT_LANE_H is a live binding layoutTimeline updates
+// before it recomputes HEADER_H; the lane component reads the same binding.
+export const STUDENT_RIBBON_H = 48;
+export const STUDENT_DETAIL_H = 162;
+export const STUDENT_LANE_COLLAPSED_H = STUDENT_RIBBON_H;
+export const STUDENT_LANE_EXPANDED_H = STUDENT_RIBBON_H + STUDENT_DETAIL_H;
 export let STUDENT_LANE_H = STUDENT_LANE_COLLAPSED_H;
 
 // Whether the student-journey lane is currently shown — set by layoutTimeline
