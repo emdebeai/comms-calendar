@@ -126,12 +126,15 @@ export const AI_POLICY = {
         "Generative AI (Anthropic Claude) assisted in building this prototype: the code, the data processing, and this site.",
         "Student questions tagged [new] were derived by AI from the cited evidence and are marked as such wherever they appear.",
         "All quantitative figures come from the cited sources. AI did not invent data, and gaps are shown as gaps rather than filled with defaults.",
+        "Internal market intelligence (MIP) informed the student questions but its content is not reproduced in this tool or its documentation.",
       ],
     },
     {
       heading: "What AI never saw",
       points: [
         "No student or staff personal identifiers. The enquiry data used contains no names, contact details or IDs, and student feedback quotes are de-identified.",
+        "No sensitive information as defined by Victorian privacy law (such as racial or ethnic origin or health information) about any individual. Equity cohorts (SNAP, Indigenous Access) appear only as audience tags on communications, never as data about a person.",
+        "No individual-level student records of any kind are used anywhere in the map; every figure is aggregate or cohort-level.",
         "Parent and careers-advisor records were excluded from the persona analysis.",
       ],
     },
