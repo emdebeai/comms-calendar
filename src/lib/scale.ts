@@ -256,7 +256,6 @@ function buildLanes(
   const inbound = (id: "digital" | "study", label: string): Omit<LaneDef, "top"> => ({
     id,
     label,
-    sub: "Inbound",
     kind: "inbound",
     chipStrip: false,
     height: collapsed.has(id)

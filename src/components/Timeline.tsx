@@ -1,5 +1,5 @@
 import { Fragment } from "react";
-import { Ban, ChevronDown, ChevronRight } from "lucide-react";
+import { Ban, ChevronDown, ChevronRight, Info } from "lucide-react";
 import { inbound } from "../data/comms";
 import { EMBARGOES, MOMENTS } from "../data/journey";
 import type { Comm, CommType, Team } from "../data/types";
@@ -675,15 +675,21 @@ export function Timeline({
               {!collapsed && lane.sub && (
                 <span className="mt-0.5 pl-[19px] text-xs text-grey-70">{lane.sub}</span>
               )}
-              {/* Inbound lanes carry their data-source note in the sticky
-                  gutter (like VTAC's sub-label) rather than inside the chart,
-                  so it stays put as you scroll the timeline horizontally. */}
+              {/* Data-source note, folded behind a compact "Source" affordance —
+                  the full note appears on hover, keeping the gutter to a name,
+                  a count and one short line. */}
               {!collapsed &&
                 lane.kind === "inbound" &&
                 (() => {
                   const note = inbound.find((d) => d.id === lane.id)?.seriesNote;
                   return note ? (
-                    <span className="mt-1 pl-[19px] text-[11px] leading-tight text-grey-60">{note}</span>
+                    <span className="group relative mt-1 ml-[19px] inline-flex w-fit items-center gap-1 text-[11px] text-grey-60">
+                      <Info size={11} strokeWidth={2} aria-hidden />
+                      Source
+                      <span className="absolute top-full left-0 z-50 mt-1 hidden w-64 rounded-md bg-tooltip px-2.5 py-1.5 text-[11px] leading-snug whitespace-normal text-white shadow-md group-hover:block">
+                        {note}
+                      </span>
+                    </span>
                   ) : null;
                 })()}
               {!collapsed && isEmpty && lane.id !== "campaigns" && (
@@ -749,19 +755,21 @@ export function Timeline({
                     {body}
                   </button>
                   {!collapsed && (
-                    <p className="mt-1.5 pr-1 pl-[19px] text-[11px] leading-tight text-grey-60">
-                      Source:{" "}
-                      <a
-                        href="https://vtac.edu.au/files/pdf/publications/VTAC_2024-25_Newsletter_schedule.pdf"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onClick={(e) => e.stopPropagation()}
-                        className={`text-rmit-blue-interactive underline decoration-dotted underline-offset-2 hover:decoration-solid ${FOCUS_RING}`}
-                      >
-                        VTAC 2024–25 newsletter
-                      </a>{" "}
-                      — indicative dates, not aligned to RMIT&rsquo;s 2026 comms.
-                    </p>
+                    <a
+                      href="https://vtac.edu.au/files/pdf/publications/VTAC_2024-25_Newsletter_schedule.pdf"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                      aria-label="Source: VTAC 2024–25 newsletter schedule (PDF) — indicative dates, not aligned to RMIT's 2026 comms"
+                      className={`group relative mt-1 ml-[19px] inline-flex w-fit items-center gap-1 rounded-md text-[11px] text-grey-60 hover:text-rmit-blue-interactive ${FOCUS_RING}`}
+                    >
+                      <Info size={11} strokeWidth={2} aria-hidden />
+                      Source
+                      <span className="absolute top-full left-0 z-50 mt-1 hidden w-64 rounded-md bg-tooltip px-2.5 py-1.5 text-[11px] leading-snug whitespace-normal text-white shadow-md group-hover:block">
+                        VTAC 2024–25 newsletter (opens the PDF) — indicative dates, not aligned to
+                        RMIT&rsquo;s 2026 comms.
+                      </span>
+                    </a>
                   )}
                 </div>
               </div>
