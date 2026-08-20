@@ -282,7 +282,7 @@ function Home({ onEnter, setPage }: { onEnter: () => void; setPage: (p: Page) =>
       {/* Reference pages */}
       <section>
         <h2 className="text-xl font-semibold text-grey-90">Reference</h2>
-        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+        <div className="mt-4 grid gap-3 sm:grid-cols-3">
           {ABOUT_PAGES.map((p) => (
             <button
               key={p.slug}
