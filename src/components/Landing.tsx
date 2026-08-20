@@ -3,7 +3,6 @@ import { ArrowRight, Layers, Moon, Route, Sun, Target, Users } from "lucide-reac
 import { FOCUS_RING } from "../lib/styles";
 import {
   ABOUT_PAGES,
-  AI_POLICY,
   DATA_SOURCES,
   REFERENCES,
   type Reference,
@@ -84,7 +83,7 @@ interface LandingProps {
 
 const CARD = "rounded-lg border border-grey-30 bg-card p-6";
 
-const PAGE_SLUGS = ["bibliography", "glossary", "people", "ai-policy"] as const;
+const PAGE_SLUGS = ["bibliography", "glossary", "people"] as const;
 function pageFromHash(): Page {
   const h = window.location.hash.replace(/^#\//, "");
   return (PAGE_SLUGS as readonly string[]).includes(h) ? (h as Page) : "home";
@@ -370,20 +369,6 @@ function Reference({ slug, onBack }: { slug: AboutPage["slug"]; onBack: () => vo
         </ul>
       )}
 
-      {slug === "ai-policy" && (
-        <div className="flex flex-col gap-6">
-          {AI_POLICY.sections.map((sec) => (
-            <section key={sec.heading} className={CARD}>
-              <h2 className="text-base font-semibold text-grey-90">{sec.heading}</h2>
-              <ul className="mt-3 flex list-disc flex-col gap-2 pl-5 text-sm leading-relaxed text-grey-80">
-                {sec.points.map((pt) => (
-                  <li key={pt.slice(0, 32)}>{pt}</li>
-                ))}
-              </ul>
-            </section>
-          ))}
-        </div>
-      )}
     </article>
   );
 }

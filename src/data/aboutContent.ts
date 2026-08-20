@@ -3,7 +3,7 @@
 // people and AI-use are structured placeholders).
 
 export interface AboutPage {
-  slug: "bibliography" | "glossary" | "people" | "ai-policy";
+  slug: "bibliography" | "glossary" | "people";
   title: string;
   intro: string;
 }
@@ -114,51 +114,8 @@ export const PEOPLE: { name: string; role: string }[] = [
   { name: "To be confirmed", role: "Study@RMIT / Student Connect" },
 ];
 
-// Aligned to the RMIT AI Governance Framework (March 2024), the Responsible
-// AI Procedure and the IT Acceptable Use Standard. The deployed map contains
-// no AI at runtime; AI was the development tool.
-export const AI_POLICY = {
-  sections: [
-    {
-      heading: "What AI did",
-      points: [
-        "Generative AI (Anthropic Claude) assisted in building this prototype: the code, the data processing, and this site.",
-        "Student questions tagged [new] were derived by AI from the cited evidence and are marked as such wherever they appear.",
-        "All quantitative figures come from the cited sources. AI did not invent data, and gaps are shown as gaps rather than filled with defaults.",
-        "Internal market intelligence (MIP) informed the student questions but its content is not reproduced in this tool or its documentation.",
-      ],
-    },
-    {
-      heading: "What AI never saw",
-      points: [
-        "No student personal identifiers. The enquiry data used contains no names, contact details or IDs.",
-        "No staff personal information, beyond a first name a person may choose to attach to a comment or review.",
-        "The raw student feedback (voice-of-customer) verbatims were never imported into this tool or given to AI in bulk. They were thematically analysed outside this environment, and only the resulting themes and a small number of de-identified illustrative quotes are used here.",
-        "No sensitive information as defined by Victorian privacy law (such as racial or ethnic origin or health information) about any individual. Equity cohorts (SNAP, Indigenous Access) appear only as audience tags on communications, never as data about a person.",
-        "No individual-level student records of any kind are used anywhere in the map; every figure is aggregate or cohort-level.",
-        "Parent and careers-advisor records were excluded from the persona analysis.",
-      ],
-    },
-    {
-      heading: "Human oversight",
-      points: [
-        "Every AI-assisted output is reviewed by a person before it lands, with full change history kept in version control.",
-        "Steps that write review outcomes back into the map run only when a person triggers them and reviews the result.",
-      ],
-    },
-    {
-      heading: "Where this runs",
-      points: [
-        "The prototype is a password-gated proof of concept in a private repository, on temporary hosting while an enterprise-approved home is arranged.",
-        "The map itself contains no AI at runtime.",
-      ],
-    },
-  ],
-};
-
 export const ABOUT_PAGES: AboutPage[] = [
   { slug: "bibliography", title: "Bibliography", intro: "" },
   { slug: "glossary", title: "Glossary", intro: "" },
   { slug: "people", title: "People consulted", intro: "" },
-  { slug: "ai-policy", title: "How AI was used", intro: "" },
 ];
