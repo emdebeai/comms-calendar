@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { AlertTriangle, Circle, Info, Triangle } from "lucide-react";
+import { useEffect, useState } from "react";
+import { AlertTriangle, ChevronDown, Circle, Info, Triangle } from "lucide-react";
 import { STAGES } from "../data/journey";
 import { linkedCommIds, stageQuestions } from "../data/studentExperience";
 import {
@@ -18,6 +18,9 @@ export interface QuestionRef {
 }
 
 interface Props {
+  /** stage whose questions are unfolded (accordion); null = coverage only */
+  expandedStage: string | null;
+  onExpandStage: (stage: string) => void;
   /** question currently driving the cross-highlight (hover or pin) */
   activeQuestion: QuestionRef | null;
   onHoverQuestion: (q: QuestionRef | null) => void;
@@ -26,21 +29,23 @@ interface Props {
 
 const answered = (stage: string, q: string) => linkedCommIds(stage, q).length > 0;
 
-/** The student view — coverage first. Each stage opens with the persona's own
- *  words (the line of interaction), then a coverage read-out (how many of the
- *  stage's questions a touchpoint actually answers), then the questions. A
- *  filled dot = answered, a hollow dot = a gap we haven't closed yet — stated
- *  plainly, not flagged red. Hovering an answered question lights its comms in
- *  place. Every question carries its evidence one click away: who asked it (the
- *  team's map, or derived from data), how strong the backing is, and the
- *  sources behind the stage. Nothing here is a filter — it's the map's report
- *  card against what students need. */
+/** The student view — coverage first, calm at rest. Each stage shows only the
+ *  persona's own words and a coverage read-out (how many of its questions a
+ *  touchpoint actually answers). Open one stage to read its questions, each
+ *  carrying a filled/hollow dot (answered vs gap) and its evidence one click
+ *  away. Only one stage is open at a time, so the band never becomes a wall of
+ *  text. Nothing here is a filter — it's the map's report card against what
+ *  students need. */
 export function StudentJourneyLane({
+  expandedStage,
+  onExpandStage,
   activeQuestion,
   onHoverQuestion,
   onPinQuestion,
 }: Props) {
   const [openEvidence, setOpenEvidence] = useState<string | null>(null);
+  // A newly opened stage starts with no evidence panel showing.
+  useEffect(() => setOpenEvidence(null), [expandedStage]);
 
   return (
     <div className="relative z-30" style={{ height: STUDENT_LANE_H }}>
@@ -55,77 +60,98 @@ export function StudentJourneyLane({
             if (questions.length === 0) return null;
             const left = scaleX(stage.from);
             const width = scaleX(stage.to) - left;
+            const isOpen = expandedStage === stage.label;
             const voice = stageVoice(stage.label);
             const cov = stageCoverage(stage.label, answered);
             const { gap } = stageEvidence(stage.label);
             return (
               <div
                 key={stage.label}
-                className={`absolute top-0 h-full ${i > 0 ? "border-l border-grey-20" : ""}`}
+                className={`absolute top-0 h-full ${i > 0 ? "border-l border-grey-20" : ""} ${
+                  isOpen ? "bg-tint-blue/20" : ""
+                }`}
                 style={{ left, width }}
               >
-                {/* Sticky-left so a wide stage's content stays in view while
-                    scrolling through it. */}
                 <div
-                  className="relative h-full"
+                  className="flex h-full flex-col"
                   style={{
                     position: "sticky",
                     left: LABEL_W + 8,
-                    maxWidth: Math.max(Math.min(width - 10, 380), 150),
+                    maxWidth: Math.max(Math.min(width - 10, 360), 150),
                   }}
                 >
-                  <div className="h-full overflow-y-auto px-2.5 pt-2 pb-4">
-                    {/* Line of interaction — the student's own words */}
+                  {/* Accordion header — voice + coverage; click to open/close */}
+                  <button
+                    type="button"
+                    aria-expanded={isOpen}
+                    onClick={() => onExpandStage(stage.label)}
+                    className={`shrink-0 px-2.5 pt-2.5 pb-2 text-left transition-colors ${FOCUS_RING} ${
+                      isOpen ? "" : "hover:bg-grey-10/60"
+                    }`}
+                  >
                     {voice && (
-                      <p className="border-l-2 border-rmit-blue/40 pl-2 text-xs leading-snug text-grey-90">
+                      <p className="line-clamp-2 border-l-2 border-rmit-blue/40 pl-2 text-xs leading-snug text-grey-80">
                         {`“${voice}”`}
                       </p>
                     )}
-
-                    {/* Coverage read-out — the story in one glance */}
                     <div className="mt-2 flex items-center gap-2">
-                      <CoverageDots stage={stage.label} questions={questions} />
-                      <span className="shrink-0 text-xs font-medium text-grey-70">
-                        {cov.answered}/{cov.total} answered
+                      <span className="text-xs font-semibold text-grey-90">
+                        {cov.answered}/{cov.total}
                       </span>
+                      <CoverageDots stage={stage.label} questions={questions} />
                     </div>
+                    <div className="mt-1.5 flex items-center gap-1 text-xs text-rmit-blue-interactive">
+                      <ChevronDown
+                        size={13}
+                        strokeWidth={2.5}
+                        className={`shrink-0 transition-transform ${isOpen ? "rotate-180" : ""}`}
+                        aria-hidden
+                      />
+                      {isOpen ? "Hide questions" : `${questions.length} questions`}
+                      {gap && !isOpen && (
+                        <AlertTriangle
+                          size={11}
+                          strokeWidth={2}
+                          className="ml-0.5 shrink-0 text-amber"
+                          aria-label="Directional evidence only"
+                        />
+                      )}
+                    </div>
+                  </button>
 
-                    {gap && (
-                      <p className="mt-1.5 flex items-start gap-1 text-xs leading-snug text-amber">
-                        <AlertTriangle size={11} strokeWidth={2} className="mt-px shrink-0" aria-hidden />
-                        Directional — proxy data, no direct VOC for this stage.
-                      </p>
-                    )}
-
-                    {/* Questions */}
-                    <ul className="mt-2.5 flex flex-col gap-1">
-                      {questions.map((q) => {
-                        const key = `${stage.label}::${q}`;
-                        return (
-                          <QuestionRow
-                            key={q}
-                            stage={stage.label}
-                            question={q}
-                            active={
-                              activeQuestion?.stage === stage.label &&
-                              activeQuestion?.question === q
-                            }
-                            evidenceOpen={openEvidence === key}
-                            onToggleEvidence={() =>
-                              setOpenEvidence((cur) => (cur === key ? null : key))
-                            }
-                            onHoverQuestion={onHoverQuestion}
-                            onPinQuestion={onPinQuestion}
-                          />
-                        );
-                      })}
-                    </ul>
-                  </div>
-                  {/* soft fade hints "scroll for more" when content clips */}
-                  <div
-                    className="pointer-events-none absolute inset-x-0 bottom-0 h-4 bg-gradient-to-t from-card"
-                    aria-hidden
-                  />
+                  {/* Questions — only for the open stage; scrolls if long */}
+                  {isOpen && (
+                    <div className="min-h-0 flex-1 overflow-y-auto px-2.5 pb-4">
+                      {gap && (
+                        <p className="mb-1.5 flex items-start gap-1 text-xs leading-snug text-amber">
+                          <AlertTriangle size={11} strokeWidth={2} className="mt-px shrink-0" aria-hidden />
+                          Directional — proxy data, no direct VOC for this stage.
+                        </p>
+                      )}
+                      <ul className="flex flex-col gap-0.5">
+                        {questions.map((q) => {
+                          const key = `${stage.label}::${q}`;
+                          return (
+                            <QuestionRow
+                              key={q}
+                              stage={stage.label}
+                              question={q}
+                              active={
+                                activeQuestion?.stage === stage.label &&
+                                activeQuestion?.question === q
+                              }
+                              evidenceOpen={openEvidence === key}
+                              onToggleEvidence={() =>
+                                setOpenEvidence((cur) => (cur === key ? null : key))
+                              }
+                              onHoverQuestion={onHoverQuestion}
+                              onPinQuestion={onPinQuestion}
+                            />
+                          );
+                        })}
+                      </ul>
+                    </div>
+                  )}
                 </div>
               </div>
             );
@@ -143,7 +169,7 @@ export function StudentJourneyLane({
           <span className="mt-0.5 text-xs leading-snug text-grey-70">
             What they ask — and whether a touchpoint answers it
           </span>
-          <div className="mt-2.5 flex flex-col gap-1 text-xs text-grey-60">
+          <div className="mt-2 flex flex-col gap-1 text-xs text-grey-60">
             <span className="flex items-center gap-1.5">
               <Dot filled />
               answered
@@ -151,10 +177,6 @@ export function StudentJourneyLane({
             <span className="flex items-center gap-1.5">
               <Dot />
               gap — nothing mapped yet
-            </span>
-            <span className="flex items-center gap-1.5">
-              <Info size={11} strokeWidth={2} className="shrink-0" aria-hidden />
-              evidence behind each
             </span>
           </div>
         </div>
@@ -285,7 +307,7 @@ function EvidencePanel({
         ? "bg-tint-amber text-amber"
         : "bg-grey-10 text-grey-70";
   return (
-    <div className="mt-1 ml-5 rounded-md border border-grey-20 bg-surface px-2.5 py-2 text-xs leading-snug">
+    <div className="mt-0.5 mb-1 ml-5 rounded-md border border-grey-20 bg-surface px-2.5 py-2 text-xs leading-snug">
       <div className="flex flex-wrap items-center gap-1.5">
         <span className={`rounded-full px-1.5 py-0.5 font-medium ${tierTone}`}>
           {TIER_LABEL[tier]}

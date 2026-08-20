@@ -65,6 +65,9 @@ interface Props {
   activeMomentId: string | null;
   /** whether the student-journey lane is shown (dock toggle, off by default) */
   showStudentLayer: boolean;
+  /** which stage's questions are unfolded (accordion); null = coverage only */
+  expandedStage: string | null;
+  onExpandStage: (stage: string) => void;
   /** student journey lane (the spine) — in-lane question focus + ⓘ panel */
   activeQuestion: QuestionRef | null;
   onHoverQuestion: (q: QuestionRef | null) => void;
@@ -112,6 +115,8 @@ export function Timeline({
   showLines,
   activeMomentId,
   showStudentLayer,
+  expandedStage,
+  onExpandStage,
   activeQuestion,
   onHoverQuestion,
   onPinQuestion,
@@ -234,6 +239,8 @@ export function Timeline({
           by STUDENT_LANE_H (see layoutTimeline) so the canvas closes the gap. ── */}
       {showStudentLayer && (
         <StudentJourneyLane
+          expandedStage={expandedStage}
+          onExpandStage={onExpandStage}
           activeQuestion={activeQuestion}
           onHoverQuestion={onHoverQuestion}
           onPinQuestion={onPinQuestion}

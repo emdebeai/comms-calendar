@@ -130,7 +130,13 @@ export const MOMENT_H = 68; // moment-that-matters label track (three mini-lines
 // light up its linked comms in place, no panel in the way. The deep-dive panel
 // (voice/needs/decisions/actions) opens from the small info button per stage.
 // See StudentJourneyLane.
-export const STUDENT_LANE_H = 212;
+// Coverage-first: at rest the band shows only each stage's voice + coverage
+// read-out (short). Expanding one stage reveals its questions and grows the
+// band. STUDENT_LANE_H is a live binding layoutTimeline updates before it
+// recomputes HEADER_H; the lane component reads the same binding at render.
+export const STUDENT_LANE_COLLAPSED_H = 140;
+export const STUDENT_LANE_EXPANDED_H = 320;
+export let STUDENT_LANE_H = STUDENT_LANE_COLLAPSED_H;
 
 // Whether the student-journey lane is currently shown — set by layoutTimeline
 // from App's toggle. HEADER_H (and therefore every lane's `top`) shrinks by
@@ -428,10 +434,12 @@ export function layoutTimeline(
   studentLayer = false,
   filteredIds: Set<string> = new Set(),
   hiddenLanes: Set<string> = new Set(),
+  studentExpanded = false,
 ): TimelineLayout {
   // Set the header height before anything reads it (buildLanes anchors every
   // lane's `top` to HEADER_H).
   studentLayerVisible = studentLayer;
+  STUDENT_LANE_H = studentExpanded ? STUDENT_LANE_EXPANDED_H : STUDENT_LANE_COLLAPSED_H;
   HEADER_H = headerHeight();
   expandedMonthsState = expandedMonths;
   cardHeightById = heights;
