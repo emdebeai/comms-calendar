@@ -2,40 +2,21 @@ import { useEffect, useRef } from "react";
 import { GraduationCap, Info } from "lucide-react";
 import { EYEBROW, FOCUS_RING } from "../lib/styles";
 
-// Persona 01 in brief — figures and wording from
-// docs/persona-01-domestic-vtac-year12.md; each fact carries its source.
-const FACTS: { text: string; source: string }[] = [
-  {
-    text: "Year 12, applying through VTAC straight from school. For a domestic school leaver VTAC is the application route by definition (7,298 enrolments in 2025).",
-    source: "Recruitment EXP dashboard · 2025",
-  },
-  {
-    text: "Aged 17 to 18: 99% are 19 or under at application.",
-    source: "Recruitment EXP dashboard · 2025",
-  },
-  {
-    text: "Studying a bachelor's degree outside a packaged pathway (~67% of preferences; ~89% non-pathway).",
-    source: "Recruitment EXP dashboard · 2025",
-  },
-  {
-    text: "RMIT is their first preference only ~15% of the time; it usually sits lower on their list.",
-    source: "VTAC preference extract",
-  },
-  {
-    text: "Motivated by employment: 82% study to get a job.",
-    source: "RMIT commencing students · 2022–24",
-  },
-  {
-    text: "Metropolitan: only ~7% are regional or remote.",
-    source: "Recruitment EXP dashboard · 2025",
-  },
+// Persona 01 as a profile, not a policy: identity chips, a stat grid and
+// three boundaries. Figures from docs/persona-01-domestic-vtac-year12.md;
+// every stat carries its source on the info mark.
+const IDENTITY = ["Year 12", "Applies via VTAC", "Straight from school", "Metro"];
+
+const STATS: { value: string; label: string; source: string }[] = [
+  { value: "82%", label: "study to get a job", source: "RMIT commencing students · 2022–24" },
+  { value: "~15%", label: "put RMIT first on their VTAC list", source: "VTAC preference extract" },
+  { value: "99%", label: "aged 19 or under at application", source: "Recruitment EXP dashboard · 2025" },
+  { value: "67%", label: "preference a bachelor's degree", source: "Recruitment EXP dashboard · 2025" },
+  { value: "~89%", label: "enrol outside a packaged pathway", source: "Recruitment EXP dashboard · 2025" },
+  { value: "7,298", label: "VTAC enrolments in 2025", source: "Recruitment EXP dashboard · 2025" },
 ];
 
-const NOTS: string[] = [
-  "Not a direct applicant, and not the parent's journey.",
-  "Not an equity cohort: SNAP and Indigenous Access are toggles on the map, not the baseline.",
-  "No portfolio or selection task, and no offer-acceptance step: a VTAC offer appears straight in Enrolment Online.",
-];
+const NOTS = ["Not a direct applicant", "Not the parent's journey", "No portfolio or offer-accept step"];
 
 /** First-visit introduction to the persona, shown over the map. */
 export function PersonaIntroModal({ onClose }: { onClose: () => void }) {
@@ -78,67 +59,87 @@ export function PersonaIntroModal({ onClose }: { onClose: () => void }) {
         role="dialog"
         aria-modal="true"
         aria-labelledby="persona-intro-title"
-        className="animate-pop-in relative max-h-[85vh] w-full max-w-xl overflow-y-auto rounded-lg border border-grey-30 bg-card p-8 shadow-lg"
+        className="animate-pop-in relative max-h-[85vh] w-full max-w-xl overflow-y-auto rounded-lg border border-grey-30 bg-card shadow-lg"
         onClick={(e) => e.stopPropagation()}
         onKeyDown={onKeyDown}
       >
-        <span className="flex items-center gap-2">
-          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-tint-blue text-rmit-blue">
-            <GraduationCap size={16} strokeWidth={2} aria-hidden />
+        {/* Identity band — this is a person, not a policy */}
+        <div className="rounded-t-lg bg-header px-8 pt-7 pb-6 text-white">
+          <span className="flex items-center gap-3">
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white/15">
+              <GraduationCap size={22} strokeWidth={2} aria-hidden />
+            </span>
+            <span>
+              <span className={`block text-white/60 ${EYEBROW}`}>Persona 01 · DOM SL</span>
+              <h2 id="persona-intro-title" className="mt-0.5 text-xl font-semibold">
+                Domestic school leaver
+              </h2>
+            </span>
           </span>
-          <span className={`text-grey-70 ${EYEBROW}`}>Persona 01 · DOM SL</span>
-        </span>
-        <h2 id="persona-intro-title" className="mt-4 text-xl font-semibold text-grey-90">
-          Who this map follows
-        </h2>
-        <p className="mt-2 text-sm leading-relaxed text-grey-80">
-          A Year 12 student applying to RMIT through VTAC straight from school. They apply to
-          several universities, and the most common reason they give for studying is to improve
-          their employment prospects.
-        </p>
-
-        <ul className="mt-5 flex flex-col gap-2.5">
-          {FACTS.map((f) => (
-            <li key={f.text.slice(0, 24)} className="flex items-start gap-2 text-sm text-grey-80">
-              <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-rmit-blue" aria-hidden />
-              <span className="leading-snug">
-                {f.text}{" "}
-                <span
-                  className="group relative inline-flex translate-y-px cursor-help text-grey-60"
-                  aria-label={`Source: ${f.source}`}
-                >
-                  <Info size={12} strokeWidth={2} aria-hidden />
-                  <HoverSource label={f.source} />
-                </span>
+          <div className="mt-4 flex flex-wrap gap-1.5">
+            {IDENTITY.map((chip) => (
+              <span
+                key={chip}
+                className="rounded-full bg-white/15 px-2.5 py-1 text-xs font-medium text-white"
+              >
+                {chip}
               </span>
-            </li>
-          ))}
-        </ul>
+            ))}
+          </div>
+        </div>
 
-        <h3 className={`mt-6 text-grey-70 ${EYEBROW}`}>What this persona is not</h3>
-        <ul className="mt-2 flex flex-col gap-1.5">
-          {NOTS.map((n) => (
-            <li key={n.slice(0, 24)} className="flex items-start gap-2 text-sm text-grey-70">
-              <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-grey-40" aria-hidden />
-              <span className="leading-snug">{n}</span>
-            </li>
-          ))}
-        </ul>
+        <div className="p-8 pt-6">
+          {/* Stat grid — numbers carry the story, sources on the info marks */}
+          <dl className="grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-3">
+            {STATS.map((s) => (
+              <div key={s.label}>
+                <dt className="sr-only">{s.label}</dt>
+                <dd className="flex items-baseline gap-1 text-2xl font-semibold text-rmit-blue">
+                  {s.value}
+                  <span
+                    className="group relative inline-flex translate-y-[-2px] cursor-help text-grey-60"
+                    aria-label={`Source: ${s.source}`}
+                  >
+                    <Info size={11} strokeWidth={2} aria-hidden />
+                    <HoverSource label={s.source} />
+                  </span>
+                </dd>
+                <p className="mt-0.5 text-xs leading-snug text-grey-70">{s.label}</p>
+              </div>
+            ))}
+          </dl>
 
-        <button
-          ref={primaryRef}
-          type="button"
-          onClick={onClose}
-          className={`mt-7 w-full rounded-md bg-rmit-blue px-6 py-3 text-base font-semibold text-white transition-colors hover:bg-rmit-blue/90 ${FOCUS_RING}`}
-        >
-          Explore the map
-        </button>
+          {/* Boundaries — three short chips, not a lecture */}
+          <div className="mt-6 flex flex-wrap items-center gap-1.5 border-t border-grey-30 pt-5">
+            {NOTS.map((n) => (
+              <span
+                key={n}
+                className="rounded-full bg-grey-10 px-2.5 py-1 text-xs text-grey-70"
+              >
+                {n}
+              </span>
+            ))}
+            <span className="group relative inline-flex cursor-help text-grey-60" aria-label="SNAP and Indigenous Access are toggles on the map, not the baseline">
+              <Info size={12} strokeWidth={2} aria-hidden />
+              <HoverSource label="Equity cohorts (SNAP, Indigenous Access) are toggles on the map" />
+            </span>
+          </div>
+
+          <button
+            ref={primaryRef}
+            type="button"
+            onClick={onClose}
+            className={`mt-6 w-full rounded-md bg-rmit-blue px-6 py-3 text-base font-semibold text-white transition-colors hover:bg-rmit-blue/90 ${FOCUS_RING}`}
+          >
+            Explore the map
+          </button>
+        </div>
       </div>
     </div>
   );
 }
 
-/** Source tooltip on hover — like HoverTip but styled for inline ⓘ marks. */
+/** Source tooltip on hover, styled for inline info marks. */
 function HoverSource({ label }: { label: string }) {
   return (
     <span

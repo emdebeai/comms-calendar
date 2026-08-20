@@ -120,6 +120,24 @@ export function InboundLane({ data }: { data: InboundLaneData }) {
             <text x={LABEL_W + 12} y={30} className="fill-rmit-blue-interactive text-xs font-medium">
               Total enquiries · click to split by channel
             </text>
+            {/* Hover teaser: the per-channel lines ghost in under the total,
+                hinting at the split a click reveals. */}
+            {hoverX !== null &&
+              channels.map((c) =>
+                splitRuns(c.points).map((run, ri) => (
+                  <path
+                    key={`teaser-${c.label}-${ri}`}
+                    d={`M${run
+                      .map((p) => `${scaleX(p.month).toFixed(1)},${cy(p.value).toFixed(1)}`)
+                      .join(" L")}`}
+                    fill="none"
+                    stroke={`var(${c.color})`}
+                    strokeWidth={1.25}
+                    opacity={0.35}
+                    strokeLinejoin="round"
+                  />
+                )),
+              )}
             {splitRuns(totals).map((run, ri) => {
               const line = run
                 .map((p) => `${scaleX(p.month).toFixed(1)},${cy(p.value).toFixed(1)}`)
@@ -147,17 +165,6 @@ export function InboundLane({ data }: { data: InboundLaneData }) {
                 fill="var(--color-rmit-blue-interactive)"
               />
             ))}
-            {/* Why Jan/Feb sit past Dec: they are the chronological tail of the
-                Aug 2025 – Feb 2026 extract, placed after Dec rather than at the
-                band start so the single run reads left-to-right in real order. */}
-            <text
-              x={Math.min(scaleX(36.5), TOTAL_W - 130)}
-              y={58}
-              textAnchor="middle"
-              className="fill-grey-70 text-xs"
-            >
-              Jan &amp; Feb 2026 · extract tail, shown after Dec
-            </text>
             {hoverLive && (
               <line
                 x1={scaleX(hoverMonth!)}
@@ -272,15 +279,6 @@ export function InboundLane({ data }: { data: InboundLaneData }) {
               strokeDasharray="3 3"
             />
           )}
-          {/* Jan/Feb placement note — see total-mode comment above. */}
-          <text
-            x={Math.min(scaleX(36.5), TOTAL_W - 130)}
-            y={58}
-            textAnchor="middle"
-            className="fill-grey-70 text-xs"
-          >
-            Jan &amp; Feb 2026 · extract tail, shown after Dec
-          </text>
         </svg>
         {hoverLive && tipRows.length > 0 && (
           <div
