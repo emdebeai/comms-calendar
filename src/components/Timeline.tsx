@@ -465,7 +465,7 @@ export function Timeline({
                 // Solid fill in the type colour (grey for VTAC) with a white
                 // icon — the same solid marker language as the baseline dots,
                 // just big enough to carry the icon.
-                className={`group absolute z-10 flex h-[22px] w-[22px] -translate-x-1/2 items-center justify-center rounded-full text-on-accent ring-2 ring-card transition-opacity duration-300 ${accent} ${FOCUS_RING} ${
+                className={`group absolute z-10 flex h-7 w-7 -translate-x-1/2 items-center justify-center rounded-full text-on-accent ring-2 ring-card transition-opacity duration-300 ${accent} ${FOCUS_RING} ${
                   filteredOut
                     ? "opacity-[0.12]"
                     : dotDimmed
@@ -474,7 +474,7 @@ export function Timeline({
                 }`}
                 style={{ left: markerPos(c).x, top: markerPos(c).y }}
               >
-                <Icon size={12} strokeWidth={2.25} aria-hidden />
+                <Icon size={14} strokeWidth={2.25} aria-hidden />
                 {/* title tooltip on hover — the card's instant-tooltip style.
                     z-50 (and the button's hover:z-50) so it clears the sticky
                     header / gutter. Shown/hidden INSTANTLY (no fade): a fade-out

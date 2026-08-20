@@ -168,8 +168,8 @@ export const CHIP_H = 22; // "+N more" overflow chip strip
 // stacking overlap — a touch wider than the marker so same-week sends stack.
 // MARKER_PAD is equal top/bottom padding so the stack sits centred in its lane
 // (unlike commPos, which prepends a dot-baseline strip meant for cards).
-export const MARKER_SIZE = 22;
-const MARKER_W = 26;
+export const MARKER_SIZE = 28;
+const MARKER_W = 32;
 const MARKER_GAP = 5;
 export const MARKER_PAD = 12;
 

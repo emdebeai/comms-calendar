@@ -56,7 +56,7 @@ function HeroStrip() {
         <span
           key={i}
           className={`animate-plot-in absolute h-2.5 w-2.5 rounded-full ${d.c}`}
-          style={{ left: `${d.x}%`, top: d.lane * 32 + 3, animationDelay: `${d.x * 11}ms` }}
+          style={{ left: `${d.x}%`, top: d.lane * 32 + 19, animationDelay: `${d.x * 11}ms` }}
         />
       ))}
     </div>
