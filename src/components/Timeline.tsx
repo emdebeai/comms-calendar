@@ -683,17 +683,12 @@ export function Timeline({
                 (() => {
                   const note = inbound.find((d) => d.id === lane.id)?.seriesNote;
                   return note ? (
-                    <span className="mt-1 pl-[19px] text-xs leading-snug text-grey-60">{note}</span>
+                    <span className="mt-1 pl-[19px] text-[11px] leading-tight text-grey-60">{note}</span>
                   ) : null;
                 })()}
               {!collapsed && isEmpty && lane.id !== "campaigns" && (
                 <span className="mt-1 pl-[19px] text-xs text-grey-70 italic">
                   No comms mapped yet
-                </span>
-              )}
-              {!collapsed && lane.id === "campaigns" && (
-                <span className="mt-1 pl-[19px] text-xs text-grey-70">
-                  Always-on + 4 campaigns
                 </span>
               )}
               {collapsed && lane.kind === "outbound" && count > 0 && (
@@ -754,7 +749,7 @@ export function Timeline({
                     {body}
                   </button>
                   {!collapsed && (
-                    <p className="mt-1.5 pr-1 pl-[19px] text-xs leading-snug text-grey-60">
+                    <p className="mt-1.5 pr-1 pl-[19px] text-[11px] leading-tight text-grey-60">
                       Source:{" "}
                       <a
                         href="https://vtac.edu.au/files/pdf/publications/VTAC_2024-25_Newsletter_schedule.pdf"

@@ -29,7 +29,9 @@ export function CampaignGantt({ expanded, dimmed, onToggle, onOpenChannel, onOpe
   return (
     <>
       {rows.map((row) => {
-        const left = scaleX(row.from);
+        // Keep a small gap from the sticky gutter so a bar starting at month 0
+        // (the always-on band) doesn't sit flush against the left edge.
+        const left = Math.max(scaleX(row.from), 8);
         const width = Math.max(scaleX(row.to) - left, 26);
         const top = campaignRowY(row.line) + (CAMPAIGN_ROW_H - BAR_H) / 2;
         const range = row.allYear ? "Runs all year" : campaignRangeLabel(row.from, row.to);
