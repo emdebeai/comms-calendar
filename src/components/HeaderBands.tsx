@@ -117,12 +117,14 @@ export function YearBand() {
         {YEARS.map((y, i) => (
           <div
             key={y.label}
-            className={`absolute flex h-full items-center justify-center text-sm font-semibold text-grey-80 ${
+            className={`absolute flex h-full items-center justify-start text-sm font-semibold text-grey-80 ${
               i > 0 ? "border-l border-grey-40" : ""
             }`}
             style={{ left: scaleX(y.from), width: scaleX(y.to) - scaleX(y.from) }}
           >
-            <span style={stickyLabel}>{y.label}</span>
+            <span className="px-2" style={stickyLabel}>
+              {y.label}
+            </span>
           </div>
         ))}
       </div>
@@ -148,7 +150,7 @@ export function MonthBand({ expandedMonths, onSetLevel }: MonthBandProps) {
   const runs: { start: number; end: number; label: string }[] = [];
   for (let m = 0; m < MONTHS; m++) {
     if (expandedMonths.has(m)) continue;
-    const label = `${monthYearShort(m)} · ${monthStage(m)}`;
+    const label = monthYearShort(m); // year only — one run per year, so it stays pinned
     const prev = runs[runs.length - 1];
     if (prev && prev.end === m && prev.label === label) prev.end = m + 1;
     else runs.push({ start: m, end: m + 1, label });
@@ -178,7 +180,7 @@ export function MonthBand({ expandedMonths, onSetLevel }: MonthBandProps) {
           >
             {!nextToExpanded && (
               <span
-                className="px-1 text-xs leading-none whitespace-nowrap text-grey-60"
+                className="px-1 text-xs leading-none font-semibold whitespace-nowrap text-grey-80"
                 style={stickyLabel}
               >
                 {r.label}
