@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowRight, Layers, Moon, Route, Sun, Target, Users } from "lucide-react";
 import { FOCUS_RING } from "../lib/styles";
 import {
@@ -40,6 +40,9 @@ const CARD = "rounded-lg border border-grey-30 bg-card p-6";
 
 export function Landing({ onEnter, theme, onToggleTheme }: LandingProps) {
   const [page, setPage] = useState<Page>("home");
+  // Page switches are state changes, not navigations, so the browser keeps
+  // the old scroll position. Every page opens from the top.
+  useEffect(() => window.scrollTo(0, 0), [page]);
   return (
     <div className="min-h-screen bg-surface font-sans text-grey-90">
       <SiteNav page={page} setPage={setPage} theme={theme} onToggleTheme={onToggleTheme} />
