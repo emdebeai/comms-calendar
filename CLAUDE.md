@@ -32,6 +32,7 @@ Treat it as the single source of truth for tokens, components, and patterns. Bef
 - **No hex literals.** Use the named tokens from `/colour` (e.g. `bg-rmit-blue`, `text-grey-70`). If a colour isn't tokenised, ask before introducing one.
 - **No arbitrary text sizes** like `text-[22px]` for normal headings. Use the type scale on `/typography`.
 - **Sentence case** for inline copy (nav, buttons, back links). **Title Case** for headings and step-indicator labels.
+- **No narrating copy.** Never add UI text that describes, restates, or announces what the interface already shows — no subtitles under headings ("Bibliography" needs no "The sources behind this map"), no section intros, no proclaiming matter-of-fact things to nobody. A heading or label stands alone; add a sentence only when it changes what the user does next. Per `/voice-and-tone`: "Cut anything you can."
 - **Tailwind utilities only.** No CSS Modules, no styled-components, no CSS-in-JS.
 - **Lucide for icons.** Don't add a second icon library.
 - Before introducing a new pattern, search the styleguide first.

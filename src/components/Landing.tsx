@@ -152,9 +152,6 @@ function Home({ onEnter, setPage }: { onEnter: () => void; setPage: (p: Page) =>
       {/* Personas */}
       <section>
         <h2 className="text-xl font-semibold text-grey-90">Choose a persona</h2>
-        <p className="mt-2 max-w-2xl text-sm text-grey-70">
-          The map is built for one persona at a time. Two more are planned.
-        </p>
         <div className="mt-5 grid gap-4 sm:grid-cols-3">
           {PERSONAS.map((p) =>
             p.available ? (
@@ -208,10 +205,7 @@ function Home({ onEnter, setPage }: { onEnter: () => void; setPage: (p: Page) =>
               onClick={() => setPage(p.slug)}
               className={`group flex items-center justify-between gap-3 rounded-lg border border-grey-30 bg-card px-4 py-3 text-left transition-colors hover:border-rmit-blue-interactive ${FOCUS_RING}`}
             >
-              <span>
-                <span className="block text-sm font-medium text-grey-90">{p.title}</span>
-                {p.intro && <span className="block text-xs text-grey-70">{p.intro}</span>}
-              </span>
+              <span className="block text-sm font-medium text-grey-90">{p.title}</span>
               <ArrowRight
                 size={15}
                 strokeWidth={2}
@@ -240,7 +234,6 @@ function Reference({ slug, onBack }: { slug: AboutPage["slug"]; onBack: () => vo
           ← Back to start
         </button>
         <h1 className="mt-3 text-3xl font-bold text-rmit-blue">{meta.title}</h1>
-        {meta.intro && <p className="mt-2 max-w-2xl text-base text-grey-80">{meta.intro}</p>}
       </div>
 
       {slug === "glossary" && (
@@ -258,9 +251,6 @@ function Reference({ slug, onBack }: { slug: AboutPage["slug"]; onBack: () => vo
         <div className="flex flex-col gap-8">
           <section>
             <h2 className="text-base font-semibold text-grey-90">References</h2>
-            <p className="mt-1 text-sm text-grey-70">
-              Published sources, RMIT Harvard style.
-            </p>
             <ul className="mt-3 flex flex-col gap-3">
               {REFERENCES.map((r) => (
                 <li key={r.title} className="text-sm leading-relaxed text-grey-80">
@@ -270,10 +260,7 @@ function Reference({ slug, onBack }: { slug: AboutPage["slug"]; onBack: () => vo
             </ul>
           </section>
           <section>
-            <h2 className="text-base font-semibold text-grey-90">Data sources</h2>
-            <p className="mt-1 text-sm text-grey-70">
-              Internal RMIT data used to build the map. Not published, so not cited formally.
-            </p>
+            <h2 className="text-base font-semibold text-grey-90">Internal data sources</h2>
             <ul className="mt-3 flex flex-col gap-3">
               {DATA_SOURCES.map((d) => (
                 <li key={d.title} className={CARD}>
@@ -298,8 +285,7 @@ function Reference({ slug, onBack }: { slug: AboutPage["slug"]; onBack: () => vo
       )}
 
       {slug === "ai-policy" && (
-        <div className={`${CARD} flex flex-col gap-3`}>
-          <p className="text-base text-grey-80">{AI_POLICY.intro}</p>
+        <div className={CARD}>
           <ul className="flex list-disc flex-col gap-2 pl-5 text-sm text-grey-80">
             {AI_POLICY.points.map((pt) => (
               <li key={pt}>{pt}</li>

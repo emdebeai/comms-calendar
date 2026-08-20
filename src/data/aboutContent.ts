@@ -82,7 +82,7 @@ export const REFERENCES: Reference[] = [
 // (these have no public URL).
 export const DATA_SOURCES: { title: string; note: string }[] = [
   {
-    title: "MIP (Market Intelligence and Proposition) — Domestic Demand Outlook 2026",
+    title: "MIP (Market Intelligence and Proposition): Domestic Demand Outlook 2026",
     note: "RMIT internal market-intelligence outlook on domestic demand by field and pathway.",
   },
   {
@@ -112,8 +112,6 @@ export const PEOPLE: { name: string; role: string }[] = [
 ];
 
 export const AI_POLICY = {
-  intro:
-    "How generative AI was used to build this prototype, and the guardrails applied. Placeholder copy below — to be finalised.",
   points: [
     "AI assisted with structuring and building the prototype's code and this site.",
     "All quantitative figures are drawn from the cited sources; AI did not invent data.",
@@ -123,8 +121,8 @@ export const AI_POLICY = {
 };
 
 export const ABOUT_PAGES: AboutPage[] = [
-  { slug: "bibliography", title: "Bibliography", intro: "The sources behind the evidence on this map." },
-  { slug: "glossary", title: "Glossary", intro: "Terms and acronyms used across the map." },
-  { slug: "people", title: "People consulted", intro: "The teams and people who shaped this map." },
+  { slug: "bibliography", title: "Bibliography", intro: "" },
+  { slug: "glossary", title: "Glossary", intro: "" },
+  { slug: "people", title: "People consulted", intro: "" },
   { slug: "ai-policy", title: "How AI was used", intro: "" },
 ];
