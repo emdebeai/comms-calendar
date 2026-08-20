@@ -66,7 +66,7 @@ export function PersonaDock({
 
   return (
     <div className="fixed bottom-5 right-5 z-40" ref={ref}>
-      <div className="relative flex items-center gap-1 rounded-full border border-grey-30 bg-card/70 px-2 py-1.5 shadow-xl backdrop-blur-md">
+      <div className="relative flex items-center gap-2 rounded-full border border-grey-30 bg-card/70 px-2.5 py-1.5 shadow-xl backdrop-blur-md">
         <span className="pl-1.5 text-xs text-grey-70">Student type</span>
         <button
           type="button"
