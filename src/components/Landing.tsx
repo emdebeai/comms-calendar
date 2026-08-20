@@ -16,6 +16,52 @@ import {
 } from "../data/aboutContent";
 
 const PILLAR_ICONS = [Route, Users, Target, Layers];
+const PILLAR_STYLES = [
+  "bg-tint-blue text-rmit-blue",
+  "bg-tint-teal text-teal",
+  "bg-tint-purple text-purple",
+  "bg-tint-indigo text-indigo",
+];
+
+/** Decorative miniature of the map itself — lane lines, send dots and a
+ *  moment marker on the hero band. White at varied opacity (tint tokens flip
+ *  dark in dark mode and vanish against the band). */
+function HeroStrip() {
+  const dots: { lane: number; x: number; c: string }[] = [
+    { lane: 0, x: 4, c: "bg-white/90" },
+    { lane: 0, x: 14, c: "bg-white/55" },
+    { lane: 0, x: 30, c: "bg-white/75" },
+    { lane: 0, x: 55, c: "bg-white/60" },
+    { lane: 0, x: 78, c: "bg-white/90" },
+    { lane: 1, x: 9, c: "bg-white/60" },
+    { lane: 1, x: 38, c: "bg-white/85" },
+    { lane: 1, x: 47, c: "bg-white/50" },
+    { lane: 1, x: 71, c: "bg-white/75" },
+    { lane: 1, x: 90, c: "bg-white/60" },
+    { lane: 2, x: 22, c: "bg-white/70" },
+    { lane: 2, x: 44, c: "bg-white/55" },
+    { lane: 2, x: 62, c: "bg-white/90" },
+    { lane: 2, x: 84, c: "bg-white/70" },
+  ];
+  return (
+    <div aria-hidden className="relative mt-10 h-24 overflow-hidden">
+      {[0, 1, 2].map((lane) => (
+        <div key={lane} className="absolute inset-x-0 border-t border-white/15" style={{ top: lane * 32 + 8 }} />
+      ))}
+      <div
+        className="animate-fade-in absolute top-0 bottom-0 border-l border-dashed border-white/30"
+        style={{ left: "62%", animationDelay: "760ms", animationFillMode: "backwards" }}
+      />
+      {dots.map((d, i) => (
+        <span
+          key={i}
+          className={`animate-plot-in absolute h-2.5 w-2.5 rounded-full ${d.c}`}
+          style={{ left: `${d.x}%`, top: d.lane * 32 + 3, animationDelay: `${d.x * 11}ms` }}
+        />
+      ))}
+    </div>
+  );
+}
 
 /** RMIT Harvard reference line: Author (Year) *Title*, Publisher, accessed
  *  Date. URL — title italic, URL plain (never hyperlinked, per the style). */
@@ -51,6 +97,7 @@ export function Landing({ onEnter, theme, onToggleTheme }: LandingProps) {
   return (
     <div className="min-h-screen bg-surface font-sans text-grey-90">
       <SiteNav page={page} setPage={setPage} theme={theme} onToggleTheme={onToggleTheme} />
+      {page === "home" && <HeroBand />}
       <main className="mx-auto max-w-[952px] px-6 pt-10 pb-20">
         {page === "home" ? (
           <Home onEnter={onEnter} setPage={setPage} />
@@ -118,32 +165,39 @@ function SiteNav({
   );
 }
 
+// ── Hero band — the dark opening act, separated from a dark page by a
+// hairline. No action here: choosing a persona below is the entry.
+function HeroBand() {
+  return (
+    <div className="border-b border-grey-30 bg-header text-white">
+      <div className="mx-auto max-w-[952px] px-6 pt-14 pb-6">
+        <h1 className="max-w-3xl text-4xl font-bold leading-tight">
+          Current State Touch Points
+        </h1>
+        <p className="mt-5 max-w-3xl text-2xl font-medium leading-snug text-white/85">
+          This work will support the portfolio to be{" "}
+          <span className="font-bold text-white">consistent</span>,{" "}
+          <span className="font-bold text-white">relevant</span> and{" "}
+          <span className="font-bold text-white">timely</span> in engagements with future
+          students.
+        </p>
+        <HeroStrip />
+      </div>
+    </div>
+  );
+}
+
 // ── Home ─────────────────────────────────────────────────────────────────
 function Home({ onEnter, setPage }: { onEnter: () => void; setPage: (p: Page) => void }) {
   return (
     <div className="flex flex-col gap-10">
-      {/* Hero — scope / purpose (verbatim from the brief) */}
-      <section>
-        <p className="text-xs font-semibold uppercase tracking-widest text-grey-60">
-          {INTRO.eyebrow}
-        </p>
-        <h1 className="mt-3 max-w-3xl text-4xl font-bold leading-tight text-rmit-blue">
-          Current State Touch Points
-        </h1>
-        <p className="mt-5 max-w-3xl text-2xl font-medium leading-snug text-grey-90">
-          This work will support the portfolio to be{" "}
-          <span className="font-bold text-rmit-blue">consistent</span>,{" "}
-          <span className="font-bold text-rmit-blue">relevant</span> and{" "}
-          <span className="font-bold text-rmit-blue">timely</span> in engagements with future
-          students.
-        </p>
-        <div className="mt-5 flex max-w-3xl flex-col gap-4">
-          {INTRO.body.map((para) => (
-            <p key={para.slice(0, 24)} className="text-base leading-relaxed text-grey-80">
-              {para}
-            </p>
-          ))}
-        </div>
+      {/* Mechanism — the hero band above carries the statement */}
+      <section className="flex flex-col gap-4">
+        {INTRO.body.map((para) => (
+          <p key={para.slice(0, 24)} className="max-w-3xl text-base leading-relaxed text-grey-80">
+            {para}
+          </p>
+        ))}
       </section>
 
       {/* The four qualities the work supports */}
@@ -153,7 +207,7 @@ function Home({ onEnter, setPage }: { onEnter: () => void; setPage: (p: Page) =>
             const Icon = PILLAR_ICONS[i];
             return (
               <div key={p.title}>
-                <div className="flex h-11 w-11 items-center justify-center rounded-full bg-tint-blue text-rmit-blue">
+                <div className={`flex h-11 w-11 items-center justify-center rounded-full ${PILLAR_STYLES[i]}`}>
                   <Icon size={20} strokeWidth={2} aria-hidden />
                 </div>
                 <p className="mt-3 text-base font-semibold text-grey-90">{p.title}</p>
@@ -174,7 +228,7 @@ function Home({ onEnter, setPage }: { onEnter: () => void; setPage: (p: Page) =>
                 key={p.code}
                 type="button"
                 onClick={onEnter}
-                className={`group ${CARD} text-left transition-colors hover:border-rmit-blue-interactive ${FOCUS_RING}`}
+                className={`group ${CARD} border-l-4 border-l-rmit-blue text-left transition-colors hover:border-rmit-blue-interactive hover:border-l-rmit-blue ${FOCUS_RING}`}
               >
                 <span className="inline-block rounded-md bg-tint-blue px-2 py-0.5 text-xs font-semibold uppercase tracking-widest text-rmit-blue">
                   {p.code}
