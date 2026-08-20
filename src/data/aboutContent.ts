@@ -115,12 +115,40 @@ export const PEOPLE: { name: string; role: string }[] = [
   { name: "To be confirmed", role: "Study@RMIT / Student Connect" },
 ];
 
+// Aligned to the RMIT AI Governance Framework (March 2024), the Responsible
+// AI Procedure and the IT Acceptable Use Standard. The deployed map contains
+// no AI at runtime; AI was the development tool.
 export const AI_POLICY = {
-  points: [
-    "AI assisted with structuring and building the prototype's code and this site.",
-    "All quantitative figures are drawn from the cited sources; AI did not invent data.",
-    "Student questions tagged [new] were derived by AI from the supporting evidence and are marked as such.",
-    "No personal or student-identifying data was provided to any AI system.",
+  sections: [
+    {
+      heading: "What AI did",
+      points: [
+        "Generative AI (Anthropic Claude) assisted in building this prototype: the code, the data processing, and this site.",
+        "Student questions tagged [new] were derived by AI from the cited evidence and are marked as such wherever they appear.",
+        "All quantitative figures come from the cited sources. AI did not invent data, and gaps are shown as gaps rather than filled with defaults.",
+      ],
+    },
+    {
+      heading: "What AI never saw",
+      points: [
+        "No student or staff personal identifiers. The enquiry data used contains no names, contact details or IDs, and student feedback quotes are de-identified.",
+        "Parent and careers-advisor records were excluded from the persona analysis.",
+      ],
+    },
+    {
+      heading: "Human oversight",
+      points: [
+        "Every AI-assisted output is reviewed by a person before it lands, with full change history kept in version control.",
+        "Steps that write review outcomes back into the map run only when a person triggers them and reviews the result.",
+      ],
+    },
+    {
+      heading: "Where this runs",
+      points: [
+        "The prototype is a password-gated proof of concept in a private repository, on temporary hosting while an enterprise-approved home is arranged.",
+        "The map itself contains no AI at runtime.",
+      ],
+    },
   ],
 };
 
