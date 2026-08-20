@@ -91,7 +91,7 @@ export const DATA_SOURCES: { title: string; note: string }[] = [
   },
   {
     title: "RMIT program-page voice-of-customer (Aug 2025 – Aug 2026)",
-    note: "Verbatim feedback from domestic current high-school students, by journey stage.",
+    note: "Thematic analysis of feedback from domestic current high-school students, by journey stage. The raw verbatims were analysed outside this tool; themes only here.",
   },
   {
     title: "Dovetail longitudinal VOC synthesis (2024–2026)",
@@ -132,7 +132,8 @@ export const AI_POLICY = {
     {
       heading: "What AI never saw",
       points: [
-        "No student or staff personal identifiers. The enquiry data used contains no names, contact details or IDs, and student feedback quotes are de-identified.",
+        "No student or staff personal identifiers. The enquiry data used contains no names, contact details or IDs.",
+        "The raw student feedback (voice-of-customer) verbatims were never imported into this tool or given to AI in bulk. They were thematically analysed outside this environment, and only the resulting themes and a small number of de-identified illustrative quotes are used here.",
         "No sensitive information as defined by Victorian privacy law (such as racial or ethnic origin or health information) about any individual. Equity cohorts (SNAP, Indigenous Access) appear only as audience tags on communications, never as data about a person.",
         "No individual-level student records of any kind are used anywhere in the map; every figure is aggregate or cohort-level.",
         "Parent and careers-advisor records were excluded from the persona analysis.",
