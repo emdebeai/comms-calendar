@@ -118,7 +118,7 @@ export function PersonaDock({
                       {equityCounts[c]}
                     </span>
                   )}
-                  <HoverTip label={`${EQUITY_FULL_NAMES[c] ?? c}: only comms tailored to this cohort`} />
+                  <HoverTip align="right" label={`${EQUITY_FULL_NAMES[c] ?? c}: only comms tailored to this cohort`} />
                 </button>
               );
             })}
@@ -133,7 +133,7 @@ export function PersonaDock({
                 className="group relative flex h-8 cursor-not-allowed items-center rounded-full border border-dashed border-grey-30 px-3 text-xs font-semibold text-grey-60"
               >
                 {u.label}
-                <HoverTip label={u.reason} />
+                <HoverTip align="right" label={u.reason} />
               </button>
             ))}
           </>
