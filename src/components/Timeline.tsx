@@ -152,9 +152,10 @@ export function Timeline({
       .filter(Boolean)
       .join(" · ");
     const v = c.audience?.replace(/\s+/g, " ") || fromAxes || undefined;
-    // A bare "Year 10/11/12" just repeats the school-year band the card sits
-    // in — drop it; keep richer audiences (SNAP, DDINTON, campus splits, …).
-    if (v && /^year\s*1[0-2]$/i.test(v.trim())) return undefined;
+    // A bare year label ("Year 10", "Yr 10", "Y10") just repeats the
+    // school-year band the card sits in — drop it; keep richer audiences
+    // (SNAP, DDINTON, COBL #2-8, campus splits, …).
+    if (v && /^y(?:ea)?r?\s*1[0-2]$/i.test(v.trim())) return undefined;
     return v;
   };
 
