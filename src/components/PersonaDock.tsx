@@ -71,7 +71,6 @@ export function PersonaDock({
   return (
     <div className="fixed bottom-5 right-5 z-40" ref={ref}>
       <div className="relative flex items-center gap-2 rounded-full border border-grey-30 bg-card/70 px-2.5 py-1.5 shadow-xl backdrop-blur-md">
-        <span className="pl-1.5 text-xs text-grey-70">Student type</span>
         <button
           type="button"
           onClick={() => setOpen((o) => !o)}
@@ -109,7 +108,6 @@ export function PersonaDock({
         {equityCohorts.length > 0 && (
           <>
             <span className="mx-1 h-5 w-px bg-grey-30" aria-hidden />
-            <span className="text-xs text-grey-70">Equity</span>
             {equityCohorts.map((c) => {
               const on = equity === c;
               return (

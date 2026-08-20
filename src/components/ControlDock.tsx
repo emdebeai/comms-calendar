@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { EyeOff, GraduationCap, Home, Info, Link2, Moon, Rows3, Shield, ShieldCheck, Sun } from "lucide-react";
+import { EyeOff, GraduationCap, Home, Info, Link2, MoreHorizontal, Moon, Rows3, Shield, ShieldCheck, Sun } from "lucide-react";
 import type { CommType } from "../data/types";
 import { FOCUS_RING } from "../lib/styles";
 import { HoverTip } from "./HoverTip";
@@ -52,6 +52,25 @@ export function ControlDock({
   const allActive = activeTypes.size === ALL_TYPES.length;
   const [legendOpen, setLegendOpen] = useState(false);
   const legendRef = useRef<HTMLDivElement>(null);
+  const [moreOpen, setMoreOpen] = useState(false);
+  const moreRef = useRef<HTMLDivElement>(null);
+
+  // Close the overflow menu on outside click / Escape.
+  useEffect(() => {
+    if (!moreOpen) return;
+    const onDown = (e: MouseEvent) => {
+      if (moreRef.current && !moreRef.current.contains(e.target as Node)) setMoreOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMoreOpen(false);
+    };
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [moreOpen]);
 
   // Close the legend popover on outside click / Escape.
   useEffect(() => {
@@ -231,51 +250,72 @@ export function ControlDock({
 
         <span className="mx-1 h-5 w-px bg-grey-30" aria-hidden />
 
-        {/* Dark mode */}
-        <button
-          type="button"
-          onClick={onToggleTheme}
-          aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-          className={`${iconBtn} text-grey-70 hover:bg-grey-20`}
-        >
-          {theme === "dark" ? (
-            <Sun size={15} strokeWidth={2} aria-hidden />
-          ) : (
-            <Moon size={15} strokeWidth={2} aria-hidden />
+        {/* Overflow — the once-in-a-while actions (theme, admin, hide) share
+            one slot instead of three permanent icons. */}
+        <div className="relative" ref={moreRef}>
+          <button
+            type="button"
+            onClick={() => setMoreOpen((o) => !o)}
+            aria-expanded={moreOpen}
+            aria-label="More options"
+            className={`${iconBtn} ${moreOpen ? "bg-grey-20 text-grey-90" : "text-grey-70 hover:bg-grey-20"}`}
+          >
+            <MoreHorizontal size={15} strokeWidth={1.75} aria-hidden />
+            {!moreOpen && <HoverTip label="More" />}
+          </button>
+          {moreOpen && (
+            <div
+              role="menu"
+              aria-label="More options"
+              className="animate-pop-in absolute right-0 bottom-full mb-3 w-48 rounded-lg border border-grey-30 bg-card p-1.5 shadow-lg"
+            >
+              <button
+                type="button"
+                role="menuitem"
+                onClick={() => {
+                  onToggleTheme();
+                  setMoreOpen(false);
+                }}
+                className={`flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-left text-sm text-grey-90 hover:bg-grey-10 ${FOCUS_RING}`}
+              >
+                {theme === "dark" ? (
+                  <Sun size={15} strokeWidth={2} aria-hidden className="text-grey-70" />
+                ) : (
+                  <Moon size={15} strokeWidth={2} aria-hidden className="text-grey-70" />
+                )}
+                {theme === "dark" ? "Light mode" : "Dark mode"}
+              </button>
+              <button
+                type="button"
+                role="menuitem"
+                onClick={() => {
+                  onToggleAdmin();
+                  setMoreOpen(false);
+                }}
+                className={`flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-left text-sm text-grey-90 hover:bg-grey-10 ${FOCUS_RING}`}
+              >
+                {isAdmin ? (
+                  <ShieldCheck size={15} strokeWidth={2} aria-hidden className="text-rmit-blue" />
+                ) : (
+                  <Shield size={15} strokeWidth={2} aria-hidden className="text-grey-70" />
+                )}
+                {isAdmin ? "Admin: unlocked" : "Admin"}
+              </button>
+              <button
+                type="button"
+                role="menuitem"
+                onClick={() => {
+                  setMoreOpen(false);
+                  onHideUi();
+                }}
+                className={`flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-left text-sm text-grey-90 hover:bg-grey-10 ${FOCUS_RING}`}
+              >
+                <EyeOff size={15} strokeWidth={2} aria-hidden className="text-grey-70" />
+                Hide controls
+              </button>
+            </div>
           )}
-          <HoverTip label={theme === "dark" ? "Light mode" : "Dark mode"} />
-        </button>
-
-        {/* Admin — unlocks comment deletion (a second gate above the site
-            password). Prompts for the key; a filled shield means unlocked. */}
-        <button
-          type="button"
-          onClick={onToggleAdmin}
-          aria-pressed={isAdmin}
-          aria-label={isAdmin ? "Lock admin (comment deletion)" : "Unlock admin to delete comments"}
-          className={`${iconBtn} ${
-            isAdmin ? "bg-header text-white" : "text-grey-70 hover:bg-grey-20"
-          }`}
-        >
-          {isAdmin ? (
-            <ShieldCheck size={15} strokeWidth={1.75} aria-hidden />
-          ) : (
-            <Shield size={15} strokeWidth={1.75} aria-hidden />
-          )}
-          <HoverTip label={isAdmin ? "Admin: unlocked" : "Admin"} />
-        </button>
-
-        {/* Presentation mode — hide every floating control; a single restore
-            button stays bottom-right. */}
-        <button
-          type="button"
-          onClick={onHideUi}
-          aria-label="Hide controls"
-          className={`${iconBtn} text-grey-70 hover:bg-grey-20`}
-        >
-          <EyeOff size={15} strokeWidth={1.75} aria-hidden />
-          <HoverTip label="Hide controls" />
-        </button>
+        </div>
       </div>
     </div>
   );
