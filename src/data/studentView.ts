@@ -5,11 +5,16 @@
 // keeps the full set (src/data/studentExperience.ts).
 import { STUDENT_EXPERIENCE, stageQuestions } from "./studentExperience";
 
-// Up to five questions per stage, in the order we show them. Matched by
-// substring against the full question text, so small wording tweaks in the
-// source doc don't break the pick. Team-map questions are kept; pathway
-// products (diploma / associate degree / TAFE-to-degree) are dropped.
-const DISPLAY: Record<string, string[]> = {
+// Up to five questions per stage, in the order we show them. Two kinds of
+// entry: a plain string is a substring match against the experience-layer doc
+// (so small wording tweaks there don't break the pick); `{ new }` is a
+// question authored from the Study@RMIT search/enquiry demand data — the real
+// questions students bring to study.rmit.edu.au — that the doc didn't already
+// carry. Team-map questions are kept; pathway products (diploma / associate
+// degree / TAFE-to-degree) are dropped.
+type Pick = string | { new: string };
+
+const DISPLAY: Record<string, Pick[]> = {
   Understand: [
     "What subjects do I actually need",
     "Do I want to aim for university",
@@ -44,11 +49,15 @@ const DISPLAY: Record<string, string[]> = {
   Wait: [
     "When is ATAR release day",
     "How does Change of Preference work",
+    // Study@RMIT: the Dec–Jan VTAC peak is dominated by preference-order and
+    // "how do I maximise my chance of an offer" — not just how CoP works.
+    { new: "How should I order my preferences to get the best offer I can?" },
     "When do VTAC Round 1 offers come out",
-    "Where will my results and offer actually land",
     "What support is there if I'm stressed",
   ],
   Offer: [
+    // Study@RMIT: Jan–Feb demand is "what does my outcome mean, and what now?"
+    { new: "I've got an offer — what does it actually mean, and what do I do next?" },
     "When is the reply deadline",
     "If I accept a backup offer",
     "How long can I defer for",
@@ -63,14 +72,19 @@ const DISPLAY: Record<string, string[]> = {
   ],
 };
 
-/** The curated questions to show for a stage — the source doc's full text,
- *  filtered to the ones we surface, capped at five, in priority order. */
+/** The curated questions to show for a stage — doc questions (resolved to
+ *  their full text) plus any authored from Study@RMIT demand data, capped at
+ *  five, in priority order. */
 export function stageDisplayQuestions(stage: string): string[] {
   const all = stageQuestions(stage);
   const out: string[] = [];
   for (const pick of DISPLAY[stage] ?? []) {
-    const match = all.find((q) => q.toLowerCase().includes(pick.toLowerCase()));
-    if (match && !out.includes(match)) out.push(match);
+    if (typeof pick === "string") {
+      const match = all.find((q) => q.toLowerCase().includes(pick.toLowerCase()));
+      if (match && !out.includes(match)) out.push(match);
+    } else if (!out.includes(pick.new)) {
+      out.push(pick.new);
+    }
   }
   return out.slice(0, 5);
 }
