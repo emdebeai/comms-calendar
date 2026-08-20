@@ -647,7 +647,12 @@ export default function App() {
   if (!entered) return <Landing onEnter={enterMap} theme={theme} onToggleTheme={toggleTheme} />;
 
   return (
-    <div ref={scrollerRef} className="h-screen overflow-auto bg-surface font-sans text-grey-90">
+    <div
+      ref={scrollerRef}
+      // overscroll-x-contain: reaching the timeline's left edge must not hand
+      // the trackpad swipe to the browser's back-navigation gesture.
+      className="h-screen overflow-auto overscroll-x-contain bg-surface font-sans text-grey-90"
+    >
       {/* Bypass block for the 100+ tab stops on the canvas. Kept in the DOM
           (so screen readers announce it) but translated off the top edge
           until focused. */}
