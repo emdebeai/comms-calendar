@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { GraduationCap, Home, Info, Link2, Moon, Rows3, Shield, ShieldCheck, Sun } from "lucide-react";
+import { EyeOff, GraduationCap, Home, Info, Link2, Moon, Rows3, Shield, ShieldCheck, Sun } from "lucide-react";
 import type { CommType } from "../data/types";
 import { FOCUS_RING } from "../lib/styles";
 import { HoverTip } from "./HoverTip";
@@ -23,6 +23,8 @@ interface Props {
   isAdmin: boolean;
   onToggleAdmin: () => void;
   onGoHome: () => void;
+  /** hide the floating chrome (presentation mode) */
+  onHideUi: () => void;
 }
 
 /** Sleek floating control dock — pinned bottom-centre, frosted, always in
@@ -45,6 +47,7 @@ export function ControlDock({
   isAdmin,
   onToggleAdmin,
   onGoHome,
+  onHideUi,
 }: Props) {
   const allActive = activeTypes.size === ALL_TYPES.length;
   const [legendOpen, setLegendOpen] = useState(false);
@@ -260,6 +263,18 @@ export function ControlDock({
             <Shield size={15} strokeWidth={1.75} aria-hidden />
           )}
           <HoverTip label={isAdmin ? "Admin: unlocked" : "Admin"} />
+        </button>
+
+        {/* Presentation mode — hide every floating control; a single restore
+            button stays bottom-right. */}
+        <button
+          type="button"
+          onClick={onHideUi}
+          aria-label="Hide controls"
+          className={`${iconBtn} text-grey-70 hover:bg-grey-20`}
+        >
+          <EyeOff size={15} strokeWidth={1.75} aria-hidden />
+          <HoverTip label="Hide controls" />
         </button>
       </div>
     </div>

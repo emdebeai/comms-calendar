@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { flushSync } from "react-dom";
-import { Mail } from "lucide-react";
+import { Eye, Mail } from "lucide-react";
 import { ControlDock } from "./components/ControlDock";
 import { PersonaDock } from "./components/PersonaDock";
 import { SegmentToggles } from "./components/SegmentToggles";
@@ -22,6 +22,7 @@ import { STAGES } from "./data/journey";
 import { Minimap } from "./components/Minimap";
 import { Landing } from "./components/Landing";
 import { PersonaIntroModal } from "./components/PersonaIntroModal";
+import { HoverTip } from "./components/HoverTip";
 import { linkedCommIds } from "./data/studentExperience";
 import type { CommType, FeedbackEntry, Comm } from "./data/types";
 import {
@@ -98,6 +99,9 @@ export default function App() {
     window.location.hash = "/";
     setEntered(false);
   }, []);
+  // Presentation mode: hide the floating chrome (docks, minimap, filter
+  // pill), leaving one small restore button.
+  const [uiHidden, setUiHidden] = useState(false);
   // Back/forward: follow the hash.
   useEffect(() => {
     const onHash = () =>
@@ -872,12 +876,12 @@ export default function App() {
       </main>
 
       {/* Overview scrubber — the whole 3-year map in 300px, bottom-left. */}
-      {layout && !PRINT_MODE && <Minimap comms={layout.comms} scrollerRef={scrollerRef} />}
+      {layout && !PRINT_MODE && !uiHidden && <Minimap comms={layout.comms} scrollerRef={scrollerRef} />}
 
       {/* Filter summary — floats just above the control dock whenever a lens
           is engaged, so filtering always says what it did (and offers the way
           back). Doubles as the empty state when nothing matches. */}
-      {layout && filterActive && !PRINT_MODE && (
+      {layout && filterActive && !PRINT_MODE && !uiHidden && (
         <div className="fixed bottom-[4.75rem] left-1/2 z-40 -translate-x-1/2" role="status">
           <div className="animate-pop-in flex items-center gap-2.5 rounded-full border border-grey-30 bg-card/90 py-1.5 pr-1.5 pl-3.5 text-xs shadow-xl backdrop-blur-md">
             {shownCount === 0 ? (
@@ -907,8 +911,22 @@ export default function App() {
           clashes with the sticky header bands or the right-hand panels. */}
       {introOpen && <PersonaIntroModal onClose={closeIntro} />}
 
-      {!PRINT_MODE && (
+      {/* Presentation mode's single way back. */}
+      {!PRINT_MODE && uiHidden && (
+        <button
+          type="button"
+          onClick={() => setUiHidden(false)}
+          aria-label="Show controls"
+          className={`group fixed bottom-5 right-5 z-40 flex h-9 w-9 items-center justify-center rounded-full border border-grey-30 bg-card/70 text-grey-70 shadow-xl backdrop-blur-md hover:bg-grey-20 ${FOCUS_RING}`}
+        >
+          <Eye size={15} strokeWidth={1.75} aria-hidden />
+          <HoverTip label="Show controls" />
+        </button>
+      )}
+
+      {!PRINT_MODE && !uiHidden && (
       <ControlDock
+        onHideUi={() => setUiHidden(true)}
         activeTypes={activeTypes}
         onToggleType={toggleType}
         onResetTypes={() => setActiveTypes(new Set(ALL_TYPES))}
@@ -928,7 +946,7 @@ export default function App() {
 
       {/* Persona dock — bottom-left, names the persona and opens the segment
           toggles as a popover. */}
-      {!PRINT_MODE && (
+      {!PRINT_MODE && !uiHidden && (
       <PersonaDock
         onAboutPersona={() => setIntroOpen(true)}
         axes={segmentAxes}
