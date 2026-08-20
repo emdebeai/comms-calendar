@@ -4,7 +4,9 @@ import { FOCUS_RING } from "../lib/styles";
 import {
   ABOUT_PAGES,
   AI_POLICY,
-  BIBLIOGRAPHY,
+  DATA_SOURCES,
+  REFERENCES,
+  type Reference,
   GLOSSARY,
   INTRO,
   PEOPLE,
@@ -14,6 +16,17 @@ import {
 } from "../data/aboutContent";
 
 const PILLAR_ICONS = [Route, Users, Target, Layers];
+
+/** RMIT Harvard reference line: Author (Year) *Title*, Publisher, accessed
+ *  Date. URL — title italic, URL plain (never hyperlinked, per the style). */
+function harvardLine(r: Reference) {
+  return (
+    <>
+      {r.author} ({r.year}) <em>{r.title}</em>, {r.publisher}
+      {r.accessed ? `, accessed ${r.accessed}` : ""}.{r.url ? ` ${r.url}` : ""}
+    </>
+  );
+}
 
 type Page = "home" | AboutPage["slug"];
 
@@ -242,14 +255,35 @@ function Reference({ slug, onBack }: { slug: AboutPage["slug"]; onBack: () => vo
       )}
 
       {slug === "bibliography" && (
-        <ul className="flex flex-col gap-3">
-          {BIBLIOGRAPHY.map((b) => (
-            <li key={b.cite} className={CARD}>
-              <p className="text-sm font-semibold text-grey-90">{b.cite}</p>
-              <p className="mt-1 text-sm text-grey-70">{b.note}</p>
-            </li>
-          ))}
-        </ul>
+        <div className="flex flex-col gap-8">
+          <section>
+            <h2 className="text-base font-semibold text-grey-90">References</h2>
+            <p className="mt-1 text-sm text-grey-70">
+              Published sources, RMIT Harvard style.
+            </p>
+            <ul className="mt-3 flex flex-col gap-3">
+              {REFERENCES.map((r) => (
+                <li key={r.title} className="text-sm leading-relaxed text-grey-80">
+                  {harvardLine(r)}
+                </li>
+              ))}
+            </ul>
+          </section>
+          <section>
+            <h2 className="text-base font-semibold text-grey-90">Data sources</h2>
+            <p className="mt-1 text-sm text-grey-70">
+              Internal RMIT data used to build the map. Not published, so not cited formally.
+            </p>
+            <ul className="mt-3 flex flex-col gap-3">
+              {DATA_SOURCES.map((d) => (
+                <li key={d.title} className={CARD}>
+                  <p className="text-sm font-semibold text-grey-90">{d.title}</p>
+                  <p className="mt-1 text-sm text-grey-70">{d.note}</p>
+                </li>
+              ))}
+            </ul>
+          </section>
+        </div>
       )}
 
       {slug === "people" && (

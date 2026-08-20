@@ -57,30 +57,50 @@ export const GLOSSARY: { term: string; def: string }[] = [
   { term: "Touchpoint", def: "A single communication or interaction a student has with RMIT along the journey." },
 ];
 
-/** source citations */
-export const BIBLIOGRAPHY: { cite: string; note: string }[] = [
+// External, published sources — cited in RMIT Harvard (author-date). URL and
+// accessed-date are pending from the team; the org names below need confirming.
+export interface Reference {
+  author: string;
+  year: string;
+  title: string;
+  publisher: string;
+  accessed?: string;
+  url?: string;
+}
+export const REFERENCES: Reference[] = [
   {
-    cite: "UAC, Student Lifestyle & Learning Report 2024",
-    note: "16,759 Year 12 students, all states/territories, surveyed Nov 2023 – Feb 2024.",
+    author: "Universities Admissions Centre",
+    year: "2024",
+    title: "Student Lifestyle & Learning Report 2024",
+    publisher: "Universities Admissions Centre",
+    // accessed + url: to be supplied
   },
   {
-    cite: "MIP 2026 Domestic Demand Outlook",
-    note: "Market intelligence on domestic demand by field and pathway.",
+    author: "MIP",
+    year: "2026",
+    title: "Domestic Demand Outlook",
+    publisher: "MIP",
+    // author/publisher (what MIP stands for) + accessed + url: to be confirmed
   },
+];
+
+// Internal RMIT data — listed separately, not as formal Harvard citations
+// (these have no public URL).
+export const DATA_SOURCES: { title: string; note: string }[] = [
   {
-    cite: "RMIT program-page voice-of-customer (Aug 2025 – Aug 2026)",
+    title: "RMIT program-page voice-of-customer (Aug 2025 – Aug 2026)",
     note: "Verbatim feedback from domestic current high-school students, by journey stage.",
   },
   {
-    cite: "Dovetail longitudinal VOC synthesis (2024–2026)",
+    title: "Dovetail longitudinal VOC synthesis (2024–2026)",
     note: "The six persistent themes across the domestic undergraduate prospective folder.",
   },
   {
-    cite: "Enrolment-guide page survey (Qualtrics, HE domestic)",
+    title: "Enrolment-guide page survey (Qualtrics, HE domestic)",
     note: "187 responses to Aug 2026 on the enrolment experience.",
   },
   {
-    cite: "Salesforce Study@RMIT enquiry export",
+    title: "Salesforce Study@RMIT enquiry export",
     note: "Record-level inbound enquiries by channel, Aug 2025 – Feb 2026.",
   },
 ];
