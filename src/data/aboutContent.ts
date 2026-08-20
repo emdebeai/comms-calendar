@@ -72,21 +72,19 @@ export const REFERENCES: Reference[] = [
     author: "Universities Admissions Centre",
     year: "2024",
     title: "Student Lifestyle & Learning Report 2024",
-    publisher: "Universities Admissions Centre",
-    // accessed + url: to be supplied
-  },
-  {
-    author: "MIP",
-    year: "2026",
-    title: "Domestic Demand Outlook",
-    publisher: "MIP",
-    // author/publisher (what MIP stands for) + accessed + url: to be confirmed
+    publisher: "UAC website",
+    accessed: "11 August 2026",
+    url: "https://uac.edu.au/uac-student-lifestyle-and-learning-report-2024",
   },
 ];
 
 // Internal RMIT data — listed separately, not as formal Harvard citations
 // (these have no public URL).
 export const DATA_SOURCES: { title: string; note: string }[] = [
+  {
+    title: "MIP (Market Intelligence and Proposition) — Domestic Demand Outlook 2026",
+    note: "RMIT internal market-intelligence outlook on domestic demand by field and pathway.",
+  },
   {
     title: "RMIT program-page voice-of-customer (Aug 2025 – Aug 2026)",
     note: "Verbatim feedback from domestic current high-school students, by journey stage.",
