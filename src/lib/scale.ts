@@ -130,7 +130,7 @@ export const MOMENT_H = 68; // moment-that-matters label track (three mini-lines
 // light up its linked comms in place, no panel in the way. The deep-dive panel
 // (voice/needs/decisions/actions) opens from the small info button per stage.
 // See StudentJourneyLane.
-export const STUDENT_LANE_H = 172;
+export const STUDENT_LANE_H = 212;
 
 // Whether the student-journey lane is currently shown — set by layoutTimeline
 // from App's toggle. HEADER_H (and therefore every lane's `top`) shrinks by
