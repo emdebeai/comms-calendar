@@ -21,6 +21,7 @@ import { allCampaignChannels, campaignGroups } from "./data/comms";
 import { STAGES } from "./data/journey";
 import { Minimap } from "./components/Minimap";
 import { Landing } from "./components/Landing";
+import { PersonaIntroModal } from "./components/PersonaIntroModal";
 import { linkedCommIds } from "./data/studentExperience";
 import type { CommType, FeedbackEntry, Comm } from "./data/types";
 import {
@@ -96,6 +97,15 @@ export default function App() {
   const goHome = useCallback(() => {
     sessionStorage.removeItem("cc-entered");
     setEntered(false);
+  }, []);
+  // First visit to the map in this browser: introduce the persona. Print
+  // and deep-linked exports skip it.
+  const [introOpen, setIntroOpen] = useState(
+    () => !PRINT_MODE && localStorage.getItem("cc-persona-intro-domsl") !== "1",
+  );
+  const closeIntro = useCallback(() => {
+    localStorage.setItem("cc-persona-intro-domsl", "1");
+    setIntroOpen(false);
   }, []);
   const [rawComms, setRawComms] = useState<Comm[] | null>(null);
   // Detail-panel edits, keyed by comm id — merged onto the loaded comms below.
@@ -888,6 +898,8 @@ export default function App() {
       {/* Sleek floating control dock — filters, trigger lines, legend, theme.
           Fixed bottom-centre so it stays reachable while scrolling and never
           clashes with the sticky header bands or the right-hand panels. */}
+      {introOpen && <PersonaIntroModal onClose={closeIntro} />}
+
       {!PRINT_MODE && (
       <ControlDock
         activeTypes={activeTypes}
