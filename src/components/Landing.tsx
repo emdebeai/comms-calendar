@@ -129,7 +129,7 @@ function SiteNav({
           onClick={() => setPage("home")}
           className={`rounded-md text-sm font-bold text-rmit-blue ${FOCUS_RING}`}
         >
-          Current State Touch Points
+          Current State Touchpoints
         </button>
         <div className="flex items-center gap-1">
           {ABOUT_PAGES.map((p) => (
@@ -172,7 +172,7 @@ function HeroBand() {
     <div className="border-b border-grey-30 bg-header text-white">
       <div className="mx-auto max-w-[952px] px-6 pt-14 pb-6">
         <h1 className="max-w-3xl text-4xl font-bold leading-tight">
-          Current State Touch Points
+          Current State Touchpoints
         </h1>
         <p className="mt-5 max-w-3xl text-2xl font-medium leading-snug text-white/85">
           This work will support the portfolio to be{" "}

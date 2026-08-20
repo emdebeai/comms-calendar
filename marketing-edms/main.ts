@@ -164,7 +164,7 @@ function render() {
       <h1 class="text-3xl font-bold text-rmit-blue">Linking eDMs to student experience questions</h1>
       <p class="mt-2 max-w-3xl text-grey-80">
         Every 2026 domestic school leaver eDM, with the student question we think it answers on the
-        Current State Touch Points map.
+        Current State Touchpoints map.
       </p>
       <div class="mt-4 max-w-3xl rounded-lg border border-grey-30 bg-card p-4 text-sm text-grey-80">
         <p class="font-semibold text-grey-90">How this works</p>
@@ -226,7 +226,7 @@ function render() {
         More than one person can fill this in at once.
       </p>
       <footer class="mt-7 border-t border-grey-30 pt-4 text-xs text-grey-60">
-        RMIT EDC, Current State Touch Points. Persona 01, domestic school leaver (VTAC).
+        RMIT EDC, Current State Touchpoints. Persona 01, domestic school leaver (VTAC).
         Sends from the 2026 DOM eDM Planner.
       </footer>
     </div>`;

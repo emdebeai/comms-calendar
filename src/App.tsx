@@ -660,7 +660,7 @@ export default function App() {
         href="#comms-list"
         className="absolute left-2 top-2 z-50 -translate-y-16 rounded-md bg-header px-3 py-2 text-sm font-medium text-white transition-transform focus:translate-y-0"
       >
-        Skip to touch points list
+        Skip to touchpoints list
       </a>
       {/* Announces zoom-level changes (gesture or keyboard) to assistive tech,
           matching the visual reflow sighted users see. */}
@@ -868,7 +868,7 @@ export default function App() {
             ) : (
               <span className="text-grey-80">
                 Showing <span className="font-semibold text-grey-90">{shownCount}</span> of{" "}
-                {layout.comms.length} touch points
+                {layout.comms.length} touchpoints
                 {activeFilterLabel && (
                   <span className="text-grey-70"> — {activeFilterLabel}</span>
                 )}

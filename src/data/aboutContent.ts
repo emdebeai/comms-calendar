@@ -11,7 +11,7 @@ export interface AboutPage {
 /** Scope / purpose. The statement is verbatim from the project brief; the
  *  three emphasised words are rendered bold in the landing hero. */
 export const INTRO = {
-  eyebrow: "Prospective student touch points",
+  eyebrow: "Prospective student touchpoints",
   body: [
     "By creating and working from a holistic view of the future student experience, we will enable the business to consider the needs and goals of students at each step of the journey, as well as considering the journey as an end-to-end experience.",
   ],
