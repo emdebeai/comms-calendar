@@ -24,6 +24,7 @@ import {
   scaleX,
   type ExpandedMonths,
   type OverflowChip,
+  laneById,
 } from "../lib/scale";
 import { markerAccent } from "../lib/designConfig";
 import { EYEBROW, FOCUS_RING } from "../lib/styles";
@@ -364,14 +365,17 @@ export function Timeline({
                   left,
                   width,
                   top: HEADER_H,
-                  height: TOTAL_H - HEADER_H,
+                  // Stop at the campaigns lane: the embargo is a send-freeze for
+                  // the comm lanes above it, and the crosshatch made campaign
+                  // bars hard to read. laneById is safe — campaigns always exist.
+                  height: laneById("campaigns").top - HEADER_H,
                   backgroundImage:
                     "repeating-linear-gradient(45deg, var(--color-grey-50) 0 1.5px, transparent 1.5px 9px)",
                 }}
               />
               <div
                 className="pointer-events-none absolute z-20 flex justify-center items-start"
-                style={{ left, width, top: HEADER_H, height: TOTAL_H - HEADER_H }}
+                style={{ left, width, top: HEADER_H, height: laneById("campaigns").top - HEADER_H }}
               >
                 <span
                   className="pointer-events-auto sticky flex items-center gap-1 rounded-md border border-grey-40 bg-card px-2 py-0.5 text-xs font-semibold whitespace-nowrap text-grey-80 shadow-sm"

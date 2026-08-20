@@ -186,7 +186,7 @@ export const CAMPAIGN_SUMMARY_H = 44;
 export const CAMPAIGN_ROW_H = 32;
 // Row count for the current expansion state — set by layoutTimeline before
 // buildLanes runs; initial value covers the collapsed tree (5 rows).
-let campaignRowsN = buildCampaignRows(new Set()).length;
+let campaignRowsN = Math.max(...buildCampaignRows(new Set()).map((r) => r.line)) + 1;
 
 /** Height of the campaigns lane for the current expansion state. */
 function campaignsLaneHeight(): number {
@@ -435,7 +435,7 @@ export function layoutTimeline(
   HEADER_H = headerHeight();
   expandedMonthsState = expandedMonths;
   cardHeightById = heights;
-  campaignRowsN = buildCampaignRows(openCampaigns).length;
+  campaignRowsN = Math.max(...buildCampaignRows(openCampaigns).map((r) => r.line)) + 1;
   TOTAL_W =
     baseScaleX(MONTHS) +
     140 +

@@ -28,10 +28,10 @@ export function CampaignGantt({ expanded, dimmed, onToggle, onOpenChannel, onOpe
   const dim = `transition-opacity duration-300 ${dimmed ? "opacity-[0.05] focus-visible:opacity-100" : ""}`;
   return (
     <>
-      {rows.map((row, i) => {
+      {rows.map((row) => {
         const left = scaleX(row.from);
         const width = Math.max(scaleX(row.to) - left, 26);
-        const top = campaignRowY(i) + (CAMPAIGN_ROW_H - BAR_H) / 2;
+        const top = campaignRowY(row.line) + (CAMPAIGN_ROW_H - BAR_H) / 2;
         const range = row.allYear ? "Runs all year" : campaignRangeLabel(row.from, row.to);
         const narrow = width < NARROW_PX;
         const interactive = row.toggle || row.channel || row.id === "cmp-always-on";

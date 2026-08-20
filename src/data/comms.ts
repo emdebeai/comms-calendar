@@ -393,10 +393,15 @@ export interface CampaignRow {
   channel?: CampaignGroup["channels"][number]["channel"];
   /** spans the whole map — label says "all year" instead of dates */
   allYear?: boolean;
+  /** which vertical track the bar sits on — non-overlapping campaigns share
+   *  one line to save height, so this is decoupled from array order. */
+  line: number;
 }
 
 /** Rows of the campaigns lane for the current expansion state (row ids). */
 export function buildCampaignRows(expanded: Set<string>): CampaignRow[] {
+  // Line 0: always-on (all year). Line 1: the four dated campaigns — they
+  // don't overlap in time, so they share one track to save vertical space.
   const rows: CampaignRow[] = [
     {
       id: alwaysOnCampaign.id,
@@ -405,8 +410,9 @@ export function buildCampaignRows(expanded: Set<string>): CampaignRow[] {
       to: alwaysOnCampaign.to,
       depth: 0,
       allYear: true,
+      line: 0,
     },
-    { id: "early-awareness", label: "Early awareness — emails and socials", from: 24, to: 29, depth: 0 },
+    { id: "early-awareness", label: "Early awareness — emails and socials", from: 24, to: 29, depth: 0, line: 1 },
     {
       id: "open-day",
       label: "Open Day",
@@ -415,9 +421,15 @@ export function buildCampaignRows(expanded: Set<string>): CampaignRow[] {
       depth: 0,
       toggle: true,
       expanded: expanded.has("open-day"),
+      line: 1,
     },
+    { id: "vtac-timely", label: "VTAC Timely", from: 32, to: 33.5, depth: 0, line: 1 },
+    { id: "cop", label: "Change of Preference", from: 34, to: 36, depth: 0, line: 1 },
   ];
+  // Expanding Open Day unfolds its flight groups (and channels) below, each on
+  // its own line.
   if (expanded.has("open-day")) {
+    let nextLine = 2;
     for (const g of flightGroups) {
       rows.push({
         id: g.id,
@@ -427,18 +439,15 @@ export function buildCampaignRows(expanded: Set<string>): CampaignRow[] {
         depth: 1,
         toggle: true,
         expanded: expanded.has(g.id),
+        line: nextLine++,
       });
       if (expanded.has(g.id)) {
         for (const c of g.channels) {
-          rows.push({ id: c.id, label: c.title, from: c.from, to: c.to, depth: 2, channel: c.channel });
+          rows.push({ id: c.id, label: c.title, from: c.from, to: c.to, depth: 2, channel: c.channel, line: nextLine++ });
         }
       }
     }
   }
-  rows.push(
-    { id: "vtac-timely", label: "VTAC Timely", from: 32, to: 33.5, depth: 0 },
-    { id: "cop", label: "Change of Preference", from: 34, to: 36, depth: 0 },
-  );
   return rows;
 }
 
