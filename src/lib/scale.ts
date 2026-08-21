@@ -10,7 +10,7 @@
 import { buildCampaignRows, inbound as inboundData } from "../data/comms";
 import { STAGES, YEARS } from "../data/journey";
 import { stageDisplayQuestions } from "../data/studentView";
-import { packStage } from "./packStudent";
+import { CARD_W as STUDENT_CARD_W, estimateCardH, packCards } from "./packStudent";
 import type { Comm, Team } from "../data/types";
 
 export const MONTHS = 39; // through March 2027 — Sem 1 classes begin 1 Mar
@@ -135,17 +135,18 @@ export const MOMENT_H = 68; // moment-that-matters label track (three mini-lines
 // Height of the student swimlane: pack the question-cards at the base (widest)
 // zoom — the tightest, so the tallest — and size the band to fit that stack.
 function computeStudentLaneH(): number {
-  // Tallest per-stage stack at the base (unzoomed) scale — zooming a month
-  // only widens stages, which can only shorten stacks.
-  let max = 0;
+  const items: { x: number; h: number }[] = [];
   for (const stage of STAGES) {
     const questions = stageDisplayQuestions(stage.label);
     if (questions.length === 0) continue;
     const left = baseScaleX(stage.from);
-    const width = baseScaleX(stage.to) - left;
-    max = Math.max(max, packStage(left, width, questions).height);
+    const width = Math.max(baseScaleX(stage.to) - left, STUDENT_CARD_W * 0.5);
+    questions.forEach((q, i) => {
+      const centre = left + (width * (i + 0.5)) / questions.length;
+      items.push({ x: Math.max(0, centre - STUDENT_CARD_W / 2), h: estimateCardH(q) });
+    });
   }
-  return Math.max(max, 52);
+  return packCards(items).height;
 }
 // Expanded = full packed cards; collapsed = a compact strip of speech-bubble
 // icons. STUDENT_LANE_H is a live binding layoutTimeline sets from the collapse
