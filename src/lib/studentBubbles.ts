@@ -10,14 +10,14 @@ import { questionLabel, stageDisplayQuestions } from "../data/studentView";
 import { scaleX } from "./scale";
 
 export const STUDENT_ROWS = 3;
-export const BUBBLE_H = 26;
-const ROW_H = 34; // bubble + vertical gap
+export const BUBBLE_H = 30;
+const ROW_H = 42; // bubble + vertical gap
 const PAD_TOP = 12;
 const PAD_BOTTOM = 12;
 const PAD_X = 12; // inset from the stage separators
-const GAP_X = 8;
-const TARGET_W = 132; // preferred readable bubble width
-const MAX_W = 176; // never wider than this, however wide the stage
+const GAP_X = 12;
+const TARGET_W = 112; // preferred readable bubble width
+const MAX_W = 184; // never wider than this, however wide the stage
 
 export interface Bubble {
   stage: string;

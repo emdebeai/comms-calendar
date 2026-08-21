@@ -72,7 +72,7 @@ export function StudentJourneyLane({
                     e.stopPropagation();
                     onOpenQuestion(ref);
                   }}
-                  className={`group absolute flex items-center rounded-full border border-dashed border-grey-40 bg-grey-10 px-2 text-[11px] leading-none text-grey-70 transition-colors hover:border-grey-50 hover:bg-grey-20 ${FOCUS_RING}`}
+                  className={`group absolute flex items-center rounded-full border border-dashed border-grey-40 bg-grey-10 px-2.5 text-xs leading-none text-grey-70 transition-colors hover:border-grey-50 hover:bg-grey-20 ${FOCUS_RING}`}
                   style={box}
                 >
                   <span className="truncate">{b.label}</span>
@@ -98,7 +98,7 @@ export function StudentJourneyLane({
                   onPinQuestion(ref);
                   onOpenQuestion(ref);
                 }}
-                className={`group absolute flex items-center rounded-lg border px-2 text-[11px] leading-none transition-colors ${FOCUS_RING} ${
+                className={`group absolute flex items-center rounded-lg border px-2.5 text-xs leading-none transition-colors ${FOCUS_RING} ${
                   active
                     ? "border-blue-highlight bg-tint-blue text-blue-highlight"
                     : "border-blue-highlight/40 bg-card text-grey-90 hover:border-blue-highlight hover:bg-tint-blue/40"
