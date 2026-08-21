@@ -50,7 +50,7 @@ export const MOMENTS: Moment[] = [
   { id: "openday-y10", label: "Open Day · Yr 10", from: 7.0, to: 7.3, tier: "major", dates: "Bundoora 2 Aug · City & Brunswick 9 Aug" },
   { id: "openday-y11", label: "Open Day · Yr 11", from: 19.0, to: 19.3, tier: "major", dates: "Bundoora 2 Aug · City & Brunswick 9 Aug" },
   { id: "openday-y12", label: "Open Day · Yr 12", from: 31.0, to: 31.3, tier: "major", dates: "Bundoora 2 Aug · City & Brunswick 9 Aug" },
-  { id: "vtac-close", label: "VTAC Timely Close", from: 32.4, to: 33 },
+  { id: "vtac-timely", label: "VTAC timely applications", from: 31.06, to: 32.9, dates: "3 Aug – 5pm 28 Sep 2026" },
   // Same span as the comms embargo below it — the exams ARE the reason the
   // embargo exists, so the moments band names them right above the hatch.
   {

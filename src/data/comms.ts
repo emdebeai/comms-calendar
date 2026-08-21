@@ -531,7 +531,14 @@ export const inbound: InboundLaneData[] = [
   {
     id: "study",
     baseline: 8,
-    peaks: [],
+    // What drives the enquiry peaks — same treatment as the Digital lane.
+    // Monthly totals peak in Aug (applications open + Open Day), Dec (results,
+    // CoP and the offer round) and Jan (offers + enrolment).
+    peaks: [
+      { month: 31.5, height: 0, label: "Applications open" },
+      { month: 35.5, height: 0, label: "Results & offers" },
+      { month: 36.5, height: 0, label: "Enrolment" },
+    ],
     // Study@RMIT SL enquiry volume by channel (Salesforce, Aug 2025 – Mar 2026
     // extract). Months are placed by CALENDAR position on the Year 12 band —
     // like the VTAC lane, indicative cycle rather than 2026-aligned. Outbound

@@ -44,16 +44,22 @@ export function StudentJourneyLane({
       {/* ── Canvas side (transparent — moment context shows through) ── */}
       <div className="absolute top-0" style={{ left: LABEL_W, width: TOTAL_W, height: STUDENT_LANE_H }}>
         <div className="relative h-full">
-          {STAGES.map((s, i) =>
-            i === 0 ? null : (
+          {/* alternating stage tint + separators, so each stage's questions
+              read as one group under their stage header */}
+          {STAGES.map((s, i) => {
+            const left = scaleX(s.from);
+            const width = scaleX(s.to) - left;
+            return (
               <div
                 key={s.label}
-                className="absolute top-0 bottom-0 border-l border-grey-20"
-                style={{ left: scaleX(s.from) }}
+                className={`absolute top-0 bottom-0 ${i > 0 ? "border-l border-grey-30" : ""} ${
+                  i % 2 === 1 ? "bg-rmit-blue/[0.04]" : ""
+                }`}
+                style={{ left, width }}
                 aria-hidden
               />
-            ),
-          )}
+            );
+          })}
 
           {cards.map((c) => {
             const active =
@@ -105,9 +111,11 @@ export function StudentJourneyLane({
             }
 
             // ── Expanded: a wrapped-text speech-box card ──
-            const box = { left: c.x, top: c.y, width: c.w, height: c.h } as const;
+            // No fixed height — the card hugs its full (untruncated) text; the
+            // packer reserved a tall-enough slot so it never overlaps below.
+            const box = { left: c.x, top: c.y, width: c.w } as const;
             const shell =
-              "group absolute flex rounded-xl border text-left text-[11px] leading-snug transition-opacity";
+              "group absolute block rounded-xl border px-2 py-1.5 text-left text-[11px] leading-snug transition-opacity";
             const tone = !answered
               ? "border-dashed border-grey-40 bg-grey-10 text-grey-70 hover:border-grey-50 hover:bg-grey-20"
               : active
@@ -128,9 +136,7 @@ export function StudentJourneyLane({
                 className={`${shell} ${FOCUS_RING} ${tone} ${stageDim ? "opacity-25" : ""}`}
                 style={box}
               >
-                <span className="overflow-hidden px-2 py-1.5">
-                  <span className="line-clamp-3">{c.question}</span>
-                </span>
+                {c.question}
                 <span
                   className={`pointer-events-none absolute -bottom-[4px] left-4 h-2 w-2 rotate-45 border-r border-b transition-colors ${tail}`}
                   aria-hidden

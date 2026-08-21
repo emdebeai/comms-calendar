@@ -172,6 +172,30 @@ export function InboundLane({ data }: { data: InboundLaneData }) {
                 fill="var(--color-rmit-blue-interactive)"
               />
             ))}
+          {/* what's driving the peaks — labelled dots on the total curve, like
+              the Digital lane (at rest only, so they don't fight the breakdown) */}
+          {!hovering &&
+            data.peaks
+              .filter((p) => p.label)
+              .map((p) => {
+                const t = totals.find((tt) => tt.month === p.month);
+                if (!t) return null;
+                const py = cy(t.value);
+                const lx = Math.min(Math.max(scaleX(p.month), 60), TOTAL_W - 90);
+                return (
+                  <g key={`peak-${p.month}`}>
+                    <circle cx={scaleX(p.month)} cy={py} r={3.5} fill="var(--color-rmit-blue)" />
+                    <text
+                      x={lx}
+                      y={py - 8}
+                      textAnchor="middle"
+                      className="fill-grey-90 text-xs font-medium"
+                    >
+                      {p.label}
+                    </text>
+                  </g>
+                );
+              })}
           {/* the breakdown */}
           {hovering &&
             channels.map((c) =>
