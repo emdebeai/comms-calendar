@@ -232,7 +232,7 @@ export function Timeline({
           <YearBand />
         </div>
         <div
-          className="sticky left-0 z-20 flex h-full items-center border-r border-b border-grey-30 bg-grey-20 pl-[35px] pr-4 text-xs text-grey-70"
+          className="sticky left-0 z-20 flex h-full items-center border-r border-b border-grey-30 bg-card pl-[35px] pr-4 text-[11px] text-grey-60"
           style={{ width: LABEL_W }}
         >
           School year
@@ -244,7 +244,7 @@ export function Timeline({
           <MonthBand expandedMonths={expandedMonths} onSetLevel={onSetMonthLevel} />
         </div>
         <div
-          className="sticky left-0 z-20 flex h-full items-center justify-between gap-2 border-r border-b border-grey-30 bg-card pl-[35px] pr-4 text-xs text-grey-70"
+          className="sticky left-0 z-20 flex h-full items-center justify-between gap-2 border-r border-b border-grey-30 bg-card pl-[35px] pr-4 text-[11px] text-grey-60"
           style={{ width: LABEL_W }}
         >
           Month
@@ -275,7 +275,7 @@ export function Timeline({
           />
         </div>
         <div
-          className="sticky left-0 z-30 flex h-full items-center border-r border-b border-grey-30 bg-card pl-[35px] pr-4 text-xs text-grey-70"
+          className="sticky left-0 z-30 flex h-full items-start border-r border-b-2 border-grey-40 bg-card pt-2 pl-[35px] pr-4 text-[11px] text-grey-60"
           style={{ width: LABEL_W }}
         >
           Moments that matter
@@ -684,9 +684,9 @@ export function Timeline({
               <span className="flex items-center gap-1.5">
                 {collapsible &&
                   (collapsed ? (
-                    <ChevronRight size={13} strokeWidth={2} className="text-grey-60" aria-hidden />
+                    <ChevronRight size={13} strokeWidth={2} className="shrink-0 text-grey-60" aria-hidden />
                   ) : (
-                    <ChevronDown size={13} strokeWidth={2} className="text-grey-60" aria-hidden />
+                    <ChevronDown size={13} strokeWidth={2} className="shrink-0 text-grey-60" aria-hidden />
                   ))}
                 <span className={`${EYEBROW} ${lane.kind === "divider" ? "text-grey-70" : "text-grey-90"}`}>
                   {lane.label}

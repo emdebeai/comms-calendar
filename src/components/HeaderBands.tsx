@@ -70,7 +70,7 @@ export function StageBand({ onOpenStage, onHoverStage, onJumpStage }: StageBandP
             key={s.label}
             onMouseEnter={() => onHoverStage(s.label)}
             onMouseLeave={() => onHoverStage(null)}
-            className={`absolute flex h-full items-center justify-center ${
+            className={`group absolute flex h-full items-center justify-center ${
               i > 0 ? "border-l border-grey-30" : ""
             }`}
             style={{ left: scaleX(s.from), width: scaleX(s.to) - scaleX(s.from) }}
@@ -96,7 +96,7 @@ export function StageBand({ onOpenStage, onHoverStage, onJumpStage }: StageBandP
                 aria-haspopup="dialog"
                 aria-label={`${s.label} — full student experience (voice, needs, decisions, actions)`}
                 title="Full student experience for this stage"
-                className={`shrink-0 rounded-full p-0.5 text-grey-60 hover:bg-grey-20 hover:text-grey-90 ${FOCUS_RING}`}
+                className={`shrink-0 rounded-full p-0.5 text-grey-40 opacity-70 transition-opacity hover:bg-grey-20 hover:text-grey-90 group-hover:opacity-100 focus-visible:opacity-100 ${FOCUS_RING}`}
               >
                 <Info size={12} strokeWidth={2} aria-hidden />
               </button>
@@ -112,7 +112,7 @@ export function StageBand({ onOpenStage, onHoverStage, onJumpStage }: StageBandP
 export function YearBand() {
   return (
     <div className="absolute top-0 left-0" style={{ width: TOTAL_W }}>
-      <div className="relative border-b border-grey-30 bg-grey-20" style={{ height: YEAR_H }}>
+      <div className="relative border-b border-grey-30 bg-card" style={{ height: YEAR_H }}>
         {YEARS.map((y, i) => (
           <div
             key={y.label}
@@ -320,7 +320,7 @@ interface MomentsBandProps {
 export function MomentsBand({ activeMomentId, onHoverMoment, onPinMoment }: MomentsBandProps) {
   return (
     <div
-      className="absolute top-0 left-0 border-b border-grey-30 bg-card"
+      className="absolute top-0 left-0 border-b-2 border-grey-40 bg-card"
       style={{ width: TOTAL_W, height: MOMENT_H }}
     >
       {momentLines().map(({ moment, line, x, nudge }) => {
