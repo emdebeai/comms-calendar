@@ -99,7 +99,7 @@ export const STUDENT_EXPERIENCE: StageExperience[] = [
           {
             heading: "Questions",
             items: [
-              "What ATAR am I tracking for? Can I get in early so I can stop stressing?",
+              "What ATAR do I need?",
               "Should I study at [Uni A] or [Uni B]? Which has the better vibe and location?",
               "Does this course include work experience, internships or industry placements?",
               "How much will it cost me — fees, transport, and can I study close to home?",
@@ -292,9 +292,9 @@ export const STUDENT_EXPERIENCE: StageExperience[] = [
           {
             heading: "Questions",
             items: [
-              "When is ATAR release day, and what time do VTAC results go online?",
+              "When are results released?",
               "How does Change of Preference work?",
-              "When do VTAC Round 1 offers come out, and what happens if I reject one?",
+              "When are offers made?",
               "Where will my results and offer actually land — will it come to my phone or portal?",
               "What support is there if I'm stressed while I wait?",
             ],
@@ -596,14 +596,14 @@ export const QUESTION_LINKS: QuestionLink[] = [
   },
   {
     stage: "Wait",
-    match: "When do VTAC Round 1 offers come out, and what happens if I reject one?",
+    match: "When are offers made?",
     commIds: [
       "explore-a-future-with-rmit-5",
     ],
   },
   {
     stage: "Wait",
-    match: "When is ATAR release day, and what time do VTAC results go online?",
+    match: "When are results released?",
     commIds: [
       "vtac-results-are-released-today",
     ],

@@ -22,7 +22,7 @@ const DISPLAY: Record<string, Pick[]> = {
     "What will I actually study",
   ],
   Consider: [
-    "What ATAR am I tracking for",
+    "What ATAR do I need",
     "Should I study at [Uni A]",
     "Does this course include work experience",
     "How much will it cost me",
@@ -47,18 +47,17 @@ const DISPLAY: Record<string, Pick[]> = {
     "Will I get a confirmation",
   ],
   Wait: [
-    "When is ATAR release day",
+    "When are results released",
     "How does Change of Preference work",
     // Study@RMIT: the Dec–Jan VTAC peak is dominated by preference-order and
     // "how do I maximise my chance of an offer" — not just how CoP works.
     { new: "How should I order my preferences to get the best offer I can?" },
-    "When do VTAC Round 1 offers come out",
+    "When are offers made",
     "What support is there if I'm stressed",
   ],
   Offer: [
     // Study@RMIT: Jan–Feb demand is "what does my outcome mean, and what now?"
     { new: "I've got an offer — what does it actually mean, and what do I do next?" },
-    "When is the reply deadline",
     "If I accept a backup offer",
     "How long can I defer for",
     "Can I change my preferences now",
@@ -83,9 +82,9 @@ const SHORT: Record<string, [string, string][]> = {
     ["What will I actually study", "What will I study?"],
   ],
   Consider: [
-    ["What ATAR am I tracking", "What ATAR?"],
+    ["What ATAR do I need", "What ATAR do I need?"],
     ["Should I study at [Uni A]", "Which uni?"],
-    ["work experience", "Work experience?"],
+    ["work experience", "Does it include placements?"],
     ["How much will it cost", "What will it cost?"],
     ["VCE subjects are prerequisites", "VCE prerequisites?"],
   ],
@@ -108,15 +107,14 @@ const SHORT: Record<string, [string, string][]> = {
     ["get a confirmation", "Did it go through?"],
   ],
   Wait: [
-    ["ATAR release day", "When are results?"],
+    ["results released", "When are results released?"],
     ["Change of Preference work", "How does CoP work?"],
     ["order my preferences to get the best", "Best preference order?"],
-    ["Round 1 offers come out", "When are offers?"],
+    ["offers made", "When are offers made?"],
     ["stressed while I wait", "Support while I wait?"],
   ],
   Offer: [
     ["what does it actually mean", "What does my offer mean?"],
-    ["reply deadline", "Reply deadline?"],
     ["accept a backup offer", "Backup then Round 2?"],
     ["How long can I defer", "Can I defer?"],
     ["change my preferences now", "Change preferences?"],
