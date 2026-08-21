@@ -61,6 +61,11 @@ const PRINT_MODE = new URLSearchParams(window.location.search).has("print");
 // ?dots — start with every lane collapsed to its marker strip (the Overview
 // toggle's state), for capturing the compact all-dots view.
 const DOTS_MODE = new URLSearchParams(window.location.search).has("dots");
+// ?export — the print view auto-opens the browser's Save-as-PDF once the map
+// has settled, sizing the page to the whole map so it comes out as a single
+// sheet. Server-free, so it works on the static deploy (the on-map Export
+// button opens this view in a new tab).
+const EXPORT_MODE = new URLSearchParams(window.location.search).has("export");
 // The overview / "show all lanes at once" toggle collapses every lane to its
 // compact touchpoint strip so the whole map fits vertically.
 const COLLAPSIBLE_LANES = ["recruitment", "marketing-events", "marketing", "admissions", "conversion", "vtac", "campaigns", "digital", "study"];
@@ -505,6 +510,32 @@ export default function App() {
         : null,
     [comms, effectiveExpanded, cardHeights, expandedCampaigns, collapsedLanes, showStudentLayer, filteredIds, hiddenLanes, studentCollapsed],
   );
+
+  // ?export: once the map has rendered and fonts settled, size the print page
+  // to the whole map and open the browser's print dialog (Save as PDF → one
+  // sheet). No server needed, so this is what the deployed site uses.
+  const didAutoPrint = useRef(false);
+  useEffect(() => {
+    if (!EXPORT_MODE || !layout || didAutoPrint.current) return;
+    didAutoPrint.current = true;
+    // One-shot: deliberately NOT cancelled on cleanup — under StrictMode the
+    // effect re-runs, and the document (where we inject @page and call print)
+    // persists across that, so the print must survive the teardown.
+    (async () => {
+      await (document.fonts?.ready ?? Promise.resolve());
+      await new Promise((r) => setTimeout(r, 700)); // settle student-card reflow
+      const el = document.querySelector<HTMLElement>("[data-scroller]");
+      if (el) {
+        const w = Math.max(el.scrollWidth, document.documentElement.scrollWidth);
+        const h = Math.max(el.scrollHeight, document.documentElement.scrollHeight);
+        const style = document.createElement("style");
+        // 96 CSS px per inch — one page sized to the whole map.
+        style.textContent = `@page { size: ${(w / 96).toFixed(2)}in ${(h / 96).toFixed(2)}in; margin: 0; }`;
+        document.head.appendChild(style);
+      }
+      window.print();
+    })();
+  }, [layout]);
 
   // How many comms the active lenses leave lit — feeds the "N of M shown"
   // summary pill so filtering always says what it did.

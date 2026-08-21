@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { EyeOff, FileDown, Home, Info, Link2, Loader2, MoreHorizontal, Moon, Rows3, Shield, ShieldCheck, Sun } from "lucide-react";
+import { EyeOff, FileDown, Home, Info, Link2, MoreHorizontal, Moon, Rows3, Shield, ShieldCheck, Sun } from "lucide-react";
 import type { CommType } from "../data/types";
 import { FOCUS_RING } from "../lib/styles";
 import { HoverTip } from "./HoverTip";
@@ -50,31 +50,13 @@ export function ControlDock({
   const legendRef = useRef<HTMLDivElement>(null);
   const [moreOpen, setMoreOpen] = useState(false);
   const moreRef = useRef<HTMLDivElement>(null);
-  // Export the map to a print-ready PDF via the local server (headless Chrome).
-  // Dev-only: needs the API + a Chrome binary, absent on the static deploy.
-  const canExport = import.meta.env.DEV;
-  const [exporting, setExporting] = useState(false);
-  const exportPdf = async () => {
-    setExporting(true);
-    try {
-      const res = await fetch("/api/export-pdf");
-      if (!res.ok) throw new Error(`export failed (${res.status})`);
-      const blob = await res.blob();
-      const href = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = href;
-      a.download = "comms-map.pdf";
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(href);
-    } catch (err) {
-      console.error(err);
-      alert("PDF export failed — check the dev server + terminal for details.");
-    } finally {
-      setExporting(false);
-      setMoreOpen(false);
-    }
+  // Export the map to a print-ready PDF. Opens the curated print view in a new
+  // tab, which sizes the page to the whole map and auto-opens the browser's
+  // Save-as-PDF. Server-free, so it works on the static deploy too.
+  const exportPdf = () => {
+    const url = `${window.location.origin}${window.location.pathname}?print&dots&export=1`;
+    window.open(url, "_blank", "noopener");
+    setMoreOpen(false);
   };
 
   // Close the overflow menu on outside click / Escape.
@@ -276,22 +258,15 @@ export function ControlDock({
               aria-label="More options"
               className="animate-pop-in absolute right-0 bottom-full mb-3 w-48 rounded-lg border border-grey-30 bg-card p-1.5 shadow-lg"
             >
-              {canExport && (
-                <button
-                  type="button"
-                  role="menuitem"
-                  disabled={exporting}
-                  onClick={exportPdf}
-                  className={`flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-left text-sm text-grey-90 hover:bg-grey-10 disabled:opacity-60 ${FOCUS_RING}`}
-                >
-                  {exporting ? (
-                    <Loader2 size={15} strokeWidth={2} aria-hidden className="animate-spin text-grey-70" />
-                  ) : (
-                    <FileDown size={15} strokeWidth={2} aria-hidden className="text-grey-70" />
-                  )}
-                  {exporting ? "Exporting PDF…" : "Export PDF"}
-                </button>
-              )}
+              <button
+                type="button"
+                role="menuitem"
+                onClick={exportPdf}
+                className={`flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-left text-sm text-grey-90 hover:bg-grey-10 ${FOCUS_RING}`}
+              >
+                <FileDown size={15} strokeWidth={2} aria-hidden className="text-grey-70" />
+                Export PDF
+              </button>
               <button
                 type="button"
                 role="menuitem"
