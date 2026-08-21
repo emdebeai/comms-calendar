@@ -48,6 +48,8 @@ function monthStage(m: number): string {
 
 interface StageBandProps {
   onOpenStage: (stageLabel: string) => void;
+  /** hover a stage to light up its student questions below */
+  onHoverStage: (stageLabel: string | null) => void;
   /** click a stage name to scroll the map to that stage's start */
   onJumpStage: (from: number) => void;
 }
@@ -57,13 +59,15 @@ interface StageBandProps {
  *  student-experience deep-dive (voice, needs, decisions, actions); the
  *  Student Journey lane just below shows the questions inline.
  *  Scrolls away normally. */
-export function StageBand({ onOpenStage, onJumpStage }: StageBandProps) {
+export function StageBand({ onOpenStage, onHoverStage, onJumpStage }: StageBandProps) {
   return (
     <div className="absolute top-0 left-0" style={{ width: TOTAL_W }}>
       <div className="relative bg-header" style={{ height: STAGE_H }}>
         {STAGES.map((s, i) => (
           <div
             key={s.label}
+            onMouseEnter={() => onHoverStage(s.label)}
+            onMouseLeave={() => onHoverStage(null)}
             className={`absolute flex h-full items-center justify-center ${
               i > 0 ? "border-l border-white/30" : ""
             }`}

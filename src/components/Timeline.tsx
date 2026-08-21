@@ -7,6 +7,7 @@ import { matchesSegment, type SegmentSelection } from "../lib/segments";
 import {
   CHIP_H,
   HEADER_H,
+  STUDENT_LANE_H,
   LABEL_W,
   LANES,
   MOMENT_H,
@@ -69,6 +70,9 @@ interface Props {
   onPinQuestion: (q: QuestionRef) => void;
   onOpenQuestion: (q: QuestionRef) => void;
   onOpenStage: (stageLabel: string) => void;
+  /** stage hovered in the bar — lights up its student questions */
+  hoveredStage: string | null;
+  onHoverStage: (stageLabel: string | null) => void;
   /** click a stage name in the header band → scroll the map there */
   onJumpStage: (from: number) => void;
   /** ids of the media schedules currently expanded to their placements */
@@ -115,6 +119,8 @@ export function Timeline({
   onPinQuestion,
   onOpenQuestion,
   onOpenStage,
+  hoveredStage,
+  onHoverStage,
   onJumpStage,
   onOpenSchedule,
   expandedCampaigns,
@@ -203,6 +209,11 @@ export function Timeline({
   // bottom) — without it the bottom inbound curve is permanently covered.
   const DOCK_CLEARANCE = 112;
 
+  // The moment/embargo/grid context extends UP through the (transparent)
+  // student swimlane, so a question card sits in the same shaded period /
+  // send-freeze as the touchpoints below it.
+  const contextTop = HEADER_H - (showStudentLayer ? STUDENT_LANE_H : 0);
+
   return (
     <div
       className="relative"
@@ -215,6 +226,7 @@ export function Timeline({
         <div className="absolute top-0" style={{ left: LABEL_W, width: TOTAL_W }}>
           <StageBand
             onOpenStage={onOpenStage}
+            onHoverStage={onHoverStage}
             onJumpStage={onJumpStage}
           />
         </div>
@@ -291,6 +303,7 @@ export function Timeline({
           onHoverQuestion={onHoverQuestion}
           onPinQuestion={onPinQuestion}
           onOpenQuestion={onOpenQuestion}
+          hoveredStage={hoveredStage}
         />
       )}
 
@@ -311,7 +324,7 @@ export function Timeline({
           <div
             key={m}
             className={`absolute w-px ${m % 12 === 0 ? "bg-grey-40" : "bg-grey-20"}`}
-            style={{ left: scaleX(m), top: HEADER_H, height: TOTAL_H - HEADER_H }}
+            style={{ left: scaleX(m), top: contextTop, height: TOTAL_H - contextTop }}
           />
         ))}
 
@@ -326,8 +339,8 @@ export function Timeline({
                 className="absolute w-px bg-grey-30"
                 style={{
                   left: scaleX(month + (d - 1) / 30),
-                  top: HEADER_H,
-                  height: TOTAL_H - HEADER_H,
+                  top: contextTop,
+                  height: TOTAL_H - contextTop,
                 }}
               />
             ),
@@ -347,7 +360,7 @@ export function Timeline({
               className={`absolute z-10 border-l border-dashed transition-colors ${
                 active ? "border-blue-highlight bg-blue-highlight/8" : "border-grey-30 bg-grey-90/[0.03]"
               }`}
-              style={{ left, width, top: HEADER_H, height: TOTAL_H - HEADER_H }}
+              style={{ left, width, top: contextTop, height: TOTAL_H - contextTop }}
             />
           );
         })}
@@ -366,18 +379,18 @@ export function Timeline({
                 style={{
                   left,
                   width,
-                  top: HEADER_H,
+                  top: contextTop,
                   // Stop at the campaigns lane: the embargo is a send-freeze for
                   // the comm lanes above it, and the crosshatch made campaign
                   // bars hard to read. laneById is safe — campaigns always exist.
-                  height: laneById("campaigns").top - HEADER_H,
+                  height: laneById("campaigns").top - contextTop,
                   backgroundImage:
                     "repeating-linear-gradient(45deg, var(--color-grey-50) 0 1.5px, transparent 1.5px 9px)",
                 }}
               />
               <div
                 className="pointer-events-none absolute z-20 flex justify-center items-start"
-                style={{ left, width, top: HEADER_H, height: laneById("campaigns").top - HEADER_H }}
+                style={{ left, width, top: contextTop, height: laneById("campaigns").top - contextTop }}
               >
                 <span
                   className="pointer-events-auto sticky flex items-center gap-1 rounded-md border border-grey-40 bg-card px-2 py-0.5 text-xs font-semibold whitespace-nowrap text-grey-80 shadow-sm"

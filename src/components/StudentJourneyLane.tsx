@@ -15,28 +15,32 @@ interface Props {
   onPinQuestion: (q: QuestionRef) => void;
   /** click a card to open its detail panel */
   onOpenQuestion: (q: QuestionRef) => void;
+  /** stage currently hovered in the stage bar — its questions light up */
+  hoveredStage: string | null;
 }
 
 /** The student swimlane — the students' questions as speech-box cards, packed
  *  and stacked like the touchpoint cards below. Hover an answered card and the
- *  touchpoints that answer it stay lit while the rest of the map dims (the
- *  spotlight). A question no touchpoint answers is a dashed card — an open
- *  question, still waiting for a touchpoint. Click any card for its panel. */
+ *  touchpoints that answer it stay lit while the rest of the map dims. Hover a
+ *  stage in the bar above and that stage's questions light up (the rest dim).
+ *  A question no touchpoint answers is a dashed card. Click any card for its
+ *  panel. The band itself is transparent so the moment/embargo context behind
+ *  it stays visible. */
 export function StudentJourneyLane({
   activeQuestion,
   onHoverQuestion,
   onPinQuestion,
   onOpenQuestion,
+  hoveredStage,
 }: Props) {
   // Recomputed each render so card x-positions track the current zoom.
   const cards = bubbleLayout();
 
   return (
     <div className="relative z-[45]" style={{ height: STUDENT_LANE_H }}>
-      {/* ── Canvas side ── */}
+      {/* ── Canvas side (transparent — moment/embargo context shows through) ── */}
       <div className="absolute top-0" style={{ left: LABEL_W, width: TOTAL_W, height: STUDENT_LANE_H }}>
-        <div className="relative h-full bg-card">
-          {/* stage separators — group the cards by journey stage */}
+        <div className="relative h-full">
           {STAGES.map((s, i) =>
             i === 0 ? null : (
               <div
@@ -53,53 +57,49 @@ export function StudentJourneyLane({
               activeQuestion?.stage === c.stage && activeQuestion?.question === c.question;
             const box = { left: c.x, top: c.y, width: c.w, height: c.h } as const;
             const ref = { stage: c.stage, question: c.question };
-            const base =
-              "group absolute flex overflow-hidden rounded-lg border px-2 py-1.5 text-left text-[11px] leading-snug transition-colors";
+            // A hovered stage lights its own questions and dims the rest.
+            const stageDim = hoveredStage !== null && c.stage !== hoveredStage;
 
-            // Open question — no touchpoint answers it yet. A dashed card;
-            // interactive (opens the panel) but it doesn't fire the spotlight
-            // (nothing to light, and an empty focus would dim the whole map).
-            if (!c.answered) {
-              return (
-                <button
-                  key={`${c.stage}-${c.question}`}
-                  type="button"
-                  title={c.question}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onOpenQuestion(ref);
-                  }}
-                  className={`${base} ${FOCUS_RING} border-dashed border-grey-40 bg-grey-10 text-grey-70 hover:border-grey-50 hover:bg-grey-20`}
-                  style={box}
-                >
-                  <span className="line-clamp-3">{c.question}</span>
-                </button>
-              );
-            }
+            const shell =
+              "group absolute flex rounded-xl border text-left text-[11px] leading-snug transition-opacity";
+            const tone = !c.answered
+              ? "border-dashed border-grey-40 bg-grey-10 text-grey-70 hover:border-grey-50 hover:bg-grey-20"
+              : active
+                ? "border-blue-highlight bg-tint-blue text-blue-highlight"
+                : "border-blue-highlight/40 bg-card text-grey-90 hover:border-blue-highlight hover:bg-tint-blue/40";
+            const tail = !c.answered
+              ? "border-grey-40 bg-grey-10"
+              : active
+                ? "border-blue-highlight bg-tint-blue"
+                : "border-blue-highlight/40 bg-card group-hover:border-blue-highlight group-hover:bg-tint-blue/40";
 
+            const answered = c.answered;
             return (
               <button
                 key={`${c.stage}-${c.question}`}
                 type="button"
-                aria-pressed={active}
+                aria-pressed={answered ? active : undefined}
                 title={c.question}
-                onMouseEnter={() => onHoverQuestion(ref)}
-                onMouseLeave={() => onHoverQuestion(null)}
-                onFocus={() => onHoverQuestion(ref)}
-                onBlur={() => onHoverQuestion(null)}
+                onMouseEnter={answered ? () => onHoverQuestion(ref) : undefined}
+                onMouseLeave={answered ? () => onHoverQuestion(null) : undefined}
+                onFocus={answered ? () => onHoverQuestion(ref) : undefined}
+                onBlur={answered ? () => onHoverQuestion(null) : undefined}
                 onClick={(e) => {
                   e.stopPropagation();
-                  onPinQuestion(ref);
+                  if (answered) onPinQuestion(ref);
                   onOpenQuestion(ref);
                 }}
-                className={`${base} ${FOCUS_RING} ${
-                  active
-                    ? "border-blue-highlight bg-tint-blue text-blue-highlight"
-                    : "border-blue-highlight/40 bg-card text-grey-90 hover:border-blue-highlight hover:bg-tint-blue/40"
-                }`}
+                className={`${shell} ${FOCUS_RING} ${tone} ${stageDim ? "opacity-25" : ""}`}
                 style={box}
               >
-                <span className="line-clamp-3">{c.question}</span>
+                <span className="overflow-hidden px-2 py-1.5">
+                  <span className="line-clamp-3">{c.question}</span>
+                </span>
+                {/* speech-bubble tail */}
+                <span
+                  className={`pointer-events-none absolute -bottom-[4px] left-4 h-2 w-2 rotate-45 border-r border-b transition-colors ${tail}`}
+                  aria-hidden
+                />
               </button>
             );
           })}

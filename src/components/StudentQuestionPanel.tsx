@@ -12,6 +12,13 @@ import type { QuestionRef } from "./StudentJourneyLane";
 /** Stable feedback-collection key for a question's comment thread. */
 export const questionFeedbackId = (q: QuestionRef) => `q:${q.stage}:${q.question}`;
 
+// Stage-level context shown at the top of a question's panel — where a journey
+// step means something specific for this persona.
+const STAGE_NOTES: Record<string, string> = {
+  Submit:
+    "“Submit” is a standard journey step across our various audiences. For DOM SL, this represents finalising preferences via VTAC.",
+};
+
 /** Break a source's detail into its separate findings — split between
  *  sentences (a full stop before a space + capital / opening quote), so
  *  internal points like "p.9" stay intact. */
@@ -59,6 +66,12 @@ export function StudentQuestionPanel({
       onClose={onClose}
     >
       <div className="flex-1 overflow-y-auto p-6">
+        {STAGE_NOTES[stage] && (
+          <p className="mb-5 rounded-md border-l-2 border-rmit-blue/40 bg-tint-blue/40 px-3 py-2.5 text-sm leading-snug text-grey-90">
+            {STAGE_NOTES[stage]}
+          </p>
+        )}
+
         {/* Touchpoints that answer it */}
         <h3 className={`text-grey-70 ${EYEBROW}`}>
           Touchpoints that answer this{linked.length > 0 && ` · ${linked.length}`}

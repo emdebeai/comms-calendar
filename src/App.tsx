@@ -152,6 +152,7 @@ export default function App() {
   // light up, everything else dims. openStage is the optional deep-dive
   // panel, opened from the ⓘ per stage.
   const [openStage, setOpenStage] = useState<string | null>(null);
+  const [hoveredStage, setHoveredStage] = useState<string | null>(null);
   const [hoveredQuestion, setHoveredQuestion] = useState<QuestionRef | null>(null);
   const [pinnedQuestion, setPinnedQuestion] = useState<QuestionRef | null>(null);
   // Question whose detail panel is open (click a bubble).
@@ -821,6 +822,8 @@ export default function App() {
                 setOpenScheduleId(null);
                 setOpenStage((p) => (p === stage ? null : stage));
               }}
+              hoveredStage={hoveredStage}
+              onHoverStage={setHoveredStage}
               expandedCampaigns={expandedCampaigns}
               onToggleCampaign={(id) =>
                 setExpandedCampaigns((prev) => {
