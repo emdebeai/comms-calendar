@@ -12,9 +12,10 @@ const PAD_V = 14; // py-1.5 both sides + slack
 export const PAD_Y = 10;
 const GAP_X = 8;
 const ROW_GAP = 8;
-/** Depth cap per column, in cards' worth of pixels (~3 typical cards). */
-const COL_CAP_PX = 200;
 const STAGE_PAD_X = 6;
+/** Minimum right-step between successive cards in a tight stage — gives the
+ *  comm clusters' staircase (1 ↘ 2 ↘ 3) instead of a flat aligned column. */
+const MIN_STAGGER = 28;
 
 /** Estimate a card's rendered height from its full text. Generous, so a card
  *  never overlaps the one below. */
@@ -35,34 +36,20 @@ export interface StageSpanIn {
   questions: string[];
 }
 
-/** Plan x-positions column-major per stage: enough columns that no column
- *  exceeds the depth cap, columns spread across the stage's span (a wide
- *  stage keeps its spread; a narrow one packs columns side by side). Returns
- *  items in input order, ready for packCards. */
+/** Plan x-positions per stage as a staircase: successive questions step right
+ *  by an even share of the stage's span, floored at MIN_STAGGER — so a wide
+ *  stage relaxes into a flat spread (no overlap → one row) while a tight
+ *  stage cascades 1 ↘ 2 ↘ 3, priority reading down-right like a comm
+ *  cluster. Returns items in input order, ready for packCards. */
 export function planCards(stages: StageSpanIn[]): { x: number; h: number }[] {
   const out: { x: number; h: number }[] = [];
   for (const s of stages) {
     const hs = s.questions.map(estimateCardH);
-    // Columns needed so each stays under the cap, filling in priority order.
-    let cols = 1;
-    for (;;) {
-      const perCol = Math.ceil(hs.length / cols);
-      let ok = true;
-      for (let c = 0; c < cols; c++) {
-        const colH = hs
-          .slice(c * perCol, (c + 1) * perCol)
-          .reduce((a, b) => a + b + ROW_GAP, -ROW_GAP);
-        if (colH > COL_CAP_PX) ok = false;
-      }
-      if (ok || cols >= hs.length) break;
-      cols++;
-    }
-    const perCol = Math.ceil(hs.length / cols);
+    const n = hs.length;
     const inner = Math.max(s.width - 2 * STAGE_PAD_X, CARD_W);
-    const pitch = cols > 1 ? Math.max(CARD_W + GAP_X, inner / cols) : 0;
+    const step = n > 1 ? Math.max(MIN_STAGGER, (inner - CARD_W) / (n - 1)) : 0;
     hs.forEach((h, i) => {
-      const col = Math.floor(i / perCol);
-      out.push({ x: s.left + STAGE_PAD_X + col * pitch, h });
+      out.push({ x: s.left + STAGE_PAD_X + i * step, h });
     });
   }
   return out;
