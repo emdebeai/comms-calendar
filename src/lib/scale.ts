@@ -25,13 +25,7 @@ interface Segment {
 // default (month-view) zoom, so volume reads as DENSITY: the months where lots
 // of comms land visibly stack up, instead of busy periods being widened out.
 export const SEGMENTS: Segment[] = [
-  { from: 0, to: 31.7, pxPerMonth: 120 },
-  // The ~2-week application window (Decide/Begin/Submit) is NOT a volume peak,
-  // but it holds ~12 student questions — kept wider so those question-cards
-  // don't stack a dozen deep. Everywhere else stays uniform so volume peaks
-  // (Aug open days, Dec results) read as density.
-  { from: 31.7, to: 33, pxPerMonth: 600 },
-  { from: 33, to: 39, pxPerMonth: 120 },
+  { from: 0, to: 39, pxPerMonth: 120 },
 ];
 
 // One month at a time can be zoomed in two steps: level 1 spreads it into
