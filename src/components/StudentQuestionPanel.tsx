@@ -1,6 +1,6 @@
 import { GraduationCap } from "lucide-react";
 import { linkedCommIds } from "../data/studentExperience";
-import { TIER_LABEL, questionEvidence, stageEvidence } from "../data/studentSources";
+import { stageEvidence } from "../data/studentSources";
 import type { Comm, FeedbackEntry } from "../data/types";
 import { commDateLabel } from "../lib/scale";
 import { EYEBROW, FOCUS_RING } from "../lib/styles";
@@ -11,6 +11,16 @@ import type { QuestionRef } from "./StudentJourneyLane";
 
 /** Stable feedback-collection key for a question's comment thread. */
 export const questionFeedbackId = (q: QuestionRef) => `q:${q.stage}:${q.question}`;
+
+/** Break a source's detail into its separate findings — split between
+ *  sentences (a full stop before a space + capital / opening quote), so
+ *  internal points like "p.9" stay intact. */
+function splitSentences(text: string): string[] {
+  return text
+    .split(/(?<=\.)\s+(?=[A-Z“"])/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
 
 interface Props {
   question: QuestionRef;
@@ -38,15 +48,7 @@ export function StudentQuestionPanel({
   const linked = linkedCommIds(stage, q)
     .map((id) => byId.get(id))
     .filter((c): c is Comm => !!c);
-  const { origin, tier } = questionEvidence(stage, q);
   const { sources } = stageEvidence(stage);
-
-  const tierTone =
-    tier === "triangulated" || tier === "evidenced"
-      ? "bg-tint-blue text-rmit-blue-interactive"
-      : tier === "directional"
-        ? "bg-tint-amber text-amber"
-        : "bg-grey-10 text-grey-70";
 
   return (
     <DetailPanelShell
@@ -98,24 +100,23 @@ export function StudentQuestionPanel({
           </ul>
         )}
 
-        {/* Why we believe they ask it */}
-        <h3 className={`mt-6 border-t border-grey-30 pt-6 text-grey-70 ${EYEBROW}`}>
-          Why we believe they ask this
-        </h3>
-        <div className="mt-3 flex flex-wrap items-center gap-1.5">
-          <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${tierTone}`}>
-            {TIER_LABEL[tier]}
-          </span>
-          <span className="rounded-full bg-grey-10 px-2 py-0.5 text-xs text-grey-70">
-            {origin === "team" ? "From the team's map" : "Derived from data"}
-          </span>
-        </div>
-        {sources.length > 0 && (
-          <ul className="mt-3 flex flex-col gap-2.5 text-sm leading-snug">
+        {/* Sources */}
+        <h3 className={`mt-6 border-t border-grey-30 pt-6 text-grey-70 ${EYEBROW}`}>Sources</h3>
+        {sources.length === 0 ? (
+          <p className="mt-3 text-sm text-grey-70">No sources recorded for this stage.</p>
+        ) : (
+          <ul className="mt-3 flex flex-col gap-4">
             {sources.map((s) => (
               <li key={s.label}>
-                <span className="font-semibold text-grey-90">{s.label}</span>
-                <span className="text-grey-70"> — {s.detail}</span>
+                <p className="text-sm font-semibold text-grey-90">{s.label}</p>
+                <ul className="mt-1.5 flex flex-col gap-1">
+                  {splitSentences(s.detail).map((line, i) => (
+                    <li key={i} className="flex gap-2 text-sm leading-snug text-grey-70">
+                      <span className="mt-[7px] h-1 w-1 shrink-0 rounded-full bg-grey-40" aria-hidden />
+                      <span>{line}</span>
+                    </li>
+                  ))}
+                </ul>
               </li>
             ))}
           </ul>
