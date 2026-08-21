@@ -8,6 +8,7 @@
 // single column of minimum-width cards that still fit within its own span, so
 // no card overflows into the neighbouring stage. Pure — both the live layout
 // (studentBubbles, scaleX) and the band-height calc (scale, baseScaleX) use it.
+import { PRINT_MODE } from "./printMode";
 
 // Card width bounds. MIN fits the narrowest stage (~108px at 120px/month) so a
 // single-column stage never overflows its divider; MAX keeps wide-stage cards
@@ -17,7 +18,11 @@ export const MAX_CARD = 170;
 /** Nominal width kept for importers that need a single figure. */
 export const CARD_W = MIN_CARD;
 
-const LINE_H = 15; // leading-tight at 12px
+// The card font. Bumped in the print/export view so the questions read larger
+// on the wall — the layout below measures and reserves height at this size, so
+// cards resize correctly (no clipping) rather than the font just overflowing.
+export const FONT_PX = PRINT_MODE ? 15 : 12;
+const LINE_H = Math.round(FONT_PX * 1.25); // leading-tight
 const PAD_V = 14; // py-1.5 both sides + borders
 export const PAD_Y = 10;
 const GAP_X = 8;
@@ -39,7 +44,7 @@ function wrappedLines(text: string, bold: boolean, innerW: number): number {
   // The card's actual type: text-xs on the app's font-sans stack — semibold
   // for answered questions, regular for open ones (they wrap differently).
   // Inter is the app's rendered face (index.css); a fallback face miscounts.
-  measureCtx.font = `${bold ? 600 : 400} 12px Inter, system-ui, -apple-system, sans-serif`;
+  measureCtx.font = `${bold ? 600 : 400} ${FONT_PX}px Inter, system-ui, -apple-system, sans-serif`;
   // Break at spaces AND after hyphens (the browser wraps "class-selection" as
   // "class-" / "selection"); hyphen fragments join with no space.
   const tokens = text

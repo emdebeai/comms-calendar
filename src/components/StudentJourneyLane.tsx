@@ -2,6 +2,7 @@ import { useEffect, useReducer } from "react";
 import { ChevronDown, ChevronRight, MessageSquare } from "lucide-react";
 import { STAGES } from "../data/journey";
 import { bubbleLayout } from "../lib/studentBubbles";
+import { FONT_PX } from "../lib/packStudent";
 import { LABEL_W, STUDENT_LANE_H, TOTAL_W, scaleX } from "../lib/scale";
 import { EYEBROW, FOCUS_RING } from "../lib/styles";
 
@@ -111,10 +112,11 @@ export function StudentJourneyLane({
 
     // ── Expanded: a wrapped-text speech-box card ──
     // No fixed height — the card hugs its full (untruncated) text; the layout
-    // reserved a tall-enough slot so it never overlaps below.
-    // text-xs leading-tight — the comm cards' title type, exactly.
+    // reserved a tall-enough slot so it never overlaps below. Font size comes
+    // from FONT_PX (bumped in print) so screen matches the comm-card title type
+    // and print reads larger — the layout measured at the same size.
     const shell =
-      "group absolute block rounded-xl border px-2 py-1.5 text-left text-xs leading-tight transition-opacity";
+      "group absolute block rounded-xl border px-2 py-1.5 text-left leading-tight transition-opacity";
     // Answered questions carry the touchpoint cards' title weight
     // (font-semibold); open questions stay lighter, so weight itself signals
     // "this one is answered".
@@ -136,7 +138,7 @@ export function StudentJourneyLane({
         title={c.question}
         {...handlers}
         className={`${shell} ${FOCUS_RING} ${tone} ${stageDim ? "opacity-25" : ""}`}
-        style={{ left: x, top: c.y, width: c.w }}
+        style={{ left: x, top: c.y, width: c.w, fontSize: FONT_PX }}
       >
         {c.question}
         <span

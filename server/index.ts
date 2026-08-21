@@ -183,6 +183,26 @@ app.post("/api/collection/:name", async (req, res) => {
   }
 });
 
+// Export the map to a print-ready vector PDF (the on-map "Export PDF" button).
+// Drives headless system Chrome against the running dev server's ?print&dots
+// view. Local-dev only — Chrome + the dev server must be present.
+app.get("/api/export-pdf", async (req, res) => {
+  try {
+    const { generateMapPdf } = await import("../scripts/exportMapPdf.mjs");
+    const url =
+      (req.query.url as string) ??
+      `http://localhost:${process.env.CLIENT_PORT || 5173}/?print&dots`;
+    const { pdf, widthM, heightM } = await generateMapPdf({ url, log: (m) => console.log(`[pdf] ${m}`) });
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", 'attachment; filename="comms-map.pdf"');
+    res.setHeader("X-Print-Size", `${widthM.toFixed(2)}x${heightM.toFixed(2)}m`);
+    res.send(pdf);
+  } catch (err) {
+    console.error("[pdf] export failed:", err);
+    res.status(500).json({ error: String(err instanceof Error ? err.message : err) });
+  }
+});
+
 const port = Number(process.env.API_PORT) || 5174;
 const feedbackSource = isGraphConfigured()
   ? "SharePoint (Graph)"
