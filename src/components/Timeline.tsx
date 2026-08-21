@@ -64,6 +64,10 @@ interface Props {
   activeMomentId: string | null;
   /** whether the student-journey lane is shown (dock toggle, off by default) */
   showStudentLayer: boolean;
+  /** student swimlane collapse state + its lane controls */
+  studentCollapsed: boolean;
+  onToggleStudentCollapse: () => void;
+  onHideStudent: () => void;
   /** student swimlane — question bubbles + connector arrows to touchpoints */
   activeQuestion: QuestionRef | null;
   onHoverQuestion: (q: QuestionRef | null) => void;
@@ -114,6 +118,9 @@ export function Timeline({
   showLines,
   activeMomentId,
   showStudentLayer,
+  studentCollapsed,
+  onToggleStudentCollapse,
+  onHideStudent,
   activeQuestion,
   onHoverQuestion,
   onPinQuestion,
@@ -299,6 +306,9 @@ export function Timeline({
           Recruitment. Optional; when hidden HEADER_H shrinks by STUDENT_LANE_H. ── */}
       {showStudentLayer && (
         <StudentJourneyLane
+          collapsed={studentCollapsed}
+          onToggleCollapse={onToggleStudentCollapse}
+          onHide={onHideStudent}
           activeQuestion={activeQuestion}
           onHoverQuestion={onHoverQuestion}
           onPinQuestion={onPinQuestion}
@@ -358,7 +368,7 @@ export function Timeline({
             <div
               key={mo.id}
               className={`absolute z-10 border-l border-dashed transition-colors ${
-                active ? "border-blue-highlight bg-blue-highlight/8" : "border-grey-30 bg-grey-90/[0.03]"
+                active ? "border-rmit-blue-interactive bg-rmit-blue-interactive/8" : "border-grey-30 bg-grey-90/[0.03]"
               }`}
               style={{ left, width, top: contextTop, height: TOTAL_H - contextTop }}
             />
@@ -379,18 +389,21 @@ export function Timeline({
                 style={{
                   left,
                   width,
-                  top: contextTop,
+                  // Starts at the comm lanes (HEADER_H), NOT up through the
+                  // student swimlane — the send-freeze is about comms, not the
+                  // students' questions.
+                  top: HEADER_H,
                   // Stop at the campaigns lane: the embargo is a send-freeze for
                   // the comm lanes above it, and the crosshatch made campaign
                   // bars hard to read. laneById is safe — campaigns always exist.
-                  height: laneById("campaigns").top - contextTop,
+                  height: laneById("campaigns").top - HEADER_H,
                   backgroundImage:
                     "repeating-linear-gradient(45deg, var(--color-grey-50) 0 1.5px, transparent 1.5px 9px)",
                 }}
               />
               <div
                 className="pointer-events-none absolute z-20 flex justify-center items-start"
-                style={{ left, width, top: contextTop, height: laneById("campaigns").top - contextTop }}
+                style={{ left, width, top: HEADER_H, height: laneById("campaigns").top - HEADER_H }}
               >
                 <span
                   className="pointer-events-auto sticky flex items-center gap-1 rounded-md border border-grey-40 bg-card px-2 py-0.5 text-xs font-semibold whitespace-nowrap text-grey-80 shadow-sm"
@@ -398,7 +411,7 @@ export function Timeline({
                   title={`${e.label} — 27 Oct to 18 Nov 2026`}
                 >
                   <Ban size={11} strokeWidth={2} aria-hidden />
-                  Embargo
+                  VTAC comms embargo
                 </span>
               </div>
             </Fragment>

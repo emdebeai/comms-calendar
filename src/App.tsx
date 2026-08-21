@@ -174,6 +174,9 @@ export default function App() {
   // The student-journey lane is off by default — the comms map stays clean
   // until you opt into the student view from the control dock.
   const [showStudentLayer, setShowStudentLayer] = useState(false);
+  // Student swimlane collapse state — like the other lanes: expanded (full
+  // cards) ⇄ collapsed (a strip of speech-bubble icons). Hidden = layer off.
+  const [studentCollapsed, setStudentCollapsed] = useState(false);
   // Segment lens — opened from the persona dock. Focuses the map on comms
   // tailored to a chosen segment (college, campus, preference, event stage).
   const [segments, setSegments] = useState<SegmentSelection>(SEG_FROM_URL);
@@ -377,9 +380,10 @@ export default function App() {
             showStudentLayer,
             filteredIds,
             hiddenLanes,
+            showStudentLayer && studentCollapsed,
           )
         : null,
-    [comms, expandedMonths, cardHeights, expandedCampaigns, collapsedLanes, showStudentLayer, filteredIds, hiddenLanes],
+    [comms, expandedMonths, cardHeights, expandedCampaigns, collapsedLanes, showStudentLayer, filteredIds, hiddenLanes, studentCollapsed],
   );
 
   // ── Focus + filter state (drives what dims) ──────────────────────────────
@@ -495,9 +499,10 @@ export default function App() {
             showStudentLayer,
             filteredIds,
             hiddenLanes,
+            showStudentLayer && studentCollapsed,
           )
         : null,
-    [comms, effectiveExpanded, cardHeights, expandedCampaigns, collapsedLanes, showStudentLayer, filteredIds, hiddenLanes],
+    [comms, effectiveExpanded, cardHeights, expandedCampaigns, collapsedLanes, showStudentLayer, filteredIds, hiddenLanes, studentCollapsed],
   );
 
   // How many comms the active lenses leave lit — feeds the "N of M shown"
@@ -806,6 +811,9 @@ export default function App() {
               showLines={showLines}
               activeMomentId={activeMomentId}
               showStudentLayer={showStudentLayer}
+              studentCollapsed={studentCollapsed}
+              onToggleStudentCollapse={() => setStudentCollapsed((c) => !c)}
+              onHideStudent={() => setShowStudentLayer(false)}
               activeQuestion={activeQuestion}
               onHoverQuestion={hoverQuestion}
               onPinQuestion={(q) =>

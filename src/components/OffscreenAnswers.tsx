@@ -14,7 +14,7 @@ interface Props {
 }
 
 const PILL =
-  "pointer-events-auto animate-pop-in fixed top-1/2 z-40 flex -translate-y-1/2 items-center gap-1.5 rounded-full bg-blue-highlight py-2 pr-3.5 pl-3 text-sm font-semibold text-white shadow-lg transition-[filter] hover:brightness-110";
+  "pointer-events-auto animate-pop-in fixed top-1/2 z-40 flex -translate-y-1/2 items-center gap-1.5 rounded-full bg-rmit-blue-interactive py-2 pr-3.5 pl-3 text-sm font-semibold text-white shadow-lg transition-[filter] hover:brightness-110";
 
 /** When a hovered question's answering touchpoints are scrolled out of view,
  *  a pointer at the corresponding edge shows how many are that way — so the

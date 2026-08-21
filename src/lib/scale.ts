@@ -153,7 +153,12 @@ function computeStudentLaneH(): number {
   }
   return laneHeight(packRows(xs).count);
 }
-export const STUDENT_LANE_H = computeStudentLaneH();
+// Expanded = full packed cards; collapsed = a compact strip of speech-bubble
+// icons. STUDENT_LANE_H is a live binding layoutTimeline sets from the collapse
+// state, before it recomputes HEADER_H.
+export const STUDENT_EXPANDED_H = computeStudentLaneH();
+export const STUDENT_COLLAPSED_H = 52;
+export let STUDENT_LANE_H = STUDENT_EXPANDED_H;
 
 // Whether the student-journey lane is currently shown — set by layoutTimeline
 // from App's toggle. HEADER_H (and therefore every lane's `top`) shrinks by
@@ -451,12 +456,12 @@ export function layoutTimeline(
   studentLayer = false,
   filteredIds: Set<string> = new Set(),
   hiddenLanes: Set<string> = new Set(),
-  studentExpanded = false,
+  studentCollapsed = false,
 ): TimelineLayout {
   // Set the header height before anything reads it (buildLanes anchors every
   // lane's `top` to HEADER_H).
   studentLayerVisible = studentLayer;
-  void studentExpanded;
+  STUDENT_LANE_H = studentCollapsed ? STUDENT_COLLAPSED_H : STUDENT_EXPANDED_H;
   HEADER_H = headerHeight();
   expandedMonthsState = expandedMonths;
   cardHeightById = heights;

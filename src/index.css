@@ -10,7 +10,6 @@
   --color-rmit-red: #e61e2a;
   --color-rmit-blue-interactive: #0068d0;
   /* DS "highlight" — sparing blue for active windows / callouts */
-  --color-blue-highlight: #0068d0;
 
   /* Greys */
   --color-grey-10: #f9f9f9;
@@ -93,7 +92,6 @@
   /* Brand — bright enough to read as text/accents on dark */
   --color-rmit-blue: #93b4ff;
   --color-rmit-blue-interactive: #5b9dff;
-  --color-blue-highlight: #5b9dff;
   --color-rmit-red: #ff3b45;
 
   /* Status */
