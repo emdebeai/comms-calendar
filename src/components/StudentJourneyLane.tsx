@@ -1,3 +1,4 @@
+import { useEffect, useReducer } from "react";
 import { ChevronDown, ChevronRight, MessageSquare } from "lucide-react";
 import { STAGES } from "../data/journey";
 import { bubbleLayout } from "../lib/studentBubbles";
@@ -37,6 +38,18 @@ export function StudentJourneyLane({
   onOpenQuestion,
   hoveredStage,
 }: Props) {
+  // The packer measures text with canvas; if the webfont (Inter) lands after
+  // first paint, re-run the layout once so slot heights match the real face
+  // and stack gaps stay uniform.
+  const [, fontsReady] = useReducer((n: number) => n + 1, 0);
+  useEffect(() => {
+    let live = true;
+    document.fonts?.ready.then(() => live && fontsReady());
+    return () => {
+      live = false;
+    };
+  }, []);
+
   const cards = bubbleLayout();
 
   return (

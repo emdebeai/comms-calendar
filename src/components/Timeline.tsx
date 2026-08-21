@@ -225,24 +225,6 @@ export function Timeline({
       style={{ width: LABEL_W + TOTAL_W, height: TOTAL_H + DOCK_CLEARANCE }}
       onClick={onClearFocus}
     >
-      {/* ── Journey Stage row — the CX lens. The ⓘ on each stage opens its
-          full student-experience deep-dive. Scrolls away; month row sticks. ── */}
-      <div className="relative z-30" style={{ height: STAGE_H }}>
-        <div className="absolute top-0" style={{ left: LABEL_W, width: TOTAL_W }}>
-          <StageBand
-            onOpenStage={onOpenStage}
-            onHoverStage={onHoverStage}
-            onJumpStage={onJumpStage}
-          />
-        </div>
-        <div
-          className={`sticky left-0 z-20 flex h-full items-center border-r border-grey-30 bg-header px-4 text-white ${EYEBROW}`}
-          style={{ width: LABEL_W }}
-        >
-          Journey Stage
-        </div>
-      </div>
-
       {/* ── School year row — parallel audience bands ── */}
       <div className="relative z-30" style={{ height: YEAR_H }}>
         <div className="absolute top-0" style={{ left: LABEL_W, width: TOTAL_W }}>
@@ -296,6 +278,25 @@ export function Timeline({
           style={{ width: LABEL_W }}
         >
           Moments that matter
+        </div>
+      </div>
+
+      {/* ── Journey Stage row — the CX lens, sitting directly above the
+          student questions so it frames them. Same quiet card surface as the
+          swimlane (not the navy header). Scrolls away; month row sticks. ── */}
+      <div className="relative z-30" style={{ height: STAGE_H }}>
+        <div className="absolute top-0" style={{ left: LABEL_W, width: TOTAL_W }}>
+          <StageBand
+            onOpenStage={onOpenStage}
+            onHoverStage={onHoverStage}
+            onJumpStage={onJumpStage}
+          />
+        </div>
+        <div
+          className={`sticky left-0 z-20 flex h-full items-center border-r border-grey-30 bg-card px-4 text-grey-90 ${EYEBROW}`}
+          style={{ width: LABEL_W }}
+        >
+          Journey Stage
         </div>
       </div>
 

@@ -24,14 +24,15 @@ export interface Bubble {
 /** Lay every stage's questions out as packed cards (current zoom). */
 export function bubbleLayout(): Bubble[] {
   const meta: Omit<Bubble, "x" | "y" | "w" | "h">[] = [];
-  const spans: { left: number; width: number; questions: string[] }[] = [];
+  const spans: { left: number; width: number; questions: { text: string; bold: boolean }[] }[] = [];
   for (const stage of STAGES) {
     const questions = stageDisplayQuestions(stage.label);
     if (questions.length === 0) continue;
     const left = scaleX(stage.from);
-    spans.push({ left, width: scaleX(stage.to) - left, questions });
+    const qs: { text: string; bold: boolean }[] = [];
     for (const question of questions) {
       const commIds = linkedCommIds(stage.label, question);
+      qs.push({ text: question, bold: commIds.length > 0 });
       meta.push({
         stage: stage.label,
         question,
@@ -40,6 +41,7 @@ export function bubbleLayout(): Bubble[] {
         commIds,
       });
     }
+    spans.push({ left, width: scaleX(stage.to) - left, questions: qs });
   }
   const { placed } = packCards(planCards(spans));
   return meta.map((m, i) => ({ ...m, x: placed[i].x, y: placed[i].y, w: CARD_W, h: placed[i].h }));

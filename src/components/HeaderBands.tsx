@@ -62,14 +62,16 @@ interface StageBandProps {
 export function StageBand({ onOpenStage, onHoverStage, onJumpStage }: StageBandProps) {
   return (
     <div className="absolute top-0 left-0" style={{ width: TOTAL_W }}>
-      <div className="relative bg-header" style={{ height: STAGE_H }}>
+      {/* Same quiet card surface as the student questions below — the stage
+          row frames them rather than sitting apart as a navy banner. */}
+      <div className="relative border-b border-grey-30 bg-card" style={{ height: STAGE_H }}>
         {STAGES.map((s, i) => (
           <div
             key={s.label}
             onMouseEnter={() => onHoverStage(s.label)}
             onMouseLeave={() => onHoverStage(null)}
             className={`absolute flex h-full items-center justify-center ${
-              i > 0 ? "border-l border-white/30" : ""
+              i > 0 ? "border-l border-grey-30" : ""
             }`}
             style={{ left: scaleX(s.from), width: scaleX(s.to) - scaleX(s.from) }}
           >
@@ -81,7 +83,7 @@ export function StageBand({ onOpenStage, onHoverStage, onJumpStage }: StageBandP
                   onJumpStage(s.from);
                 }}
                 title={`Jump to ${s.label}`}
-                className={`cursor-pointer truncate rounded-sm text-xs font-semibold tracking-wide text-white underline-offset-2 hover:underline ${FOCUS_RING}`}
+                className={`cursor-pointer truncate rounded-sm text-xs font-semibold tracking-wide text-grey-90 underline-offset-2 hover:underline ${FOCUS_RING}`}
               >
                 {s.label}
               </button>
@@ -94,7 +96,7 @@ export function StageBand({ onOpenStage, onHoverStage, onJumpStage }: StageBandP
                 aria-haspopup="dialog"
                 aria-label={`${s.label} — full student experience (voice, needs, decisions, actions)`}
                 title="Full student experience for this stage"
-                className={`shrink-0 rounded-full p-0.5 text-white/70 hover:bg-white/20 hover:text-white ${FOCUS_RING}`}
+                className={`shrink-0 rounded-full p-0.5 text-grey-60 hover:bg-grey-20 hover:text-grey-90 ${FOCUS_RING}`}
               >
                 <Info size={12} strokeWidth={2} aria-hidden />
               </button>

@@ -9,6 +9,7 @@
 
 import { buildCampaignRows, inbound as inboundData } from "../data/comms";
 import { STAGES, YEARS } from "../data/journey";
+import { linkedCommIds } from "../data/studentExperience";
 import { stageDisplayQuestions } from "../data/studentView";
 import { packCards, planCards } from "./packStudent";
 import type { Comm, Team } from "../data/types";
@@ -139,7 +140,16 @@ function computeStudentLaneH(): number {
     const questions = stageDisplayQuestions(stage.label);
     if (questions.length === 0) return [];
     const left = baseScaleX(stage.from);
-    return [{ left, width: baseScaleX(stage.to) - left, questions }];
+    return [
+      {
+        left,
+        width: baseScaleX(stage.to) - left,
+        questions: questions.map((text) => ({
+          text,
+          bold: linkedCommIds(stage.label, text).length > 0,
+        })),
+      },
+    ];
   });
   return packCards(planCards(spans)).height;
 }
