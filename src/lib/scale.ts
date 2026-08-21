@@ -134,7 +134,7 @@ export const MOMENT_H = 68; // moment-that-matters label track (three mini-lines
 // small speech bubbles placed in time; a band-local SVG arcs connectors down
 // into the touchpoints that answer them. Fixed height — PAD*2 + 3 rows * 32
 // (must match STUDENT_BUBBLE_AREA_H in studentBubbles.ts).
-export const STUDENT_LANE_H = 116;
+export const STUDENT_LANE_H = 126;
 
 // Whether the student-journey lane is currently shown — set by layoutTimeline
 // from App's toggle. HEADER_H (and therefore every lane's `top`) shrinks by

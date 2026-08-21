@@ -1,4 +1,3 @@
-import { useMemo } from "react";
 import { STAGES } from "../data/journey";
 import { bubbleLayout } from "../lib/studentBubbles";
 import { LABEL_W, STUDENT_LANE_H, TOTAL_W, scaleX } from "../lib/scale";
@@ -30,7 +29,10 @@ export function StudentJourneyLane({
   onPinQuestion,
   onOpenQuestion,
 }: Props) {
-  const bubbles = useMemo(() => bubbleLayout(), []);
+  // Recomputed every render so bubble x-positions track the current zoom
+  // (a zoomed month changes scaleX; a stale layout would drift off the stage
+  // separators). Cheap — ~37 bubbles.
+  const bubbles = bubbleLayout();
 
   return (
     // z above the header rows below it so a bubble's tooltip paints over the
