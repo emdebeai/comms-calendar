@@ -96,6 +96,7 @@ export function StageBand({ onOpenStage, onHoverStage, onJumpStage }: StageBandP
                 aria-haspopup="dialog"
                 aria-label={`${s.label} — full student experience (voice, needs, decisions, actions)`}
                 title="Full student experience for this stage"
+                data-print-hide
                 className={`shrink-0 rounded-full p-0.5 text-grey-40 opacity-70 transition-opacity hover:bg-grey-20 hover:text-grey-90 group-hover:opacity-100 focus-visible:opacity-100 ${FOCUS_RING}`}
               >
                 <Info size={12} strokeWidth={2} aria-hidden />

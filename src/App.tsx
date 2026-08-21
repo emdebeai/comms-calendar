@@ -3,7 +3,6 @@ import { flushSync } from "react-dom";
 import { Eye, Mail } from "lucide-react";
 import { ControlDock } from "./components/ControlDock";
 import { PersonaDock } from "./components/PersonaDock";
-import { SegmentToggles } from "./components/SegmentToggles";
 import { Timeline } from "./components/Timeline";
 import {
   availableSegments,
@@ -726,8 +725,11 @@ export default function App() {
   return (
     <div
       ref={scrollerRef}
+      data-scroller
       // overscroll-x-contain: reaching the timeline's left edge must not hand
-      // the trackpad swipe to the browser's back-navigation gesture.
+      // the trackpad swipe to the browser's back-navigation gesture. In print
+      // the scrollport is opened up (see @media print) so the whole map lands
+      // on one page instead of being clipped to the viewport.
       className="h-screen overflow-auto overscroll-x-contain bg-surface font-sans text-grey-90"
     >
       {/* Bypass block for the 100+ tab stops on the canvas. Kept in the DOM
@@ -912,23 +914,12 @@ export default function App() {
                     External sender (VTAC) — any channel
                   </span>
                 </div>
-                <div className="mb-2 flex items-center gap-2 text-xs text-grey-70">
-                  <span className="font-semibold text-grey-90">
-                    Filters available on the interactive map
-                  </span>
-                  <span aria-hidden>·</span>
+                <div className="flex items-center gap-2 text-xs text-grey-70">
                   <span>
-                    Persona: <span className="font-semibold">DOM SL</span> — domestic school
-                    leaver
+                    Persona: <span className="font-semibold text-grey-90">DOM SL</span> — domestic
+                    school leaver (Year 12, VTAC direct applicant)
                   </span>
                 </div>
-                <SegmentToggles
-                  axes={segmentAxes}
-                  selection={segments}
-                  counts={segmentCounts}
-                  onSelect={() => {}}
-                  onClearAll={() => setSegments({})}
-                />
               </div>
             )}
           </>

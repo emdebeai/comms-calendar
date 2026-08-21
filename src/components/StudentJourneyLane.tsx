@@ -187,7 +187,11 @@ export function StudentJourneyLane({
                 style={{ left: sLeft, width: sWidth }}
               >
                 {wide ? (
-                  <div className="sticky h-full" style={{ left: LABEL_W, width: clusterW }}>
+                  <div
+                    data-student-cluster
+                    className="sticky h-full"
+                    style={{ left: LABEL_W, width: clusterW }}
+                  >
                     {inner}
                   </div>
                 ) : (

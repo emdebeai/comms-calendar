@@ -1,6 +1,7 @@
 import { Fragment, useState } from "react";
 import type { InboundLaneData } from "../data/types";
 import { LABEL_W, MONTHS, TOTAL_W, laneById, scaleX } from "../lib/scale";
+import { PRINT_MODE } from "../lib/printMode";
 
 // Engagement volume at a given month: baseline plus gaussian bumps per peak.
 // (Legacy synthetic mode — only used when a lane has no measured series.)
@@ -127,7 +128,11 @@ export function InboundLane({ data }: { data: InboundLaneData }) {
           onMouseLeave={() => setHoverX(null)}
         >
           <text x={LABEL_W + 12} y={16} className="fill-rmit-blue-interactive text-xs font-medium">
-            {hovering ? "Enquiries by channel" : "Total enquiries · hover for the channel breakdown"}
+            {hovering
+              ? "Enquiries by channel"
+              : PRINT_MODE
+                ? "Total enquiries"
+                : "Total enquiries · hover for the channel breakdown"}
           </text>
           {/* legend while the breakdown is showing */}
           {hovering &&

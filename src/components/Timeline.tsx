@@ -708,7 +708,10 @@ export function Timeline({
                 (() => {
                   const note = inbound.find((d) => d.id === lane.id)?.seriesNote;
                   return note ? (
-                    <span className="group relative mt-1 ml-[19px] inline-flex w-fit items-center gap-1 text-[11px] text-grey-60">
+                    <span
+                      data-print-hide
+                      className="group relative mt-1 ml-[19px] inline-flex w-fit items-center gap-1 text-[11px] text-grey-60"
+                    >
                       <Info size={11} strokeWidth={2} aria-hidden />
                       Source
                       <span className="absolute top-full left-0 z-50 mt-1 hidden w-64 rounded-md bg-tooltip px-2.5 py-1.5 text-[11px] leading-snug whitespace-normal text-white shadow-md group-hover:block">
@@ -781,6 +784,7 @@ export function Timeline({
                   </button>
                   {!collapsed && (
                     <a
+                      data-print-hide
                       href="https://vtac.edu.au/files/pdf/publications/VTAC_2024-25_Newsletter_schedule.pdf"
                       target="_blank"
                       rel="noopener noreferrer"

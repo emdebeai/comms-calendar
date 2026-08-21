@@ -11,3 +11,4 @@ server/data/feedback.json
 # Excel lock/temp files
 ~$*.xlsx
 server/data/edm-review.json
+exports/

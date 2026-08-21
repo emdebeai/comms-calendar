@@ -203,3 +203,33 @@ html {
     scroll-behavior: auto !important;
   }
 }
+
+/* ── Print / PDF export ────────────────────────────────────────────────────
+   Driven by the `?print` view (floating chrome already React-gated off) and a
+   headless Chrome printToPDF at the map's own dimensions. Here we (a) open the
+   horizontal scrollport so the WHOLE map flows onto a single page instead of
+   being clipped to the viewport, and (b) strip interactive-only affordances
+   (hover tooltips, "Source" popovers, the stage ⓘ buttons) that mean nothing
+   on paper. */
+@media print {
+  html,
+  body {
+    background: #fff !important;
+  }
+  [data-scroller] {
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    width: max-content !important;
+  }
+  /* Interactive-only chrome — never part of the printed artifact. */
+  .bg-tooltip,
+  [data-print-hide] {
+    display: none !important;
+  }
+  /* Sticky pins are a scroll affordance; on a static page they'd stick to the
+     print page box. Anchor everything at its natural position instead. */
+  [data-student-cluster] {
+    position: static !important;
+  }
+}
