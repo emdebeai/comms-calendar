@@ -14,6 +14,7 @@ import {
 import { connectedIds } from "./components/TriggerLayer";
 import { CommDetailPanel } from "./components/CommDetailPanel";
 import { StudentQuestionPanel, questionFeedbackId } from "./components/StudentQuestionPanel";
+import { OffscreenAnswers } from "./components/OffscreenAnswers";
 import { CampaignDetailPanel } from "./components/CampaignDetailPanel";
 import { ScheduleDetailPanel } from "./components/ScheduleDetailPanel";
 import { StudentStagePanel } from "./components/StudentStagePanel";
@@ -155,6 +156,20 @@ export default function App() {
   const [pinnedQuestion, setPinnedQuestion] = useState<QuestionRef | null>(null);
   // Question whose detail panel is open (click a bubble).
   const [panelQuestion, setPanelQuestion] = useState<QuestionRef | null>(null);
+  // Horizontal viewport of the scroller, so we can point to answering
+  // touchpoints that are scrolled off-screen.
+  const [viewport, setViewport] = useState({ left: 0, width: 0 });
+  // Debounced clear on question hover-out, so the cursor can travel from a
+  // bubble to its off-screen pointer without the pointer vanishing mid-move.
+  const hoverClearTimer = useRef<number | undefined>(undefined);
+  const hoverQuestion = useCallback((q: QuestionRef | null) => {
+    if (q) {
+      window.clearTimeout(hoverClearTimer.current);
+      setHoveredQuestion(q);
+    } else {
+      hoverClearTimer.current = window.setTimeout(() => setHoveredQuestion(null), 250);
+    }
+  }, []);
   // The student-journey lane is off by default — the comms map stays clean
   // until you opt into the student view from the control dock.
   const [showStudentLayer, setShowStudentLayer] = useState(false);
@@ -279,6 +294,25 @@ export default function App() {
     });
 
   const scrollerRef = useRef<HTMLDivElement>(null);
+  // Track the scroller's horizontal viewport (rAF-throttled) so we can point
+  // to answering touchpoints that are off-screen.
+  useEffect(() => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    let raf = 0;
+    const update = () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => setViewport({ left: el.scrollLeft, width: el.clientWidth }));
+    };
+    update();
+    el.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
+    return () => {
+      el.removeEventListener("scroll", update);
+      window.removeEventListener("resize", update);
+      cancelAnimationFrame(raf);
+    };
+  }, [entered]);
   // One zoom step per animation frame — a trackpad fires many wheel events per
   // gesture, and without this a flick would rocket month→day or overshoot.
   const zoomFrameLock = useRef(false);
@@ -356,6 +390,32 @@ export default function App() {
   const questionCommIds = activeQuestion
     ? new Set(linkedCommIds(activeQuestion.stage, activeQuestion.question))
     : null;
+
+  // Of the active question's answering touchpoints, how many are scrolled off
+  // each edge — so a pointer can show which way they are (else the spotlight
+  // just dims to nothing when they're all out of view).
+  const offAnswers = useMemo(() => {
+    if (!activeQuestion || !questionCommIds?.size || !baseLayout || panelQuestion) return null;
+    const viewLeft = viewport.left;
+    const viewRight = viewport.left + viewport.width - LABEL_W;
+    let left = 0,
+      right = 0,
+      leftT = Infinity,
+      rightT = -Infinity;
+    for (const c of baseLayout.comms) {
+      if (!questionCommIds.has(c.id)) continue;
+      const x = commPos(c).x;
+      if (x < viewLeft) {
+        left++;
+        leftT = Math.min(leftT, x);
+      } else if (x > viewRight) {
+        right++;
+        rightT = Math.max(rightT, x);
+      }
+    }
+    return left > 0 || right > 0 ? { left, right, leftT, rightT } : null;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeQuestion, questionCommIds, baseLayout, panelQuestion, viewport]);
   const momentCommIds =
     activeMomentId && baseLayout
       ? new Set(baseLayout.comms.filter((c) => c.momentId === activeMomentId).map((c) => c.id))
@@ -746,7 +806,7 @@ export default function App() {
               activeMomentId={activeMomentId}
               showStudentLayer={showStudentLayer}
               activeQuestion={activeQuestion}
-              onHoverQuestion={setHoveredQuestion}
+              onHoverQuestion={hoverQuestion}
               onPinQuestion={(q) =>
                 setPinnedQuestion((p) =>
                   p?.stage === q.stage && p?.question === q.question ? null : q,
@@ -997,6 +1057,27 @@ export default function App() {
             setPanelQuestion(null);
             setOpenCommId(id);
           }}
+        />
+      )}
+
+      {offAnswers && !uiHidden && !PRINT_MODE && (
+        <OffscreenAnswers
+          left={offAnswers.left}
+          right={offAnswers.right}
+          onKeep={() => activeQuestion && hoverQuestion(activeQuestion)}
+          onRelease={() => hoverQuestion(null)}
+          onGoLeft={() =>
+            scrollerRef.current?.scrollTo({
+              left: Math.max(0, offAnswers.leftT - viewport.width / 2 + LABEL_W),
+              behavior: "smooth",
+            })
+          }
+          onGoRight={() =>
+            scrollerRef.current?.scrollTo({
+              left: Math.max(0, offAnswers.rightT - viewport.width / 2 + LABEL_W),
+              behavior: "smooth",
+            })
+          }
         />
       )}
 
