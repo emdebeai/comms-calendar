@@ -8,7 +8,9 @@
 // without a permanently distorted, over-weighted Year-12 season.
 
 import { buildCampaignRows, inbound as inboundData } from "../data/comms";
-import { YEARS } from "../data/journey";
+import { STAGES, YEARS } from "../data/journey";
+import { stageDisplayQuestions } from "../data/studentView";
+import { CARD_W as STUDENT_CARD_W, laneHeight, packRows } from "./packStudent";
 import type { Comm, Team } from "../data/types";
 
 export const MONTHS = 39; // through March 2027 — Sem 1 classes begin 1 Mar
@@ -23,7 +25,13 @@ interface Segment {
 // default (month-view) zoom, so volume reads as DENSITY: the months where lots
 // of comms land visibly stack up, instead of busy periods being widened out.
 export const SEGMENTS: Segment[] = [
-  { from: 0, to: 39, pxPerMonth: 120 },
+  { from: 0, to: 31.7, pxPerMonth: 120 },
+  // The ~2-week application window (Decide/Begin/Submit) is NOT a volume peak,
+  // but it holds ~12 student questions — kept wider so those question-cards
+  // don't stack a dozen deep. Everywhere else stays uniform so volume peaks
+  // (Aug open days, Dec results) read as density.
+  { from: 31.7, to: 33, pxPerMonth: 600 },
+  { from: 33, to: 39, pxPerMonth: 120 },
 ];
 
 // One month at a time can be zoomed in two steps: level 1 spreads it into
@@ -130,7 +138,22 @@ export const MOMENT_H = 68; // moment-that-matters label track (three mini-lines
 // small speech bubbles placed in time; a band-local SVG arcs connectors down
 // into the touchpoints that answer them. Fixed height — PAD*2 + 3 rows * 32
 // (must match STUDENT_BUBBLE_AREA_H in studentBubbles.ts).
-export const STUDENT_LANE_H = 194;
+// Height of the student swimlane: pack the question-cards at the base (widest)
+// zoom — the tightest, so the tallest — and size the band to fit that stack.
+function computeStudentLaneH(): number {
+  const xs: number[] = [];
+  for (const stage of STAGES) {
+    const n = stageDisplayQuestions(stage.label).length;
+    if (n === 0) continue;
+    const left = baseScaleX(stage.from);
+    const width = Math.max(baseScaleX(stage.to) - left, STUDENT_CARD_W * 0.5);
+    for (let i = 0; i < n; i++) {
+      xs.push(Math.max(0, left + (width * (i + 0.5)) / n - STUDENT_CARD_W / 2));
+    }
+  }
+  return laneHeight(packRows(xs).count);
+}
+export const STUDENT_LANE_H = computeStudentLaneH();
 
 // Whether the student-journey lane is currently shown — set by layoutTimeline
 // from App's toggle. HEADER_H (and therefore every lane's `top`) shrinks by

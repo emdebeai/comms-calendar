@@ -226,19 +226,6 @@ export function Timeline({
         </div>
       </div>
 
-      {/* ── Student swimlane — the students' questions as speech bubbles, sitting
-          directly under the Journey Stage bar so the two read as one band.
-          Hovering an answered bubble spotlights the touchpoints that answer it.
-          Optional; when hidden HEADER_H shrinks by STUDENT_LANE_H. ── */}
-      {showStudentLayer && (
-        <StudentJourneyLane
-          activeQuestion={activeQuestion}
-          onHoverQuestion={onHoverQuestion}
-          onPinQuestion={onPinQuestion}
-          onOpenQuestion={onOpenQuestion}
-        />
-      )}
-
       {/* ── School year row — parallel audience bands ── */}
       <div className="relative z-30" style={{ height: YEAR_H }}>
         <div className="absolute top-0" style={{ left: LABEL_W, width: TOTAL_W }}>
@@ -294,6 +281,18 @@ export function Timeline({
           Moments that matter
         </div>
       </div>
+
+      {/* ── Student swimlane — the students' questions as speech-box cards,
+          packed and stacked like the touchpoint lanes, sitting directly above
+          Recruitment. Optional; when hidden HEADER_H shrinks by STUDENT_LANE_H. ── */}
+      {showStudentLayer && (
+        <StudentJourneyLane
+          activeQuestion={activeQuestion}
+          onHoverQuestion={onHoverQuestion}
+          onPinQuestion={onPinQuestion}
+          onOpenQuestion={onOpenQuestion}
+        />
+      )}
 
       {/* ── Scrolling canvas ── */}
       <div className="absolute top-0" style={{ left: LABEL_W, width: TOTAL_W, height: TOTAL_H }}>
