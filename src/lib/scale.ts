@@ -19,17 +19,11 @@ interface Segment {
   pxPerMonth: number;
 }
 
+// Uniform month width across the whole timeline — every month the same at the
+// default (month-view) zoom, so volume reads as DENSITY: the months where lots
+// of comms land visibly stack up, instead of busy periods being widened out.
 export const SEGMENTS: Segment[] = [
-  { from: 0, to: 31.7, pxPerMonth: 120 }, // Years 10-12 up to the crunch — uniform
-  { from: 31.7, to: 33, pxPerMonth: 600 }, // Decide/Begin/Submit — widened hard so
-  //                                          these ~2-week stages get real room for
-  //                                          their student questions (two readable
-  //                                          bubble columns) and their comms
-  { from: 33, to: 34.5, pxPerMonth: 120 }, // Oct – mid-Nov (Wait, exams)
-  { from: 34.5, to: 36, pxPerMonth: 200 }, // the December drama — CoP sprint,
-  //                                          results, offer round + post-offer
-  //                                          cascade all land in ~6 weeks
-  { from: 36, to: 39, pxPerMonth: 96 }, // post-school tail (enrolment run-in)
+  { from: 0, to: 39, pxPerMonth: 120 },
 ];
 
 // One month at a time can be zoomed in two steps: level 1 spreads it into
@@ -136,7 +130,7 @@ export const MOMENT_H = 68; // moment-that-matters label track (three mini-lines
 // small speech bubbles placed in time; a band-local SVG arcs connectors down
 // into the touchpoints that answer them. Fixed height — PAD*2 + 3 rows * 32
 // (must match STUDENT_BUBBLE_AREA_H in studentBubbles.ts).
-export const STUDENT_LANE_H = 150;
+export const STUDENT_LANE_H = 194;
 
 // Whether the student-journey lane is currently shown — set by layoutTimeline
 // from App's toggle. HEADER_H (and therefore every lane's `top`) shrinks by

@@ -25,7 +25,6 @@ id,team,title,cta,type,school_year,month,day,moment,triggers,secondary_cta_1,sec
 ,Recruitment,RMIT Student For A Day,,Event,11,Sep,30,,,,,,,,,,Year 11 — workshops across two program areas · SNAP presented on the day (presentation / postcards),,,,,,city,
 ,recruitment,Open Day – Bundoora Campus registration confirmation,,Email,12,Jul,26,,,,,,,,,,,,,,,,bundoora,
 ,Recruitment,Open Day – Bundoora Campus,,Event,12,Aug,2,openday-y12,,,,,,,,,SNAP presented on the day (presentation / postcards),,,,,,bundoora,
-,recruitment,Open Day – City registration confirmation,,Email,12,Aug,2,,,,,,,,,,,,,,,,city,
 ,recruitment,Open Day – Brunswick registration confirmation,,Email,12,Aug,2,,,,,,,,,,,,,,,,brunswick,
 ,Recruitment,Open Day – City,,Event,12,Aug,9,openday-y12,,,,,,,,,SNAP presented on the day (presentation / postcards),,,,,,city,
 ,Recruitment,Open Day – Brunswick,,Event,12,Aug,9,openday-y12,,,,,,,,,SNAP presented on the day (presentation / postcards),,,,,,brunswick,

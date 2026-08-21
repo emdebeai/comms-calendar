@@ -9,14 +9,18 @@ import { linkedCommIds } from "../data/studentExperience";
 import { questionLabel, stageDisplayQuestions } from "../data/studentView";
 import { scaleX } from "./scale";
 
-export const STUDENT_ROWS = 3;
-export const BUBBLE_H = 30;
-const ROW_H = 42; // bubble + vertical gap
+// The band accommodates up to STUDENT_ROWS rows. A narrow journey stage packs
+// its questions into a single column (a tall vertical stack) rather than
+// cramped side-by-side slivers — accepting the extra height. A stage with 5
+// questions in one column is the tallest case, so the band fits 5 rows.
+export const STUDENT_ROWS = 5;
+export const BUBBLE_H = 26;
+const ROW_H = 34; // bubble + vertical gap
 const PAD_TOP = 12;
 const PAD_BOTTOM = 12;
-const PAD_X = 12; // inset from the stage separators
-const GAP_X = 12;
-const TARGET_W = 112; // preferred readable bubble width
+const PAD_X = 10; // inset from the stage separators
+const GAP_X = 10;
+const TARGET_W = 100; // a stage fits as many ~100px columns as its width allows
 const MAX_W = 184; // never wider than this, however wide the stage
 
 export interface Bubble {
@@ -35,12 +39,13 @@ export interface Bubble {
 /** The band height needed for STUDENT_ROWS rows. */
 export const STUDENT_BUBBLE_AREA_H = PAD_TOP + STUDENT_ROWS * ROW_H + PAD_BOTTOM;
 
-/** Columns for a stage: enough to keep it within STUDENT_ROWS rows, and as
- *  many more as its width readably affords (so a wide stage spreads out). */
+/** Columns for a stage — purely how many readable columns its width affords.
+ *  A narrow stage gets 1 (a single vertical stack); a wide stage spreads out.
+ *  Capped at STUDENT_ROWS rows' worth so nothing overflows the band. */
 function stageCols(innerWidth: number, n: number): number {
   const byWidth = Math.max(1, Math.floor((innerWidth + GAP_X) / (TARGET_W + GAP_X)));
-  const byRows = Math.ceil(n / STUDENT_ROWS);
-  return Math.min(n, Math.max(byRows, byWidth));
+  const minCols = Math.ceil(n / STUDENT_ROWS); // guard: never need > STUDENT_ROWS rows
+  return Math.min(n, Math.max(minCols, byWidth));
 }
 
 /** Lay every stage's questions out as bubbles, contained within their stage. */
