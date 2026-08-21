@@ -11,7 +11,7 @@ import { buildCampaignRows, inbound as inboundData } from "../data/comms";
 import { STAGES, YEARS } from "../data/journey";
 import { linkedCommIds } from "../data/studentExperience";
 import { stageDisplayQuestions } from "../data/studentView";
-import { packCards, planCards } from "./packStudent";
+import { layoutStages } from "./packStudent";
 import type { Comm, Team } from "../data/types";
 
 export const MONTHS = 39; // through March 2027 — Sem 1 classes begin 1 Mar
@@ -151,7 +151,7 @@ function computeStudentLaneH(): number {
       },
     ];
   });
-  return packCards(planCards(spans)).height;
+  return layoutStages(spans).height;
 }
 // Expanded = full packed cards; collapsed = a compact strip of speech-bubble
 // icons. STUDENT_LANE_H is a live binding layoutTimeline sets from the collapse

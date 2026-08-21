@@ -6,7 +6,7 @@ import { STAGES } from "../data/journey";
 import { linkedCommIds } from "../data/studentExperience";
 import { questionLabel, stageDisplayQuestions } from "../data/studentView";
 import { scaleX } from "./scale";
-import { CARD_W, packCards, planCards } from "./packStudent";
+import { layoutStages } from "./packStudent";
 
 export interface Bubble {
   stage: string;
@@ -43,6 +43,6 @@ export function bubbleLayout(): Bubble[] {
     }
     spans.push({ left, width: scaleX(stage.to) - left, questions: qs });
   }
-  const { placed } = packCards(planCards(spans));
-  return meta.map((m, i) => ({ ...m, x: placed[i].x, y: placed[i].y, w: CARD_W, h: placed[i].h }));
+  const { placed } = layoutStages(spans);
+  return meta.map((m, i) => ({ ...m, x: placed[i].x, y: placed[i].y, w: placed[i].w, h: placed[i].h }));
 }

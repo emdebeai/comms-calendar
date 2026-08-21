@@ -10,6 +10,12 @@ export interface QuestionRef {
   question: string;
 }
 
+/** A stage wider than this (a "massive" stage like Consider / Understand, or
+ *  any stage once its months are zoomed) pins its card cluster to the left
+ *  edge on scroll, so its questions stay in view instead of parking at the
+ *  far-left of a huge empty band. */
+const STICKY_STAGE_W = 560;
+
 interface Props {
   /** collapsed = a strip of speech-bubble icons; expanded = full cards */
   collapsed: boolean;
@@ -52,6 +58,95 @@ export function StudentJourneyLane({
 
   const cards = bubbleLayout();
 
+  // Render one card at an x RELATIVE to its stage container (so a stage's cards
+  // can be wrapped in a sticky cluster). Everything else — hover/pin/open,
+  // tone, spotlight dim — is unchanged.
+  const renderCard = (c: (typeof cards)[number], x: number) => {
+    const active = activeQuestion?.stage === c.stage && activeQuestion?.question === c.question;
+    const ref = { stage: c.stage, question: c.question };
+    const stageDim = hoveredStage !== null && c.stage !== hoveredStage;
+    const answered = c.answered;
+    const handlers = {
+      onMouseEnter: answered ? () => onHoverQuestion(ref) : undefined,
+      onMouseLeave: answered ? () => onHoverQuestion(null) : undefined,
+      onFocus: answered ? () => onHoverQuestion(ref) : undefined,
+      onBlur: answered ? () => onHoverQuestion(null) : undefined,
+      onClick: (e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (answered) onPinQuestion(ref);
+        onOpenQuestion(ref);
+      },
+    };
+
+    // ── Collapsed: a small filled/outline speech-bubble icon ──
+    if (collapsed) {
+      return (
+        <button
+          key={`${c.stage}-${c.question}`}
+          type="button"
+          aria-pressed={answered ? active : undefined}
+          aria-label={c.question}
+          title={c.question}
+          {...handlers}
+          className={`absolute flex h-6 w-6 -translate-x-1/2 items-center justify-center rounded-md transition-opacity ${FOCUS_RING} ${
+            stageDim ? "opacity-25" : ""
+          }`}
+          style={{ left: x + c.w / 2, top: (STUDENT_LANE_H - 24) / 2 }}
+        >
+          <MessageSquare
+            size={18}
+            strokeWidth={2}
+            className={
+              answered
+                ? active
+                  ? "fill-rmit-blue text-rmit-blue"
+                  : "fill-rmit-blue-interactive text-rmit-blue-interactive hover:fill-rmit-blue hover:text-rmit-blue"
+                : "text-grey-40 hover:text-grey-60"
+            }
+            aria-hidden
+          />
+        </button>
+      );
+    }
+
+    // ── Expanded: a wrapped-text speech-box card ──
+    // No fixed height — the card hugs its full (untruncated) text; the layout
+    // reserved a tall-enough slot so it never overlaps below.
+    // text-xs leading-tight — the comm cards' title type, exactly.
+    const shell =
+      "group absolute block rounded-xl border px-2 py-1.5 text-left text-xs leading-tight transition-opacity";
+    // Answered questions carry the touchpoint cards' title weight
+    // (font-semibold); open questions stay lighter, so weight itself signals
+    // "this one is answered".
+    const tone = !answered
+      ? "border-dashed border-grey-40 bg-grey-10 text-grey-70 hover:border-grey-50 hover:bg-grey-20"
+      : active
+        ? "font-semibold border-rmit-blue-interactive bg-tint-blue text-rmit-blue-interactive"
+        : "font-semibold border-rmit-blue-interactive/40 bg-card text-grey-90 hover:border-rmit-blue-interactive hover:bg-tint-blue/40";
+    const tail = !answered
+      ? "border-grey-40 bg-grey-10"
+      : active
+        ? "border-rmit-blue-interactive bg-tint-blue"
+        : "border-rmit-blue-interactive/40 bg-card group-hover:border-rmit-blue-interactive group-hover:bg-tint-blue/40";
+    return (
+      <button
+        key={`${c.stage}-${c.question}`}
+        type="button"
+        aria-pressed={answered ? active : undefined}
+        title={c.question}
+        {...handlers}
+        className={`${shell} ${FOCUS_RING} ${tone} ${stageDim ? "opacity-25" : ""}`}
+        style={{ left: x, top: c.y, width: c.w }}
+      >
+        {c.question}
+        <span
+          className={`pointer-events-none absolute -bottom-[4px] left-4 h-2 w-2 rotate-45 border-r border-b transition-colors ${tail}`}
+          aria-hidden
+        />
+      </button>
+    );
+  };
+
   return (
     // z-30 keeps the lane below the sticky header bands (z-40) so it scrolls
     // cleanly under them, and above the canvas moment windows (z-10) so the
@@ -71,91 +166,34 @@ export function StudentJourneyLane({
             ),
           )}
 
-          {cards.map((c) => {
-            const active =
-              activeQuestion?.stage === c.stage && activeQuestion?.question === c.question;
-            const ref = { stage: c.stage, question: c.question };
-            const stageDim = hoveredStage !== null && c.stage !== hoveredStage;
-            const answered = c.answered;
-            const handlers = {
-              onMouseEnter: answered ? () => onHoverQuestion(ref) : undefined,
-              onMouseLeave: answered ? () => onHoverQuestion(null) : undefined,
-              onFocus: answered ? () => onHoverQuestion(ref) : undefined,
-              onBlur: answered ? () => onHoverQuestion(null) : undefined,
-              onClick: (e: React.MouseEvent) => {
-                e.stopPropagation();
-                if (answered) onPinQuestion(ref);
-                onOpenQuestion(ref);
-              },
-            };
-
-            // ── Collapsed: a small filled/outline speech-bubble icon ──
-            if (collapsed) {
-              return (
-                <button
-                  key={`${c.stage}-${c.question}`}
-                  type="button"
-                  aria-pressed={answered ? active : undefined}
-                  aria-label={c.question}
-                  title={c.question}
-                  {...handlers}
-                  className={`absolute flex h-6 w-6 -translate-x-1/2 items-center justify-center rounded-md transition-opacity ${FOCUS_RING} ${
-                    stageDim ? "opacity-25" : ""
-                  }`}
-                  style={{ left: c.x + c.w / 2, top: (STUDENT_LANE_H - 24) / 2 }}
-                >
-                  <MessageSquare
-                    size={18}
-                    strokeWidth={2}
-                    className={
-                      answered
-                        ? active
-                          ? "fill-rmit-blue text-rmit-blue"
-                          : "fill-rmit-blue-interactive text-rmit-blue-interactive hover:fill-rmit-blue hover:text-rmit-blue"
-                        : "text-grey-40 hover:text-grey-60"
-                    }
-                    aria-hidden
-                  />
-                </button>
-              );
-            }
-
-            // ── Expanded: a wrapped-text speech-box card ──
-            // No fixed height — the card hugs its full (untruncated) text; the
-            // packer reserved a tall-enough slot so it never overlaps below.
-            const box = { left: c.x, top: c.y, width: c.w } as const;
-            // text-xs leading-tight — the comm cards' title type, exactly.
-            const shell =
-              "group absolute block rounded-xl border px-2 py-1.5 text-left text-xs leading-tight transition-opacity";
-            // Answered questions carry the touchpoint cards' title weight
-            // (font-semibold); open questions stay lighter, so weight itself
-            // signals "this one is answered".
-            const tone = !answered
-              ? "border-dashed border-grey-40 bg-grey-10 text-grey-70 hover:border-grey-50 hover:bg-grey-20"
-              : active
-                ? "font-semibold border-rmit-blue-interactive bg-tint-blue text-rmit-blue-interactive"
-                : "font-semibold border-rmit-blue-interactive/40 bg-card text-grey-90 hover:border-rmit-blue-interactive hover:bg-tint-blue/40";
-            const tail = !answered
-              ? "border-grey-40 bg-grey-10"
-              : active
-                ? "border-rmit-blue-interactive bg-tint-blue"
-                : "border-rmit-blue-interactive/40 bg-card group-hover:border-rmit-blue-interactive group-hover:bg-tint-blue/40";
+          {/* Cards are grouped per stage. A stage whose span is wider than the
+              viewport-ish threshold (a "massive" stage like Consider/Understand,
+              or any stage once its months are zoomed) gets its cluster pinned to
+              the left edge with position:sticky — so scrolling through it keeps
+              the questions in view instead of parking them at the far-left of a
+              huge empty band. Card x is made relative to the stage container. */}
+          {STAGES.map((stage) => {
+            const stageCards = cards.filter((c) => c.stage === stage.label);
+            if (stageCards.length === 0) return null;
+            const sLeft = scaleX(stage.from);
+            const sWidth = scaleX(stage.to) - sLeft;
+            const wide = sWidth > STICKY_STAGE_W;
+            const clusterW = Math.max(...stageCards.map((c) => c.x - sLeft + c.w)) + 4;
+            const inner = stageCards.map((c) => renderCard(c, c.x - sLeft));
             return (
-              <button
-                key={`${c.stage}-${c.question}`}
-                type="button"
-                aria-pressed={answered ? active : undefined}
-                title={c.question}
-                {...handlers}
-                className={`${shell} ${FOCUS_RING} ${tone} ${stageDim ? "opacity-25" : ""}`}
-                style={box}
+              <div
+                key={stage.label}
+                className="absolute top-0 bottom-0"
+                style={{ left: sLeft, width: sWidth }}
               >
-                {c.question}
-                <span
-                  className={`pointer-events-none absolute -bottom-[4px] left-4 h-2 w-2 rotate-45 border-r border-b transition-colors ${tail}`}
-                  aria-hidden
-                />
-              </button>
+                {wide ? (
+                  <div className="sticky h-full" style={{ left: LABEL_W, width: clusterW }}>
+                    {inner}
+                  </div>
+                ) : (
+                  inner
+                )}
+              </div>
             );
           })}
         </div>

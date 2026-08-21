@@ -1,46 +1,47 @@
-// Shared packer for the student question-cards, copying the touchpoint
-// cards' reading order: a column fills TOP-TO-BOTTOM, then the next column
-// starts to its right — so a stage's #1 question sits top-left and priority
-// reads down each column. Cards hug their full (untruncated) text at the
-// comm cards' type size. Pure — both the live layout (studentBubbles,
-// scaleX) and the band-height calc (scale, baseScaleX) use it.
+// Shared layout for the student question-cards. Each stage lays its questions
+// out as a compact column-major grid (fill top-to-bottom, then the next column
+// to the right — the touchpoint cards' reading order). The card WIDTH and the
+// number of COLUMNS adapt to the stage's span: a wide stage (Consider,
+// Understand, or any stage once its months are zoomed) uses wider cards and
+// more columns so the block stays short — targeting TARGET_H — instead of one
+// tall stack; a narrow stage (Submit / Offer ≈ 0.9 month) falls back to a
+// single column of minimum-width cards that still fit within its own span, so
+// no card overflows into the neighbouring stage. Pure — both the live layout
+// (studentBubbles, scaleX) and the band-height calc (scale, baseScaleX) use it.
 
-// Sized to fit the narrowest journey stage (Submit / Offer ≈ 0.9 month ≈
-// 108px at 120px/month), so a stage packs its questions within its own span
-// with no card overflowing into the next stage. Printed at ~4m wide this is
-// still ~9cm across — readable on the wall.
-export const CARD_W = 104;
-const INNER_W = CARD_W - 16 - 2; // px-2 both sides + 1px border each side
-const CHARS_PER_LINE = 19; // fallback when canvas measuring is unavailable
+// Card width bounds. MIN fits the narrowest stage (~108px at 120px/month) so a
+// single-column stage never overflows its divider; MAX keeps wide-stage cards
+// from getting ungainly. Printed at ~4m wide, 104–170px is ~9–14cm across.
+export const MIN_CARD = 104;
+export const MAX_CARD = 170;
+/** Nominal width kept for importers that need a single figure. */
+export const CARD_W = MIN_CARD;
+
 const LINE_H = 15; // leading-tight at 12px
 const PAD_V = 14; // py-1.5 both sides + borders
 export const PAD_Y = 10;
 const GAP_X = 8;
 const ROW_GAP = 8;
 const STAGE_PAD_X = 6;
-// Right-step between successive cards, clamped to [MIN, MAX]. A narrow stage
-// (evenSpread ≤ MIN) hugs its left divider as a compact staircase; a wide
-// stage (evenSpread ≥ MAX) is capped so its cards stay a cluster under the
-// stage rather than flung across the whole span. Between the two, cards fan
-// to fill the width evenly.
-const MIN_STAGGER = 14;
-const MAX_STAGGER = 40;
+/** Height a stage's card block aims to stay within — more columns are added
+ *  until the tallest column fits, budget permitting. */
+const TARGET_H = 166;
+const CHARS_PER_LINE = 16; // fallback when canvas measuring is unavailable
 
-// Real text measurement (canvas), so the reserved slot matches the rendered
-// card and the gaps between stacked cards stay a consistent ROW_GAP — a
-// character-count guess is off by a line often enough to make gaps ragged.
+// Real text measurement (canvas), so a card's reserved slot matches what the
+// browser renders — a character-count guess is off by a line often enough to
+// make the stacked gaps ragged.
 const measureCtx =
   typeof document !== "undefined" ? document.createElement("canvas").getContext("2d") : null;
 
-function wrappedLines(text: string, bold: boolean): number {
+function wrappedLines(text: string, bold: boolean, innerW: number): number {
   if (!measureCtx) return Math.max(1, Math.ceil(text.length / CHARS_PER_LINE));
   // The card's actual type: text-xs on the app's font-sans stack — semibold
   // for answered questions, regular for open ones (they wrap differently).
-  // Inter is the app's actual rendered face (see index.css) — measuring with
-  // a fallback face miscounts lines and makes the stack gaps ragged.
+  // Inter is the app's rendered face (index.css); a fallback face miscounts.
   measureCtx.font = `${bold ? 600 : 400} 12px Inter, system-ui, -apple-system, sans-serif`;
-  // Break at spaces AND after hyphens (the browser wraps "class-selection"
-  // as "class-" / "selection"); hyphen fragments join with no space.
+  // Break at spaces AND after hyphens (the browser wraps "class-selection" as
+  // "class-" / "selection"); hyphen fragments join with no space.
   const tokens = text
     .split(/\s+/)
     .flatMap((w) => w.split(/(?<=-)/).map((part, i) => ({ part, spaced: i === 0 })));
@@ -48,7 +49,7 @@ function wrappedLines(text: string, bold: boolean): number {
   let line = "";
   for (const { part, spaced } of tokens) {
     const probe = line ? `${line}${spaced ? " " : ""}${part}` : part;
-    if (measureCtx.measureText(probe).width <= INNER_W) {
+    if (measureCtx.measureText(probe).width <= innerW) {
       line = probe;
     } else {
       lines++;
@@ -58,14 +59,16 @@ function wrappedLines(text: string, bold: boolean): number {
   return lines;
 }
 
-/** A card's rendered height from its full (untruncated) text at its weight. */
-export function estimateCardH(text: string, bold = true): number {
-  return wrappedLines(text, bold) * LINE_H + PAD_V;
+/** A card's rendered height at a given card width and weight. */
+export function estimateCardH(text: string, bold: boolean, cardW: number): number {
+  const innerW = cardW - 16 - 2; // px-2 both sides + 1px border each side
+  return wrappedLines(text, bold, innerW) * LINE_H + PAD_V;
 }
 
 export interface Placed {
   x: number;
   y: number;
+  w: number;
   h: number;
 }
 
@@ -75,54 +78,58 @@ export interface StageSpanIn {
   questions: { text: string; bold: boolean }[];
 }
 
-/** Plan x-positions per stage as a staircase: successive questions step right
- *  by an even share of the stage's span, floored at MIN_STAGGER — so a wide
- *  stage relaxes into a flat spread (no overlap → one row) while a tight
- *  stage cascades 1 ↘ 2 ↘ 3, priority reading down-right like a comm
- *  cluster. Returns items in input order, ready for packCards. */
-export function planCards(stages: StageSpanIn[]): { x: number; h: number; g: number }[] {
-  const out: { x: number; h: number; g: number }[] = [];
-  stages.forEach((s, g) => {
-    const hs = s.questions.map((q) => estimateCardH(q.text, q.bold));
-    const n = hs.length;
-    const inner = Math.max(s.width - 2 * STAGE_PAD_X, CARD_W);
-    const evenSpread = n > 1 ? (inner - CARD_W) / (n - 1) : 0;
-    const step = n > 1 ? Math.min(MAX_STAGGER, Math.max(MIN_STAGGER, evenSpread)) : 0;
-    hs.forEach((h, i) => {
-      out.push({ x: s.left + STAGE_PAD_X + i * step, h, g });
-    });
-  });
-  return out;
+interface ColPlan {
+  cols: number;
+  cardW: number;
+  perCol: number;
+  hs: number[];
+  height: number;
 }
 
-/** Skyline-pack cards at their planned x (highest free slot among horizontal
- *  overlaps — same collage packing as the comm lanes). Stable for equal x, so
- *  a column keeps its top-to-bottom priority order. */
-export function packCards(
-  items: { x: number; h: number; g?: number }[],
-): { placed: Placed[]; height: number } {
-  const done: { x1: number; x2: number; y: number; bottom: number; g?: number }[] = [];
-  const placed: Placed[] = new Array(items.length);
-  const order = items.map((_, i) => i).sort((a, b) => items[a].x - items[b].x);
+/** For one stage, try increasing column counts and keep the fewest columns
+ *  whose tallest column fits TARGET_H (falling back to the shortest option if
+ *  none do). More columns → narrower cards → fewer cards per column. */
+function planStage(s: StageSpanIn): ColPlan {
+  const n = s.questions.length;
+  const avail = Math.max(s.width - 2 * STAGE_PAD_X, MIN_CARD);
+  const maxCols = Math.max(1, Math.floor((avail + GAP_X) / (MIN_CARD + GAP_X)));
+  let best: ColPlan | null = null;
+  for (let cols = 1; cols <= Math.min(maxCols, n); cols++) {
+    const cardW = Math.max(
+      MIN_CARD,
+      Math.min(MAX_CARD, Math.floor((avail - (cols - 1) * GAP_X) / cols)),
+    );
+    const hs = s.questions.map((q) => estimateCardH(q.text, q.bold, cardW));
+    const perCol = Math.ceil(n / cols);
+    const colH = new Array(cols).fill(0);
+    hs.forEach((h, i) => {
+      colH[Math.floor(i / perCol)] += h + ROW_GAP;
+    });
+    const height = Math.max(...colH) - ROW_GAP;
+    if (!best || height < best.height) best = { cols, cardW, perCol, hs, height };
+    if (height <= TARGET_H) break;
+  }
+  return best ?? { cols: 1, cardW: MIN_CARD, perCol: n, hs: [], height: 0 };
+}
+
+/** Lay out every stage's cards as compact column-major grids. Returns absolute
+ *  placements (band-local x, plus PAD_Y-offset y) and the overall band height. */
+export function layoutStages(stages: StageSpanIn[]): { placed: Placed[]; height: number } {
+  const placed: Placed[] = [];
   let deepest = 0;
-  for (const i of order) {
-    const x1 = items[i].x;
-    const x2 = x1 + CARD_W + GAP_X;
-    const h = items[i].h;
-    const g = items[i].g;
-    // Pack each stage independently: a card only stacks below cards of its OWN
-    // stage. Otherwise a wide neighbour (whose cards overflow past its divider)
-    // shoves this stage's leftmost cards down while its rightmost sit high —
-    // which reads as scattered. Same-stage-only keeps each stage a tidy stack.
-    const overlapping = done.filter((p) => p.g === g && x1 < p.x2 && p.x1 < x2);
-    const candidates = [0, ...overlapping.map((p) => p.bottom + ROW_GAP)].sort((a, b) => a - b);
-    const y =
-      candidates.find((cy) =>
-        overlapping.every((p) => cy + h + ROW_GAP <= p.y || cy >= p.bottom + ROW_GAP),
-      ) ?? 0;
-    done.push({ x1, x2, y, bottom: y + h, g });
-    placed[i] = { x: x1, y: PAD_Y + y, h };
-    deepest = Math.max(deepest, y + h);
+  for (let g = 0; g < stages.length; g++) {
+    const s = stages[g];
+    if (s.questions.length === 0) continue;
+    const plan = planStage(s);
+    const colY = new Array(plan.cols).fill(0);
+    s.questions.forEach((_, i) => {
+      const col = Math.floor(i / plan.perCol);
+      const x = s.left + STAGE_PAD_X + col * (plan.cardW + GAP_X);
+      const y = PAD_Y + colY[col];
+      placed.push({ x, y, w: plan.cardW, h: plan.hs[i] });
+      colY[col] += plan.hs[i] + ROW_GAP;
+    });
+    deepest = Math.max(deepest, plan.height);
   }
   return { placed, height: PAD_Y * 2 + Math.max(deepest, LINE_H + PAD_V) };
 }
