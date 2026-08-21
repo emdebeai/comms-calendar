@@ -110,11 +110,14 @@ export function StudentJourneyLane({
             const box = { left: c.x, top: c.y, width: c.w } as const;
             const shell =
               "group absolute block rounded-xl border px-2 py-1.5 text-left text-[11px] leading-snug transition-opacity";
+            // Answered questions carry the touchpoint cards' title weight
+            // (font-semibold); open questions stay lighter, so weight itself
+            // signals "this one is answered".
             const tone = !answered
               ? "border-dashed border-grey-40 bg-grey-10 text-grey-70 hover:border-grey-50 hover:bg-grey-20"
               : active
-                ? "border-rmit-blue-interactive bg-tint-blue text-rmit-blue-interactive"
-                : "border-rmit-blue-interactive/40 bg-card text-grey-90 hover:border-rmit-blue-interactive hover:bg-tint-blue/40";
+                ? "font-semibold border-rmit-blue-interactive bg-tint-blue text-rmit-blue-interactive"
+                : "font-semibold border-rmit-blue-interactive/40 bg-card text-grey-90 hover:border-rmit-blue-interactive hover:bg-tint-blue/40";
             const tail = !answered
               ? "border-grey-40 bg-grey-10"
               : active
