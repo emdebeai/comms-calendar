@@ -225,25 +225,26 @@ export function Timeline({
       style={{ width: LABEL_W + TOTAL_W, height: TOTAL_H + DOCK_CLEARANCE }}
       onClick={onClearFocus}
     >
-      {/* ── School year row — parallel audience bands ── */}
-      <div className="relative z-30" style={{ height: YEAR_H }}>
+      {/* ── School year row — parallel audience bands. Sticky at the very top
+          so it stays with the month/moment bands as the map scrolls. ── */}
+      <div className="sticky top-0 z-40" style={{ height: YEAR_H }}>
         <div className="absolute top-0" style={{ left: LABEL_W, width: TOTAL_W }}>
           <YearBand />
         </div>
         <div
-          className="sticky left-0 z-20 flex h-full items-center border-r border-b border-grey-30 bg-grey-20 px-4 text-xs text-grey-70"
+          className="sticky left-0 z-20 flex h-full items-center border-r border-b border-grey-30 bg-grey-20 pl-[35px] pr-4 text-xs text-grey-70"
           style={{ width: LABEL_W }}
         >
           School year
         </div>
       </div>
 
-      <div className="sticky top-0 z-40" style={{ height: MONTH_H }}>
+      <div className="sticky z-40" style={{ top: YEAR_H, height: MONTH_H }}>
         <div className="absolute top-0" style={{ left: LABEL_W, width: TOTAL_W }}>
           <MonthBand expandedMonths={expandedMonths} onSetLevel={onSetMonthLevel} />
         </div>
         <div
-          className="sticky left-0 z-20 flex h-full items-center justify-between gap-2 border-r border-b border-grey-30 bg-card px-4 text-xs text-grey-70"
+          className="sticky left-0 z-20 flex h-full items-center justify-between gap-2 border-r border-b border-grey-30 bg-card pl-[35px] pr-4 text-xs text-grey-70"
           style={{ width: LABEL_W }}
         >
           Month
@@ -265,7 +266,7 @@ export function Timeline({
         </div>
       </div>
 
-      <div className="sticky z-40" style={{ top: MONTH_H, height: MOMENT_H }}>
+      <div className="sticky z-40" style={{ top: YEAR_H + MONTH_H, height: MOMENT_H }}>
         <div className="absolute top-0" style={{ left: LABEL_W, width: TOTAL_W }}>
           <MomentsBand
             activeMomentId={activeMomentId}
@@ -274,7 +275,7 @@ export function Timeline({
           />
         </div>
         <div
-          className="sticky left-0 z-30 flex h-full items-center border-r border-b border-grey-30 bg-card px-4 text-xs text-grey-70"
+          className="sticky left-0 z-30 flex h-full items-center border-r border-b border-grey-30 bg-card pl-[35px] pr-4 text-xs text-grey-70"
           style={{ width: LABEL_W }}
         >
           Moments that matter
@@ -293,7 +294,7 @@ export function Timeline({
           />
         </div>
         <div
-          className={`sticky left-0 z-20 flex h-full items-center border-r border-grey-30 bg-card px-4 text-grey-90 ${EYEBROW}`}
+          className={`sticky left-0 z-20 flex h-full items-center border-r border-b border-grey-30 bg-card pl-[35px] pr-4 text-grey-90 ${EYEBROW}`}
           style={{ width: LABEL_W }}
         >
           Journey Stage
@@ -405,7 +406,7 @@ export function Timeline({
               >
                 <span
                   className="pointer-events-auto sticky flex items-center gap-1 rounded-md border border-grey-40 bg-card px-2 py-0.5 text-xs font-semibold whitespace-nowrap text-grey-80 shadow-sm"
-                  style={{ top: MONTH_H + MOMENT_H + 8 }}
+                  style={{ top: YEAR_H + MONTH_H + MOMENT_H + 8 }}
                   title={`${e.label} — 27 Oct to 18 Nov 2026`}
                 >
                   <Ban size={11} strokeWidth={2} aria-hidden />
@@ -738,7 +739,7 @@ export function Timeline({
           const content = pinnable ? (
             <div
               className="sticky flex w-full flex-col py-2.5"
-              style={{ top: MONTH_H + MOMENT_H }}
+              style={{ top: YEAR_H + MONTH_H + MOMENT_H }}
             >
               {body}
             </div>
@@ -764,7 +765,7 @@ export function Timeline({
               >
                 <div
                   className={pinnable ? "sticky flex w-full flex-col py-2.5" : "flex w-full flex-col py-2.5"}
-                  style={pinnable ? { top: MONTH_H + MOMENT_H } : undefined}
+                  style={pinnable ? { top: YEAR_H + MONTH_H + MOMENT_H } : undefined}
                 >
                   <button
                     type="button"

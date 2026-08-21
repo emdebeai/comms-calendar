@@ -5,7 +5,11 @@
 // comm cards' type size. Pure — both the live layout (studentBubbles,
 // scaleX) and the band-height calc (scale, baseScaleX) use it.
 
-export const CARD_W = 152;
+// Sized to fit the narrowest journey stage (Submit / Offer ≈ 0.9 month ≈
+// 108px at 120px/month), so a stage packs its questions within its own span
+// with no card overflowing into the next stage. Printed at ~4m wide this is
+// still ~9cm across — readable on the wall.
+export const CARD_W = 104;
 const INNER_W = CARD_W - 16 - 2; // px-2 both sides + 1px border each side
 const CHARS_PER_LINE = 19; // fallback when canvas measuring is unavailable
 const LINE_H = 15; // leading-tight at 12px
@@ -14,9 +18,13 @@ export const PAD_Y = 10;
 const GAP_X = 8;
 const ROW_GAP = 8;
 const STAGE_PAD_X = 6;
-/** Minimum right-step between successive cards in a tight stage — gives the
- *  comm clusters' staircase (1 ↘ 2 ↘ 3) instead of a flat aligned column. */
-const MIN_STAGGER = 28;
+// Right-step between successive cards, clamped to [MIN, MAX]. A narrow stage
+// (evenSpread ≤ MIN) hugs its left divider as a compact staircase; a wide
+// stage (evenSpread ≥ MAX) is capped so its cards stay a cluster under the
+// stage rather than flung across the whole span. Between the two, cards fan
+// to fill the width evenly.
+const MIN_STAGGER = 14;
+const MAX_STAGGER = 40;
 
 // Real text measurement (canvas), so the reserved slot matches the rendered
 // card and the gaps between stacked cards stay a consistent ROW_GAP — a
@@ -72,25 +80,28 @@ export interface StageSpanIn {
  *  stage relaxes into a flat spread (no overlap → one row) while a tight
  *  stage cascades 1 ↘ 2 ↘ 3, priority reading down-right like a comm
  *  cluster. Returns items in input order, ready for packCards. */
-export function planCards(stages: StageSpanIn[]): { x: number; h: number }[] {
-  const out: { x: number; h: number }[] = [];
-  for (const s of stages) {
+export function planCards(stages: StageSpanIn[]): { x: number; h: number; g: number }[] {
+  const out: { x: number; h: number; g: number }[] = [];
+  stages.forEach((s, g) => {
     const hs = s.questions.map((q) => estimateCardH(q.text, q.bold));
     const n = hs.length;
     const inner = Math.max(s.width - 2 * STAGE_PAD_X, CARD_W);
-    const step = n > 1 ? Math.max(MIN_STAGGER, (inner - CARD_W) / (n - 1)) : 0;
+    const evenSpread = n > 1 ? (inner - CARD_W) / (n - 1) : 0;
+    const step = n > 1 ? Math.min(MAX_STAGGER, Math.max(MIN_STAGGER, evenSpread)) : 0;
     hs.forEach((h, i) => {
-      out.push({ x: s.left + STAGE_PAD_X + i * step, h });
+      out.push({ x: s.left + STAGE_PAD_X + i * step, h, g });
     });
-  }
+  });
   return out;
 }
 
 /** Skyline-pack cards at their planned x (highest free slot among horizontal
  *  overlaps — same collage packing as the comm lanes). Stable for equal x, so
  *  a column keeps its top-to-bottom priority order. */
-export function packCards(items: { x: number; h: number }[]): { placed: Placed[]; height: number } {
-  const done: { x1: number; x2: number; y: number; bottom: number }[] = [];
+export function packCards(
+  items: { x: number; h: number; g?: number }[],
+): { placed: Placed[]; height: number } {
+  const done: { x1: number; x2: number; y: number; bottom: number; g?: number }[] = [];
   const placed: Placed[] = new Array(items.length);
   const order = items.map((_, i) => i).sort((a, b) => items[a].x - items[b].x);
   let deepest = 0;
@@ -98,13 +109,18 @@ export function packCards(items: { x: number; h: number }[]): { placed: Placed[]
     const x1 = items[i].x;
     const x2 = x1 + CARD_W + GAP_X;
     const h = items[i].h;
-    const overlapping = done.filter((p) => x1 < p.x2 && p.x1 < x2);
+    const g = items[i].g;
+    // Pack each stage independently: a card only stacks below cards of its OWN
+    // stage. Otherwise a wide neighbour (whose cards overflow past its divider)
+    // shoves this stage's leftmost cards down while its rightmost sit high —
+    // which reads as scattered. Same-stage-only keeps each stage a tidy stack.
+    const overlapping = done.filter((p) => p.g === g && x1 < p.x2 && p.x1 < x2);
     const candidates = [0, ...overlapping.map((p) => p.bottom + ROW_GAP)].sort((a, b) => a - b);
     const y =
       candidates.find((cy) =>
         overlapping.every((p) => cy + h + ROW_GAP <= p.y || cy >= p.bottom + ROW_GAP),
       ) ?? 0;
-    done.push({ x1, x2, y, bottom: y + h });
+    done.push({ x1, x2, y, bottom: y + h, g });
     placed[i] = { x: x1, y: PAD_Y + y, h };
     deepest = Math.max(deepest, y + h);
   }

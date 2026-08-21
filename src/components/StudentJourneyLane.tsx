@@ -53,7 +53,10 @@ export function StudentJourneyLane({
   const cards = bubbleLayout();
 
   return (
-    <div className="relative z-[45]" style={{ height: STUDENT_LANE_H }}>
+    // z-30 keeps the lane below the sticky header bands (z-40) so it scrolls
+    // cleanly under them, and above the canvas moment windows (z-10) so the
+    // cards stay clickable. Matches the stage row it hangs from.
+    <div className="relative z-30" style={{ height: STUDENT_LANE_H }}>
       {/* ── Canvas side (transparent — moment context shows through) ── */}
       <div className="absolute top-0" style={{ left: LABEL_W, width: TOTAL_W, height: STUDENT_LANE_H }}>
         <div className="relative h-full">
@@ -61,7 +64,7 @@ export function StudentJourneyLane({
             i === 0 ? null : (
               <div
                 key={s.label}
-                className="absolute top-0 bottom-0 border-l border-grey-20"
+                className="absolute top-0 bottom-0 border-l border-grey-30"
                 style={{ left: scaleX(s.from) }}
                 aria-hidden
               />
@@ -158,36 +161,25 @@ export function StudentJourneyLane({
         </div>
       </div>
 
-      {/* ── Sticky gutter label + lane controls ── */}
-      <div
-        className="sticky left-0 h-full border-r border-grey-30 bg-card"
+      {/* ── Sticky gutter label — the whole block toggles collapse, matching
+          the touchpoint lanes' gutters (same padding, chevron, hover). ── */}
+      <button
+        type="button"
+        onClick={onToggleCollapse}
+        aria-expanded={!collapsed}
+        aria-label={collapsed ? "Expand student questions" : "Collapse student questions"}
+        className={`sticky left-0 flex h-full w-full flex-col py-2.5 border-r border-b border-grey-30 bg-card px-4 text-left hover:bg-grey-20 ${FOCUS_RING}`}
         style={{ width: LABEL_W }}
       >
-        <div className="flex h-full flex-col justify-center px-4">
-          <div className="flex items-center gap-1.5">
-            <button
-              type="button"
-              onClick={onToggleCollapse}
-              aria-expanded={!collapsed}
-              aria-label={collapsed ? "Expand student questions" : "Collapse student questions"}
-              title={collapsed ? "Expand" : "Collapse"}
-              className={`shrink-0 rounded text-grey-60 hover:text-grey-90 ${FOCUS_RING}`}
-            >
-              {collapsed ? (
-                <ChevronRight size={14} strokeWidth={2} aria-hidden />
-              ) : (
-                <ChevronDown size={14} strokeWidth={2} aria-hidden />
-              )}
-            </button>
-            <span className={`text-rmit-blue ${EYEBROW}`}>Student view</span>
-          </div>
-          {!collapsed && (
-            <span className="mt-0.5 text-xs leading-snug text-grey-70">
-              Their questions — hover to spotlight the touchpoints that answer it
-            </span>
+        <span className="flex items-center gap-1.5">
+          {collapsed ? (
+            <ChevronRight size={13} strokeWidth={2} className="text-grey-60" aria-hidden />
+          ) : (
+            <ChevronDown size={13} strokeWidth={2} className="text-grey-60" aria-hidden />
           )}
-        </div>
-      </div>
+          <span className={`text-grey-90 ${EYEBROW}`}>Student questions</span>
+        </span>
+      </button>
     </div>
   );
 }
