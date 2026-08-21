@@ -1,21 +1,23 @@
-// Shared packer for the student question-cards — the same collage/skyline
-// packing the comm lanes use: each card keeps its x (its place in time) and
-// drops into the highest free slot among the cards it actually overlaps
-// horizontally, so heights hug the text and the stack reads as masonry rather
-// than rigid rows. Pure — both the layout (studentBubbles, live scaleX) and
-// the band-height calc (scale, base scaleX) use it, so no circular import.
+// Shared packer for the student question-cards, copying the touchpoint
+// cards' reading order: a column fills TOP-TO-BOTTOM, then the next column
+// starts to its right — so a stage's #1 question sits top-left and priority
+// reads down each column. Cards hug their full (untruncated) text at the
+// comm cards' type size. Pure — both the live layout (studentBubbles,
+// scaleX) and the band-height calc (scale, baseScaleX) use it.
 
 export const CARD_W = 152;
-const CHARS_PER_LINE = 22; // conservative for text-[11px] font-semibold across the card
-const LINE_H = 15; // leading-snug at 11px
-const PAD_V = 13; // py-1.5 both sides + a little slack
+const CHARS_PER_LINE = 19; // conservative for text-xs font-semibold across the card
+const LINE_H = 15; // leading-tight at 12px
+const PAD_V = 14; // py-1.5 both sides + slack
 export const PAD_Y = 10;
 const GAP_X = 8;
 const ROW_GAP = 8;
+/** Depth cap per column, in cards' worth of pixels (~3 typical cards). */
+const COL_CAP_PX = 200;
+const STAGE_PAD_X = 6;
 
-/** Estimate a card's rendered height from its full (untruncated) text, so the
- *  packer can reserve the right slot. Generous, so a card never overlaps the
- *  one below. */
+/** Estimate a card's rendered height from its full text. Generous, so a card
+ *  never overlaps the one below. */
 export function estimateCardH(text: string): number {
   const lines = Math.max(1, Math.ceil(text.length / CHARS_PER_LINE));
   return lines * LINE_H + PAD_V;
@@ -27,8 +29,48 @@ export interface Placed {
   h: number;
 }
 
-/** Skyline-pack cards at their given x: highest free slot among horizontal
- *  overlaps, exactly like the comm-card collage packing. */
+export interface StageSpanIn {
+  left: number;
+  width: number;
+  questions: string[];
+}
+
+/** Plan x-positions column-major per stage: enough columns that no column
+ *  exceeds the depth cap, columns spread across the stage's span (a wide
+ *  stage keeps its spread; a narrow one packs columns side by side). Returns
+ *  items in input order, ready for packCards. */
+export function planCards(stages: StageSpanIn[]): { x: number; h: number }[] {
+  const out: { x: number; h: number }[] = [];
+  for (const s of stages) {
+    const hs = s.questions.map(estimateCardH);
+    // Columns needed so each stays under the cap, filling in priority order.
+    let cols = 1;
+    for (;;) {
+      const perCol = Math.ceil(hs.length / cols);
+      let ok = true;
+      for (let c = 0; c < cols; c++) {
+        const colH = hs
+          .slice(c * perCol, (c + 1) * perCol)
+          .reduce((a, b) => a + b + ROW_GAP, -ROW_GAP);
+        if (colH > COL_CAP_PX) ok = false;
+      }
+      if (ok || cols >= hs.length) break;
+      cols++;
+    }
+    const perCol = Math.ceil(hs.length / cols);
+    const inner = Math.max(s.width - 2 * STAGE_PAD_X, CARD_W);
+    const pitch = cols > 1 ? Math.max(CARD_W + GAP_X, inner / cols) : 0;
+    hs.forEach((h, i) => {
+      const col = Math.floor(i / perCol);
+      out.push({ x: s.left + STAGE_PAD_X + col * pitch, h });
+    });
+  }
+  return out;
+}
+
+/** Skyline-pack cards at their planned x (highest free slot among horizontal
+ *  overlaps — same collage packing as the comm lanes). Stable for equal x, so
+ *  a column keeps its top-to-bottom priority order. */
 export function packCards(items: { x: number; h: number }[]): { placed: Placed[]; height: number } {
   const done: { x1: number; x2: number; y: number; bottom: number }[] = [];
   const placed: Placed[] = new Array(items.length);

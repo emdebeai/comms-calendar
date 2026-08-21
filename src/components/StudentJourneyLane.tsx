@@ -108,8 +108,9 @@ export function StudentJourneyLane({
             // No fixed height — the card hugs its full (untruncated) text; the
             // packer reserved a tall-enough slot so it never overlaps below.
             const box = { left: c.x, top: c.y, width: c.w } as const;
+            // text-xs leading-tight — the comm cards' title type, exactly.
             const shell =
-              "group absolute block rounded-xl border px-2 py-1.5 text-left text-[11px] leading-snug transition-opacity";
+              "group absolute block rounded-xl border px-2 py-1.5 text-left text-xs leading-tight transition-opacity";
             // Answered questions carry the touchpoint cards' title weight
             // (font-semibold); open questions stay lighter, so weight itself
             // signals "this one is answered".
