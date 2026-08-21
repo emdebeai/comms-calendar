@@ -118,7 +118,12 @@ export function InboundLane({ data }: { data: InboundLaneData }) {
           height={h}
           role="img"
           aria-label={`${lane.label} inbound enquiries over time — full per-channel figures in the table above`}
-          onMouseMove={(e) => setHoverX(e.nativeEvent.offsetX)}
+          // offsetX is relative to whatever child (a dot, a line, the tooltip)
+          // is under the cursor, so it jumps as you move — measure against the
+          // svg itself for a stable x.
+          onMouseMove={(e) =>
+            setHoverX(e.clientX - e.currentTarget.getBoundingClientRect().left)
+          }
           onMouseLeave={() => setHoverX(null)}
         >
           <text x={LABEL_W + 12} y={16} className="fill-rmit-blue-interactive text-xs font-medium">
