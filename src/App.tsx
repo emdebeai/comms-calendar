@@ -173,7 +173,9 @@ export default function App() {
   }, []);
   // The student-journey lane is off by default — the comms map stays clean
   // until you opt into the student view from the control dock.
-  const [showStudentLayer, setShowStudentLayer] = useState(false);
+  // Persistent like the comm lanes — always present, collapsed/expanded from
+  // its own gutter control (no dock toggle).
+  const [showStudentLayer] = useState(true);
   // Student swimlane collapse state — like the other lanes: expanded (full
   // cards) ⇄ collapsed (a strip of speech-bubble icons). Hidden = layer off.
   const [studentCollapsed, setStudentCollapsed] = useState(false);
@@ -583,11 +585,6 @@ export default function App() {
     });
   }, [equity, layout]);
 
-  const toggleStudentLayer = () => {
-    setShowStudentLayer((s) => !s);
-    setHoveredQuestion(null);
-    setPinnedQuestion(null);
-  };
 
   // NOTE: no scroll-anchoring on expand — expansion only adds width to the
   // RIGHT of the expanded month's left edge, so leaving scrollLeft alone
@@ -813,7 +810,6 @@ export default function App() {
               showStudentLayer={showStudentLayer}
               studentCollapsed={studentCollapsed}
               onToggleStudentCollapse={() => setStudentCollapsed((c) => !c)}
-              onHideStudent={() => setShowStudentLayer(false)}
               activeQuestion={activeQuestion}
               onHoverQuestion={hoverQuestion}
               onPinQuestion={(q) =>
@@ -996,8 +992,6 @@ export default function App() {
         onResetTypes={() => setActiveTypes(new Set(ALL_TYPES))}
         showLines={showLines}
         onToggleLines={() => setShowLines((s) => !s)}
-        showStudentLayer={showStudentLayer}
-        onToggleStudentLayer={toggleStudentLayer}
         allLanesCollapsed={allLanesCollapsed}
         onToggleAllLanes={toggleAllLanes}
         theme={theme}

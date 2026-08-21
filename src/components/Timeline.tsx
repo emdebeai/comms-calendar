@@ -67,7 +67,6 @@ interface Props {
   /** student swimlane collapse state + its lane controls */
   studentCollapsed: boolean;
   onToggleStudentCollapse: () => void;
-  onHideStudent: () => void;
   /** student swimlane — question bubbles + connector arrows to touchpoints */
   activeQuestion: QuestionRef | null;
   onHoverQuestion: (q: QuestionRef | null) => void;
@@ -120,7 +119,6 @@ export function Timeline({
   showStudentLayer,
   studentCollapsed,
   onToggleStudentCollapse,
-  onHideStudent,
   activeQuestion,
   onHoverQuestion,
   onPinQuestion,
@@ -308,7 +306,6 @@ export function Timeline({
         <StudentJourneyLane
           collapsed={studentCollapsed}
           onToggleCollapse={onToggleStudentCollapse}
-          onHide={onHideStudent}
           activeQuestion={activeQuestion}
           onHoverQuestion={onHoverQuestion}
           onPinQuestion={onPinQuestion}

@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronRight, MessageSquare, X } from "lucide-react";
+import { ChevronDown, ChevronRight, MessageSquare } from "lucide-react";
 import { STAGES } from "../data/journey";
 import { bubbleLayout } from "../lib/studentBubbles";
 import { LABEL_W, STUDENT_LANE_H, TOTAL_W, scaleX } from "../lib/scale";
@@ -13,7 +13,6 @@ interface Props {
   /** collapsed = a strip of speech-bubble icons; expanded = full cards */
   collapsed: boolean;
   onToggleCollapse: () => void;
-  onHide: () => void;
   /** question currently driving the spotlight (hover or pin) */
   activeQuestion: QuestionRef | null;
   onHoverQuestion: (q: QuestionRef | null) => void;
@@ -32,7 +31,6 @@ interface Props {
 export function StudentJourneyLane({
   collapsed,
   onToggleCollapse,
-  onHide,
   activeQuestion,
   onHoverQuestion,
   onPinQuestion,
@@ -165,15 +163,6 @@ export function StudentJourneyLane({
               )}
             </button>
             <span className={`text-rmit-blue ${EYEBROW}`}>Student view</span>
-            <button
-              type="button"
-              onClick={onHide}
-              aria-label="Hide student questions"
-              title="Hide"
-              className={`ml-auto shrink-0 rounded p-0.5 text-grey-50 hover:bg-grey-10 hover:text-grey-80 ${FOCUS_RING}`}
-            >
-              <X size={13} strokeWidth={2} aria-hidden />
-            </button>
           </div>
           {!collapsed && (
             <span className="mt-0.5 text-xs leading-snug text-grey-70">

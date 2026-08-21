@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { EyeOff, GraduationCap, Home, Info, Link2, MoreHorizontal, Moon, Rows3, Shield, ShieldCheck, Sun } from "lucide-react";
+import { EyeOff, Home, Info, Link2, MoreHorizontal, Moon, Rows3, Shield, ShieldCheck, Sun } from "lucide-react";
 import type { CommType } from "../data/types";
 import { FOCUS_RING } from "../lib/styles";
 import { HoverTip } from "./HoverTip";
@@ -13,8 +13,6 @@ interface Props {
   onResetTypes: () => void;
   showLines: boolean;
   onToggleLines: () => void;
-  showStudentLayer: boolean;
-  onToggleStudentLayer: () => void;
   /** overview mode — every lane collapsed to its touchpoint strip */
   allLanesCollapsed: boolean;
   onToggleAllLanes: () => void;
@@ -38,8 +36,6 @@ export function ControlDock({
   onResetTypes,
   showLines,
   onToggleLines,
-  showStudentLayer,
-  onToggleStudentLayer,
   allLanesCollapsed,
   onToggleAllLanes,
   theme,
@@ -140,21 +136,6 @@ export function ControlDock({
         })}
 
         <span className="mx-1 h-5 w-px bg-grey-30" aria-hidden />
-
-        {/* Student journey — reveals the per-stage question cards under the
-            stage header; off by default. */}
-        <button
-          type="button"
-          onClick={onToggleStudentLayer}
-          aria-pressed={showStudentLayer}
-          aria-label={showStudentLayer ? "Hide student journey" : "Show student journey"}
-          className={`${iconBtn} ${
-            showStudentLayer ? "bg-header text-white" : "text-grey-70 hover:bg-grey-20"
-          }`}
-        >
-          <GraduationCap size={15} strokeWidth={1.75} aria-hidden />
-          <HoverTip label="Student journey" />
-        </button>
 
         {/* Overview — collapse every lane to its compact touchpoint strip so
             the whole map fits at once (markers keep their type icon). */}

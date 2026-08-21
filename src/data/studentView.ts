@@ -14,60 +14,60 @@ import { STUDENT_EXPERIENCE, stageQuestions } from "./studentExperience";
 // degree / TAFE-to-degree) are dropped.
 type Pick = string | { new: string };
 
+// Order and wording reflect the review notes (docs/question-notes.md): deletes,
+// re-orders, cross-stage moves, reframes and merges. Moved/reframed/merged
+// questions are authored as { new } so they render in their new home.
 const DISPLAY: Record<string, Pick[]> = {
   Understand: [
-    "What subjects do I actually need",
-    "Do I want to aim for university",
-    "Which jobs and industries",
-    "What will I actually study",
+    "What subjects do I actually need", // #1
+    "Which jobs and industries", // #2
+    "Do I want to aim for university", // #3
   ],
   Consider: [
-    "What ATAR do I need",
-    "Should I study at [Uni A]",
-    "Does this course include work experience",
-    "How much will it cost me",
-    "Which VCE subjects are prerequisites",
+    "What ATAR do I need", // #1
+    "How much will it cost me", // #2
+    "Should I study at [Uni A]", // #3
+    "Does this course include work experience", // #4
+    // "Which VCE subjects are prerequisites" — deleted (dup; belongs in a
+    // pathways map).
   ],
   Decide: [
-    "Is RMIT definitely the right first choice",
-    "What is the exact process to start my application",
-    "Am I eligible for a scholarship",
-    "How do I order RMIT vs my backups",
-    "What are the VTAC and course codes",
+    // #1 — reframed from "What is the exact process…" (course codes folded in).
+    { new: "How do applications even work, and what are the dates (including VTAC and course codes)?" },
+    "Am I eligible for a scholarship", // #2
+    // #3 — moved here from Understand.
+    { new: "What will I actually study — units, majors, and structure year by year?" },
   ],
   Begin: [
-    "What do I actually need to have ready",
-    "Do I need to find my Year 11 results",
-    "Can I use my digital ATAR",
+    // #1 — merged "Is RMIT the right first choice" + "How do I order my backups",
+    // moved from Decide and reframed.
+    { new: "How do preferences work? Should my first choice be aspirational or practical?" },
+    // #2 — moved here from Submit.
+    { new: "Is my course list locked in, or can I still change my mind after I hit submit?" },
   ],
   Submit: [
-    "Is my course list locked in",
-    "Why is this upload failing",
-    "If something goes wrong mid-submission",
-    "Will I get a confirmation",
+    // #1 — reframed from "Will I get a confirmation…".
+    { new: "What happens between the preferences and getting my results? Do I need to do anything?" },
   ],
   Wait: [
-    "When are results released",
-    "How does Change of Preference work",
-    // Study@RMIT: the Dec–Jan VTAC peak is dominated by preference-order and
-    // "how do I maximise my chance of an offer" — not just how CoP works.
-    { new: "How should I order my preferences to get the best offer I can?" },
-    "When are offers made",
-    "What support is there if I'm stressed",
+    "When are results released", // #1
+    "When are offers made", // #2
+    "What support is there if I'm stressed", // #3
+    "How does Change of Preference work", // #4
+    { new: "How should I order my preferences to get the best offer I can?" }, // #5 (no note)
   ],
   Offer: [
-    // Study@RMIT: Jan–Feb demand is "what does my outcome mean, and what now?"
-    { new: "I've got an offer — what does it actually mean, and what do I do next?" },
-    "If I accept a backup offer",
-    "How long can I defer for",
-    "Can I change my preferences now",
+    { new: "I've got an offer — what does it actually mean, and what do I do next?" }, // #1
+    "If I accept a backup offer", // #2
+    "How long can I defer for", // #3
+    // "Can I change my preferences now" — deleted (persona accepts first round).
   ],
   Enrol: [
-    "Which subjects do I need to choose",
-    "Who can I talk to if I hit a technical problem",
-    "Why do I have to do these tests",
-    "How do I log in for the first time",
-    "How do I get timetabling",
+    "Which subjects do I need to choose", // #1
+    "How do I log in for the first time", // #2
+    "How do I get timetabling", // #3
+    "Who can I talk to if I hit a technical problem", // #4
+    // "Why do I have to do these tests" — deleted.
   ],
 };
 
@@ -89,22 +89,16 @@ const SHORT: Record<string, [string, string][]> = {
     ["VCE subjects are prerequisites", "VCE prerequisites?"],
   ],
   Decide: [
-    ["right first choice", "RMIT or backup?"],
-    ["exact process to start", "How do I apply?"],
+    ["How do applications even work", "How do I apply?"],
     ["eligible for a scholarship", "Any scholarships?"],
-    ["order RMIT vs my backups", "Preference order?"],
-    ["VTAC and course codes", "Which VTAC codes?"],
+    ["What will I actually study", "What will I study?"],
   ],
   Begin: [
-    ["have ready on my computer", "What do I need ready?"],
-    ["Year 11 results", "Results or portfolio?"],
-    ["digital ATAR", "Digital ATAR OK?"],
+    ["How do preferences work", "How do preferences work?"],
+    ["course list locked", "Can I still change?"],
   ],
   Submit: [
-    ["course list locked", "Can I still change?"],
-    ["upload failing", "Upload won't work?"],
-    ["something goes wrong", "Where's the help?"],
-    ["get a confirmation", "Did it go through?"],
+    ["What happens between the preferences", "What happens next?"],
   ],
   Wait: [
     ["results released", "When are results released?"],
