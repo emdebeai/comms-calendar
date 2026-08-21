@@ -19,7 +19,6 @@ import { ScheduleDetailPanel } from "./components/ScheduleDetailPanel";
 import { StudentStagePanel } from "./components/StudentStagePanel";
 import type { QuestionRef } from "./components/StudentJourneyLane";
 import { allCampaignChannels, campaignGroups } from "./data/comms";
-import { STAGES } from "./data/journey";
 import { Minimap } from "./components/Minimap";
 import { Landing } from "./components/Landing";
 import { PersonaIntroModal } from "./components/PersonaIntroModal";
@@ -505,15 +504,6 @@ export default function App() {
 
   // Comms per journey stage — the coverage number on each stage label (this is
   // where "most comms sit in Consider" becomes visible on the map itself).
-  const stageCounts = useMemo(() => {
-    const m: Record<string, number> = {};
-    if (!layout) return m;
-    for (const s of STAGES) {
-      m[s.label] = layout.comms.filter((c) => c.month >= s.from && c.month < s.to).length;
-    }
-    return m;
-  }, [layout]);
-
   // When an equity cohort is focused, jump the map to its (often only) comm.
   useLayoutEffect(() => {
     if (!equity || !layout || !scrollerRef.current) return;
@@ -745,7 +735,6 @@ export default function App() {
         new Map(autoExpandMonths ? [...autoExpandMonths].map((m) => [m, 0 as const]) : []),
       )
               }
-              stageCounts={stageCounts}
               activeTypes={activeTypes}
               segments={segments}
               equity={equity}

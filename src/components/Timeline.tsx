@@ -45,8 +45,6 @@ interface Props {
   /** true when the user has months zoomed — shows the reset-zoom chip */
   canResetZoom: boolean;
   onResetZoom: () => void;
-  /** comms per journey stage, shown in the stage band */
-  stageCounts: Record<string, number>;
   activeTypes: Set<CommType>;
   /** segment lens — comms not matching a selected segment dim out */
   segments: SegmentSelection;
@@ -102,7 +100,6 @@ export function Timeline({
   onSetMonthLevel,
   canResetZoom,
   onResetZoom,
-  stageCounts,
   activeTypes,
   segments,
   equity,
@@ -219,7 +216,6 @@ export function Timeline({
           <StageBand
             onOpenStage={onOpenStage}
             onJumpStage={onJumpStage}
-            stageCounts={stageCounts}
           />
         </div>
         <div

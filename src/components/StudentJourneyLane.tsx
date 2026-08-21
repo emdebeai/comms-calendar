@@ -1,6 +1,7 @@
 import { useMemo } from "react";
+import { STAGES } from "../data/journey";
 import { bubbleLayout } from "../lib/studentBubbles";
-import { LABEL_W, STUDENT_LANE_H, TOTAL_W } from "../lib/scale";
+import { LABEL_W, STUDENT_LANE_H, TOTAL_W, scaleX } from "../lib/scale";
 import { EYEBROW, FOCUS_RING } from "../lib/styles";
 
 export interface QuestionRef {
@@ -32,10 +33,24 @@ export function StudentJourneyLane({
   const bubbles = useMemo(() => bubbleLayout(), []);
 
   return (
-    <div className="relative z-30" style={{ height: STUDENT_LANE_H }}>
+    // z above the header rows below it so a bubble's tooltip paints over the
+    // School year / Month rows instead of being clipped by them.
+    <div className="relative z-[45]" style={{ height: STUDENT_LANE_H }}>
       {/* ── Canvas side ── */}
       <div className="absolute top-0" style={{ left: LABEL_W, width: TOTAL_W, height: STUDENT_LANE_H }}>
         <div className="relative h-full bg-card">
+          {/* stage separators — group the bubbles by journey stage */}
+          {STAGES.map((s, i) =>
+            i === 0 ? null : (
+              <div
+                key={s.label}
+                className="absolute top-0 bottom-0 border-l border-grey-30"
+                style={{ left: scaleX(s.from) }}
+                aria-hidden
+              />
+            ),
+          )}
+
           {bubbles.map((b) => {
             const active =
               activeQuestion?.stage === b.stage && activeQuestion?.question === b.question;
