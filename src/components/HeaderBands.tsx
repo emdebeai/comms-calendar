@@ -341,7 +341,7 @@ export function MomentsBand({ activeMomentId, onHoverMoment, onPinMoment }: Mome
             }}
             className={`absolute border-l-2 pl-1.5 text-xs leading-4 font-semibold whitespace-nowrap transition-colors ${FOCUS_RING} ${
               active
-                ? "border-rmit-red text-rmit-red underline decoration-2 underline-offset-2"
+                ? "border-blue-highlight text-blue-highlight underline decoration-2 underline-offset-2"
                 : "border-grey-40 text-grey-90 hover:text-rmit-blue"
             }`}
             style={{ left: x, top: 4 + line * 21, zIndex: active ? 20 : undefined }}

@@ -13,6 +13,7 @@ import {
 } from "./lib/segments";
 import { connectedIds } from "./components/TriggerLayer";
 import { CommDetailPanel } from "./components/CommDetailPanel";
+import { StudentQuestionPanel, questionFeedbackId } from "./components/StudentQuestionPanel";
 import { CampaignDetailPanel } from "./components/CampaignDetailPanel";
 import { ScheduleDetailPanel } from "./components/ScheduleDetailPanel";
 import { StudentStagePanel } from "./components/StudentStagePanel";
@@ -153,6 +154,8 @@ export default function App() {
   const [openStage, setOpenStage] = useState<string | null>(null);
   const [hoveredQuestion, setHoveredQuestion] = useState<QuestionRef | null>(null);
   const [pinnedQuestion, setPinnedQuestion] = useState<QuestionRef | null>(null);
+  // Question whose detail panel is open (click a bubble).
+  const [panelQuestion, setPanelQuestion] = useState<QuestionRef | null>(null);
   // The student-journey lane is off by default — the comms map stays clean
   // until you opt into the student view from the control dock.
   const [showStudentLayer, setShowStudentLayer] = useState(false);
@@ -569,13 +572,13 @@ export default function App() {
 
   // While a detail dialog is open, take the timeline behind it out of the
   // AT tree and tab order (belt-and-braces with the dialog's own focus trap).
-  const bgInert = { inert: openComm || openCampaign ? true : undefined };
+  const bgInert = { inert: openComm || openCampaign || panelQuestion ? true : undefined };
 
   // ── Semantic zoom by gesture / keyboard ──────────────────────────────────
   // Both paths drive the SAME month-level model as clicking a month header
   // (collapsed → weeks → days), so a zoom expands the "+N more" chips in the
   // month it targets while the toolbars, minimap and text all stay put.
-  const panelOpen = Boolean(openComm || openCampaign || openStage);
+  const panelOpen = Boolean(openComm || openCampaign || openStage || panelQuestion);
 
   // Step one month's zoom by `dir` (+1 in / −1 out), keeping `date` fixed on
   // screen. flushSync commits the level change and re-runs layout SYNCHRONOUSLY
@@ -760,6 +763,7 @@ export default function App() {
                   p?.stage === q.stage && p?.question === q.question ? null : q,
                 )
               }
+              onOpenQuestion={setPanelQuestion}
               onJumpStage={jumpToStage}
               onOpenStage={(stage) => {
                 // One right-hand panel at a time; ⓘ on the open stage closes it.
@@ -985,6 +989,25 @@ export default function App() {
           onAdd={(entry) => addFeedback(openComm.id, entry)}
           onDelete={isAdmin ? (entryId) => removeFeedback(openComm.id, entryId) : undefined}
           onEdit={(patch) => editComm(openComm.id, patch)}
+        />
+      )}
+
+      {panelQuestion && layout && (
+        <StudentQuestionPanel
+          question={panelQuestion}
+          allComms={layout.comms}
+          entries={feedback[questionFeedbackId(panelQuestion)] ?? []}
+          onClose={() => setPanelQuestion(null)}
+          onAdd={(entry) => addFeedback(questionFeedbackId(panelQuestion), entry)}
+          onDelete={
+            isAdmin
+              ? (entryId) => removeFeedback(questionFeedbackId(panelQuestion), entryId)
+              : undefined
+          }
+          onOpenComm={(id) => {
+            setPanelQuestion(null);
+            setOpenCommId(id);
+          }}
         />
       )}
 

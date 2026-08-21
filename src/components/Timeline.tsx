@@ -69,6 +69,7 @@ interface Props {
   activeQuestion: QuestionRef | null;
   onHoverQuestion: (q: QuestionRef | null) => void;
   onPinQuestion: (q: QuestionRef) => void;
+  onOpenQuestion: (q: QuestionRef) => void;
   onOpenStage: (stageLabel: string) => void;
   /** click a stage name in the header band → scroll the map there */
   onJumpStage: (from: number) => void;
@@ -115,6 +116,7 @@ export function Timeline({
   activeQuestion,
   onHoverQuestion,
   onPinQuestion,
+  onOpenQuestion,
   onOpenStage,
   onJumpStage,
   onOpenSchedule,
@@ -228,6 +230,19 @@ export function Timeline({
         </div>
       </div>
 
+      {/* ── Student swimlane — the students' questions as speech bubbles, sitting
+          directly under the Journey Stage bar so the two read as one band.
+          Hovering an answered bubble spotlights the touchpoints that answer it.
+          Optional; when hidden HEADER_H shrinks by STUDENT_LANE_H. ── */}
+      {showStudentLayer && (
+        <StudentJourneyLane
+          activeQuestion={activeQuestion}
+          onHoverQuestion={onHoverQuestion}
+          onPinQuestion={onPinQuestion}
+          onOpenQuestion={onOpenQuestion}
+        />
+      )}
+
       {/* ── School year row — parallel audience bands ── */}
       <div className="relative z-30" style={{ height: YEAR_H }}>
         <div className="absolute top-0" style={{ left: LABEL_W, width: TOTAL_W }}>
@@ -284,21 +299,6 @@ export function Timeline({
         </div>
       </div>
 
-      {/* ── Student swimlane — the students' questions as speech bubbles, sitting
-          directly above the lanes so a connector can arc down to the touchpoint
-          that answers it. Last header block; when hidden, HEADER_H shrinks by
-          STUDENT_LANE_H so the canvas closes the gap. ── */}
-      {showStudentLayer && (
-        <StudentJourneyLane
-          activeQuestion={activeQuestion}
-          onHoverQuestion={onHoverQuestion}
-          onPinQuestion={onPinQuestion}
-          comms={comms}
-          hiddenIds={hiddenForLines}
-          collapsedLanes={collapsedLanes}
-        />
-      )}
-
       {/* ── Scrolling canvas ── */}
       <div className="absolute top-0" style={{ left: LABEL_W, width: TOTAL_W, height: TOTAL_H }}>
         {/* Lane backgrounds — alternate shade per lane so rows are easy to
@@ -350,7 +350,7 @@ export function Timeline({
             <div
               key={mo.id}
               className={`absolute z-10 border-l border-dashed transition-colors ${
-                active ? "border-rmit-red bg-rmit-red/8" : "border-grey-30 bg-grey-90/[0.03]"
+                active ? "border-blue-highlight bg-blue-highlight/8" : "border-grey-30 bg-grey-90/[0.03]"
               }`}
               style={{ left, width, top: HEADER_H, height: TOTAL_H - HEADER_H }}
             />
@@ -640,6 +640,7 @@ export function Timeline({
           collapsedLanes={collapsedLanes}
           activeId={activeId}
           showAll={showLines}
+          recede={focusSet !== null && activeId === null}
         />
       </div>
 

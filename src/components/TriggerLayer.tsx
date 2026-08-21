@@ -82,12 +82,15 @@ interface Props {
   collapsedLanes: Set<string>;
   activeId: string | null;
   showAll: boolean;
+  /** a question/moment spotlight is active — the whole map has dimmed, so the
+   *  show-all trigger web recedes with it instead of staying bright on top. */
+  recede?: boolean;
 }
 
 /** Trigger connectors: all of them when toggled on, otherwise just the
  *  hovered/pinned comm's. Links touching a comm that's folded into a
  *  "+N more" chip are skipped — no lines to invisible cards. */
-export function TriggerLayer({ comms, hiddenIds, collapsedLanes, activeId, showAll }: Props) {
+export function TriggerLayer({ comms, hiddenIds, collapsedLanes, activeId, showAll, recede }: Props) {
   const links = useMemo(
     () =>
       buildLinks(comms).filter((l) => !hiddenIds.has(l.from) && !hiddenIds.has(l.to)),
@@ -119,9 +122,12 @@ export function TriggerLayer({ comms, hiddenIds, collapsedLanes, activeId, showA
         if (!route) return null;
         const emphasised = !showAll || l.from === activeId || l.to === activeId;
         const drawIn = emphasised && !showAll; // hover reveal only
+        // Under a question/moment spotlight the whole map dims — the show-all
+        // web recedes with it rather than sitting bright over the dimmed cards.
+        const groupOpacity = emphasised ? 1 : recede ? 0.12 : 0.5;
         const stroke = "var(--color-rmit-blue-interactive)";
         return (
-          <g key={`${l.from}-${l.to}`} opacity={emphasised ? 1 : 0.5}>
+          <g key={`${l.from}-${l.to}`} opacity={groupOpacity}>
             {/* casing — separates the line from whatever it crosses */}
             <path
               d={route.d}
