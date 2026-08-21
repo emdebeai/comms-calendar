@@ -6,15 +6,23 @@ import type { Moment, StageSpan, YearSpan } from "./types";
 // On average students stay in Consider right up to (and during) Open Day
 // (early-mid Aug of Year 12) — deciding, starting and submitting then all
 // compress into the Aug–Sep window before VTAC timely close (end of Sep).
+// Stage spans follow the real VTAC calendar for a current-year Year 12,
+// direct applicant (Persona 01). Month 0 = Jan of Year 10, so Year 12 runs
+// months 24–35 (Aug = 31, Sep = 32, Dec = 35).
+//   • Applications open 3 Aug, timely close 28 Sep → the apply stages
+//     (Decide/Begin/Submit) span August–late September, not a Sep sliver.
+//   • ATAR released 10 Dec.
+//   • Persona 01 takes the DECEMBER offer round (23 Dec) and accepts first
+//     round — so Offer sits in December, not January's Round 1.
 export const STAGES: StageSpan[] = [
   { label: "Understand", from: 0, to: 6 },
-  { label: "Consider", from: 6, to: 31.7 },
-  { label: "Decide", from: 31.7, to: 32.15 },
-  { label: "Begin", from: 32.15, to: 32.6 },
-  { label: "Submit", from: 32.6, to: 33 },
-  { label: "Wait", from: 33, to: 35 },
-  { label: "Offer", from: 35, to: 36.5 },
-  { label: "Enrol", from: 36.5, to: 39 },
+  { label: "Consider", from: 6, to: 31.1 }, // Yr 10 – late July Yr 12
+  { label: "Decide", from: 31.1, to: 31.7 }, // early–mid August (apps open 3 Aug)
+  { label: "Begin", from: 31.7, to: 32.3 }, // late Aug – early Sep
+  { label: "Submit", from: 32.3, to: 32.9 }, // September → timely close 28 Sep
+  { label: "Wait", from: 32.9, to: 35.3 }, // Oct → results 10 Dec (exams, CoP)
+  { label: "Offer", from: 35.3, to: 36.2 }, // December offer round (23 Dec)
+  { label: "Enrol", from: 36.2, to: 39 }, // late Dec → Feb, Sem 1 starts
 ];
 
 // The three school-year bands run in PARALLEL, not sequence: this timeline
