@@ -16,10 +16,10 @@ import type { Moment, StageSpan, YearSpan } from "./types";
 //     round — so Offer sits in December, not January's Round 1.
 export const STAGES: StageSpan[] = [
   { label: "Understand", from: 0, to: 6 },
-  { label: "Consider", from: 6, to: 31.1 }, // Yr 10 – late July Yr 12
-  { label: "Decide", from: 31.1, to: 31.7 }, // early–mid August (apps open 3 Aug)
-  { label: "Begin", from: 31.7, to: 32.3 }, // late Aug – early Sep
-  { label: "Submit", from: 32.3, to: 32.9 }, // September → timely close 28 Sep
+  { label: "Consider", from: 6, to: 29 }, // Yr 10 – May Yr 12
+  { label: "Decide", from: 29, to: 31.06 }, // June → 3 Aug (applications open)
+  { label: "Begin", from: 31.06, to: 32.0 }, // 3 Aug – end Aug (VTAC timely apps open)
+  { label: "Submit", from: 32.0, to: 32.9 }, // September → timely close 5pm 28 Sep
   { label: "Wait", from: 32.9, to: 35.3 }, // Oct → results 10 Dec (exams, CoP)
   { label: "Offer", from: 35.3, to: 36.2 }, // December offer round (23 Dec)
   { label: "Enrol", from: 36.2, to: 39 }, // late Dec → Feb, Sem 1 starts
