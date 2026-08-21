@@ -130,16 +130,11 @@ export const MOMENT_H = 68; // moment-that-matters label track (three mini-lines
 // light up its linked comms in place, no panel in the way. The deep-dive panel
 // (voice/needs/decisions/actions) opens from the small info button per stage.
 // See StudentJourneyLane.
-// Coverage-first: at rest the band is a thin ribbon — each stage's N/M + dots,
-// nothing else, so it barely costs any vertical space. Opening a stage adds a
-// full-width detail panel below (voice + questions across the width, not a
-// cramped column). STUDENT_LANE_H is a live binding layoutTimeline updates
-// before it recomputes HEADER_H; the lane component reads the same binding.
-export const STUDENT_RIBBON_H = 48;
-export const STUDENT_DETAIL_H = 162;
-export const STUDENT_LANE_COLLAPSED_H = STUDENT_RIBBON_H;
-export const STUDENT_LANE_EXPANDED_H = STUDENT_RIBBON_H + STUDENT_DETAIL_H;
-export let STUDENT_LANE_H = STUDENT_LANE_COLLAPSED_H;
+// The student swimlane sits directly above the comm lanes. Its questions are
+// small speech bubbles placed in time; a band-local SVG arcs connectors down
+// into the touchpoints that answer them. Fixed height — PAD*2 + 3 rows * 32
+// (must match STUDENT_BUBBLE_AREA_H in studentBubbles.ts).
+export const STUDENT_LANE_H = 116;
 
 // Whether the student-journey lane is currently shown — set by layoutTimeline
 // from App's toggle. HEADER_H (and therefore every lane's `top`) shrinks by
@@ -442,7 +437,7 @@ export function layoutTimeline(
   // Set the header height before anything reads it (buildLanes anchors every
   // lane's `top` to HEADER_H).
   studentLayerVisible = studentLayer;
-  STUDENT_LANE_H = studentExpanded ? STUDENT_LANE_EXPANDED_H : STUDENT_LANE_COLLAPSED_H;
+  void studentExpanded;
   HEADER_H = headerHeight();
   expandedMonthsState = expandedMonths;
   cardHeightById = heights;

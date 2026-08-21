@@ -65,10 +65,7 @@ interface Props {
   activeMomentId: string | null;
   /** whether the student-journey lane is shown (dock toggle, off by default) */
   showStudentLayer: boolean;
-  /** which stage's questions are unfolded (accordion); null = coverage only */
-  expandedStage: string | null;
-  onExpandStage: (stage: string) => void;
-  /** student journey lane (the spine) — in-lane question focus + ⓘ panel */
+  /** student swimlane — question bubbles + connector arrows to touchpoints */
   activeQuestion: QuestionRef | null;
   onHoverQuestion: (q: QuestionRef | null) => void;
   onPinQuestion: (q: QuestionRef) => void;
@@ -115,8 +112,6 @@ export function Timeline({
   showLines,
   activeMomentId,
   showStudentLayer,
-  expandedStage,
-  onExpandStage,
   activeQuestion,
   onHoverQuestion,
   onPinQuestion,
@@ -233,20 +228,6 @@ export function Timeline({
         </div>
       </div>
 
-      {/* ── Student Journey — the questions behind each stage, the same CX lens
-          as the stage row, so it sits directly under it (above School year).
-          Optional; toggled from the control dock. When hidden, HEADER_H shrinks
-          by STUDENT_LANE_H (see layoutTimeline) so the canvas closes the gap. ── */}
-      {showStudentLayer && (
-        <StudentJourneyLane
-          expandedStage={expandedStage}
-          onExpandStage={onExpandStage}
-          activeQuestion={activeQuestion}
-          onHoverQuestion={onHoverQuestion}
-          onPinQuestion={onPinQuestion}
-        />
-      )}
-
       {/* ── School year row — parallel audience bands ── */}
       <div className="relative z-30" style={{ height: YEAR_H }}>
         <div className="absolute top-0" style={{ left: LABEL_W, width: TOTAL_W }}>
@@ -302,6 +283,21 @@ export function Timeline({
           Moments that matter
         </div>
       </div>
+
+      {/* ── Student swimlane — the students' questions as speech bubbles, sitting
+          directly above the lanes so a connector can arc down to the touchpoint
+          that answers it. Last header block; when hidden, HEADER_H shrinks by
+          STUDENT_LANE_H so the canvas closes the gap. ── */}
+      {showStudentLayer && (
+        <StudentJourneyLane
+          activeQuestion={activeQuestion}
+          onHoverQuestion={onHoverQuestion}
+          onPinQuestion={onPinQuestion}
+          comms={comms}
+          hiddenIds={hiddenForLines}
+          collapsedLanes={collapsedLanes}
+        />
+      )}
 
       {/* ── Scrolling canvas ── */}
       <div className="absolute top-0" style={{ left: LABEL_W, width: TOTAL_W, height: TOTAL_H }}>

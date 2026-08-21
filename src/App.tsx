@@ -156,9 +156,6 @@ export default function App() {
   // The student-journey lane is off by default — the comms map stays clean
   // until you opt into the student view from the control dock.
   const [showStudentLayer, setShowStudentLayer] = useState(false);
-  // Which stage's questions are unfolded in the student band (accordion — one
-  // at a time). null = coverage-only resting state.
-  const [expandedStage, setExpandedStage] = useState<string | null>(null);
   // Segment lens — opened from the persona dock. Focuses the map on comms
   // tailored to a chosen segment (college, campus, preference, event stage).
   const [segments, setSegments] = useState<SegmentSelection>(SEG_FROM_URL);
@@ -343,10 +340,9 @@ export default function App() {
             showStudentLayer,
             filteredIds,
             hiddenLanes,
-            showStudentLayer && expandedStage !== null,
           )
         : null,
-    [comms, expandedMonths, cardHeights, expandedCampaigns, collapsedLanes, showStudentLayer, filteredIds, hiddenLanes, expandedStage],
+    [comms, expandedMonths, cardHeights, expandedCampaigns, collapsedLanes, showStudentLayer, filteredIds, hiddenLanes],
   );
 
   // ── Focus + filter state (drives what dims) ──────────────────────────────
@@ -436,10 +432,9 @@ export default function App() {
             showStudentLayer,
             filteredIds,
             hiddenLanes,
-            showStudentLayer && expandedStage !== null,
           )
         : null,
-    [comms, effectiveExpanded, cardHeights, expandedCampaigns, collapsedLanes, showStudentLayer, filteredIds, hiddenLanes, expandedStage],
+    [comms, effectiveExpanded, cardHeights, expandedCampaigns, collapsedLanes, showStudentLayer, filteredIds, hiddenLanes],
   );
 
   // How many comms the active lenses leave lit — feeds the "N of M shown"
@@ -533,7 +528,6 @@ export default function App() {
     setShowStudentLayer((s) => !s);
     setHoveredQuestion(null);
     setPinnedQuestion(null);
-    setExpandedStage(null);
   };
 
   // NOTE: no scroll-anchoring on expand — expansion only adds width to the
@@ -759,8 +753,6 @@ export default function App() {
               showLines={showLines}
               activeMomentId={activeMomentId}
               showStudentLayer={showStudentLayer}
-              expandedStage={expandedStage}
-              onExpandStage={(s) => setExpandedStage((cur) => (cur === s ? null : s))}
               activeQuestion={activeQuestion}
               onHoverQuestion={setHoveredQuestion}
               onPinQuestion={(q) =>

@@ -72,6 +72,71 @@ const DISPLAY: Record<string, Pick[]> = {
   ],
 };
 
+// Short speech-bubble labels — the gist of each question, for the swimlane
+// where the full sentence won't fit. Matched by substring against the full
+// question; the full text still shows on hover.
+const SHORT: Record<string, [string, string][]> = {
+  Understand: [
+    ["What subjects do I actually need", "Which subjects?"],
+    ["Do I want to aim for university", "Uni, TAFE or work?"],
+    ["Which jobs and industries", "Which jobs?"],
+    ["What will I actually study", "What will I study?"],
+  ],
+  Consider: [
+    ["What ATAR am I tracking", "What ATAR?"],
+    ["Should I study at [Uni A]", "Which uni?"],
+    ["work experience", "Work experience?"],
+    ["How much will it cost", "What will it cost?"],
+    ["VCE subjects are prerequisites", "VCE prerequisites?"],
+  ],
+  Decide: [
+    ["right first choice", "RMIT or backup?"],
+    ["exact process to start", "How do I apply?"],
+    ["eligible for a scholarship", "Any scholarships?"],
+    ["order RMIT vs my backups", "Preference order?"],
+    ["VTAC and course codes", "Which VTAC codes?"],
+  ],
+  Begin: [
+    ["have ready on my computer", "What do I need ready?"],
+    ["Year 11 results", "Results or portfolio?"],
+    ["digital ATAR", "Digital ATAR OK?"],
+  ],
+  Submit: [
+    ["course list locked", "Can I still change?"],
+    ["upload failing", "Upload won't work?"],
+    ["something goes wrong", "Where's the help?"],
+    ["get a confirmation", "Did it go through?"],
+  ],
+  Wait: [
+    ["ATAR release day", "When are results?"],
+    ["Change of Preference work", "How does CoP work?"],
+    ["order my preferences to get the best", "Best preference order?"],
+    ["Round 1 offers come out", "When are offers?"],
+    ["stressed while I wait", "Support while I wait?"],
+  ],
+  Offer: [
+    ["what does it actually mean", "What does my offer mean?"],
+    ["reply deadline", "Reply deadline?"],
+    ["accept a backup offer", "Backup then Round 2?"],
+    ["How long can I defer", "Can I defer?"],
+    ["change my preferences now", "Change preferences?"],
+  ],
+  Enrol: [
+    ["subjects do I need to choose", "Which subjects?"],
+    ["technical problem", "Who do I call?"],
+    ["do these tests", "Why these tests?"],
+    ["log in for the first time", "How do I log in?"],
+    ["timetabling", "Timetable help?"],
+  ],
+};
+
+/** The short bubble label for a question (falls back to the full text). */
+export function questionLabel(stage: string, question: string): string {
+  const q = question.toLowerCase();
+  const hit = SHORT[stage]?.find(([m]) => q.includes(m.toLowerCase()));
+  return hit ? hit[1] : question;
+}
+
 /** The curated questions to show for a stage — doc questions (resolved to
  *  their full text) plus any authored from Study@RMIT demand data, capped at
  *  five, in priority order. */
