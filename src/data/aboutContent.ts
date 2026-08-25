@@ -13,7 +13,7 @@ export interface AboutPage {
 export const INTRO = {
   eyebrow: "Prospective student touchpoints",
   body: [
-    "By creating and working from a holistic view of the future student experience, we will enable the business to consider the needs and goals of students at each step of the journey, as well as considering the journey as an end-to-end experience.",
+    "By creating and working from a holistic view of the future student experience, this tool hopes to enable teams at RMIT to identify opportunities and pain points whilst considering the needs and goals of students at each step of the journey, as well as the end-to-end experience.",
   ],
 };
 

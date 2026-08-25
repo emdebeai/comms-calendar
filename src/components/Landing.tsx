@@ -188,15 +188,8 @@ function HeroBand() {
     <div className="border-b border-grey-30 bg-header text-white">
       <div className="mx-auto max-w-[952px] px-6 pt-14 pb-6">
         <h1 className="max-w-3xl text-4xl font-bold leading-tight">
-          Current State Touchpoints
+          Current State Touchpoint Mapping
         </h1>
-        <p className="mt-5 max-w-3xl text-2xl font-medium leading-snug text-white/85">
-          This work will support the portfolio to be{" "}
-          <span className="font-bold text-white">consistent</span>,{" "}
-          <span className="font-bold text-white">relevant</span> and{" "}
-          <span className="font-bold text-white">timely</span> in engagements with future
-          students.
-        </p>
         <HeroStrip />
       </div>
     </div>
