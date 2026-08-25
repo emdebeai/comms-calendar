@@ -306,7 +306,7 @@ function Home({ onEnter, setPage }: { onEnter: () => void; setPage: (p: Page) =>
 function NodeBox({ node, lead }: { node: OrgNode; lead?: boolean }) {
   return (
     <div
-      className={`inline-flex max-w-full flex-col rounded-md border px-3 py-1.5 ${
+      className={`flex w-full flex-col rounded-md border px-3 py-1.5 ${
         lead
           ? "border-rmit-blue-interactive/40 bg-tint-blue"
           : "border-grey-30 bg-card"
@@ -356,14 +356,17 @@ function PeopleConsulted() {
         <span className="text-sm font-semibold text-grey-90">{SPONSOR}</span>
       </div>
 
-      <section className="flex flex-col gap-6">
+      <section className="flex flex-col gap-7">
         <h2 className="text-base font-semibold text-grey-90">Who we worked with</h2>
         {CONSULTED.map((d) => (
           <div key={d.division}>
-            <p className="text-xs font-semibold uppercase tracking-widest text-grey-70">
+            <p className="border-b border-grey-30 pb-2 text-xs font-semibold uppercase tracking-widest text-grey-70">
               {d.division}
             </p>
-            <div className="mt-4 flex flex-col gap-6">
+            {/* Branches side by side — each is shallow (a lead + a few
+                reports), so columns keep the page short instead of one long
+                stacked list. items-start so short branches don't stretch. */}
+            <div className="mt-4 grid items-start gap-x-8 gap-y-6 sm:grid-cols-2 lg:grid-cols-3">
               {d.leads.map((lead) => (
                 <OrgTree key={lead.role} node={lead} lead />
               ))}
