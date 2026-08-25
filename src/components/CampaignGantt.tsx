@@ -25,7 +25,7 @@ const BAR_H = 26;
  *  which expands into its placements — the original interaction. */
 export function CampaignGantt({ expanded, dimmed, onToggle, onOpenChannel, onOpenAlwaysOn }: Props) {
   const rows = buildCampaignRows(expanded);
-  const dim = `transition-opacity duration-300 ${dimmed ? "opacity-[0.05] focus-visible:opacity-100" : ""}`;
+  const dim = `transition-opacity duration-300 ${dimmed ? "opacity-25 focus-visible:opacity-100" : ""}`;
   return (
     <>
       {rows.map((row) => {
@@ -39,8 +39,8 @@ export function CampaignGantt({ expanded, dimmed, onToggle, onOpenChannel, onOpe
         const interactive = row.toggle || row.channel || row.id === "cmp-always-on";
         const base = `absolute flex items-center rounded-md border text-left text-xs ${dim} ${
           row.depth === 2
-            ? "border-amber/30 bg-tint-amber/70 text-amber"
-            : "border-amber/50 bg-tint-amber font-semibold text-amber"
+            ? "border-purple/30 bg-tint-purple/70 text-purple"
+            : "border-purple/50 bg-tint-purple font-semibold text-purple"
         } ${narrow ? "justify-center px-1" : "px-2.5"} ${
           interactive ? `cursor-pointer hover:border-rmit-blue-interactive ${FOCUS_RING}` : ""
         }`;
@@ -102,7 +102,7 @@ export function CampaignGantt({ expanded, dimmed, onToggle, onOpenChannel, onOpe
             {narrow && (
               <span
                 aria-hidden
-                className={`pointer-events-none absolute flex items-center text-xs whitespace-nowrap text-amber ${dim}`}
+                className={`pointer-events-none absolute flex items-center text-xs whitespace-nowrap text-purple ${dim}`}
                 style={{ left: left + width + 6, top, height: BAR_H }}
               >
                 {row.label}

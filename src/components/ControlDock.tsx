@@ -59,14 +59,19 @@ export function ControlDock({
     setMoreOpen(false);
   };
 
-  // Close the overflow menu on outside click / Escape.
+  // Close the overflow menu on outside click / Escape; move focus into it on
+  // open (and back to the trigger on close — the trigger keeps focus context).
   useEffect(() => {
     if (!moreOpen) return;
+    moreRef.current?.querySelector<HTMLElement>("[data-popover] button")?.focus();
     const onDown = (e: MouseEvent) => {
       if (moreRef.current && !moreRef.current.contains(e.target as Node)) setMoreOpen(false);
     };
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setMoreOpen(false);
+      if (e.key === "Escape") {
+        setMoreOpen(false);
+        moreRef.current?.querySelector<HTMLElement>("button")?.focus();
+      }
     };
     document.addEventListener("mousedown", onDown);
     document.addEventListener("keydown", onKey);
@@ -76,14 +81,19 @@ export function ControlDock({
     };
   }, [moreOpen]);
 
-  // Close the legend popover on outside click / Escape.
+  // Close the legend popover on outside click / Escape; focus it on open so
+  // keyboard/AT users land in the content they just asked for.
   useEffect(() => {
     if (!legendOpen) return;
+    legendRef.current?.querySelector<HTMLElement>("[role='dialog']")?.focus();
     const onDown = (e: MouseEvent) => {
       if (legendRef.current && !legendRef.current.contains(e.target as Node)) setLegendOpen(false);
     };
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setLegendOpen(false);
+      if (e.key === "Escape") {
+        setLegendOpen(false);
+        legendRef.current?.querySelector<HTMLElement>("button")?.focus();
+      }
     };
     document.addEventListener("mousedown", onDown);
     document.addEventListener("keydown", onKey);
@@ -96,7 +106,7 @@ export function ControlDock({
   const iconBtn = `group relative flex h-8 w-8 items-center justify-center rounded-full transition-colors ${FOCUS_RING}`;
 
   return (
-    <div className="fixed bottom-5 left-1/2 z-40 -translate-x-1/2">
+    <div role="region" aria-label="Map controls" className="fixed bottom-5 left-1/2 z-40 -translate-x-1/2">
       <div className="flex items-center gap-0.5 rounded-full border border-grey-30 bg-card/70 px-2 py-1.5 shadow-xl backdrop-blur-md">
         {/* Back to the landing page */}
         <button type="button" onClick={onGoHome} aria-label="Back to start" className={`${iconBtn} text-grey-70 hover:bg-grey-20`}>
@@ -111,7 +121,7 @@ export function ControlDock({
           onClick={onResetTypes}
           aria-pressed={allActive}
           className={`group relative flex h-8 items-center rounded-full px-3 text-xs font-medium transition-colors ${FOCUS_RING} ${
-            allActive ? "bg-header text-white" : "text-grey-70 hover:bg-grey-20"
+            allActive ? "bg-rmit-blue-interactive text-on-accent" : "text-grey-70 hover:bg-grey-20"
           }`}
         >
           All
@@ -153,7 +163,7 @@ export function ControlDock({
           aria-pressed={allLanesCollapsed}
           aria-label={allLanesCollapsed ? "Expand all lanes" : "Overview — collapse all lanes"}
           className={`${iconBtn} ${
-            allLanesCollapsed ? "bg-header text-white" : "text-grey-70 hover:bg-grey-20"
+            allLanesCollapsed ? "bg-rmit-blue-interactive text-on-accent" : "text-grey-70 hover:bg-grey-20"
           }`}
         >
           <Rows3 size={15} strokeWidth={1.75} aria-hidden />
@@ -167,7 +177,7 @@ export function ControlDock({
           aria-pressed={showLines}
           aria-label={showLines ? "Hide trigger lines" : "Show trigger lines"}
           className={`${iconBtn} ${
-            showLines ? "bg-header text-white" : "text-grey-70 hover:bg-grey-20"
+            showLines ? "bg-rmit-blue-interactive text-on-accent" : "text-grey-70 hover:bg-grey-20"
           }`}
         >
           <Link2 size={15} strokeWidth={1.75} aria-hidden />
@@ -192,7 +202,8 @@ export function ControlDock({
             <div
               role="dialog"
               aria-label="Legend and tips"
-              className="animate-pop-in absolute right-0 bottom-full mb-3 w-72 rounded-lg border border-grey-30 bg-card p-3.5 text-xs text-grey-70 shadow-xl"
+              tabIndex={-1}
+              className="animate-pop-in absolute right-0 bottom-full mb-3 w-72 rounded-lg border border-grey-30 bg-card p-3.5 text-xs text-grey-70 shadow-xl focus:outline-none"
             >
               <div className="flex flex-col gap-2.5">
                 <span className="flex items-start gap-2">
@@ -215,17 +226,13 @@ export function ControlDock({
                   </span>
                 </span>
                 <span className="flex items-start gap-2">
-                  <span className="mt-0.5 h-3.5 w-6 shrink-0 rounded-full border border-amber/50 bg-tint-amber" />
+                  <span className="mt-0.5 h-3.5 w-6 shrink-0 rounded-full border border-purple/50 bg-tint-purple" />
                   <span>
                     <span className="font-medium text-grey-90">Media schedule</span> — always-on
                     campaigns, expandable to per-channel.
                   </span>
                 </span>
                 <span className="border-t border-grey-30 pt-2.5 leading-relaxed">
-                  Hover a comm to trace links · click for details · hover a student question to light
-                  up the comms that answer it.
-                </span>
-                <span className="leading-relaxed">
                   <span className="font-medium text-grey-90">Zoom a month</span> — click its header,
                   Ctrl/⌘ + scroll (or pinch) over it, or press{" "}
                   <kbd className="rounded-sm border border-grey-30 bg-grey-10 px-1 font-sans">+</kbd> /{" "}
@@ -254,13 +261,13 @@ export function ControlDock({
           </button>
           {moreOpen && (
             <div
-              role="menu"
-              aria-label="More options"
+              // Plain buttons in a popover — no role="menu": that ARIA role
+              // promises arrow-key navigation this popover doesn't implement.
+              data-popover
               className="animate-pop-in absolute right-0 bottom-full mb-3 w-48 rounded-lg border border-grey-30 bg-card p-1.5 shadow-lg"
             >
               <button
                 type="button"
-                role="menuitem"
                 onClick={exportPdf}
                 className={`flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-left text-sm text-grey-90 hover:bg-grey-10 ${FOCUS_RING}`}
               >
@@ -269,7 +276,6 @@ export function ControlDock({
               </button>
               <button
                 type="button"
-                role="menuitem"
                 onClick={() => {
                   onToggleTheme();
                   setMoreOpen(false);
@@ -285,7 +291,6 @@ export function ControlDock({
               </button>
               <button
                 type="button"
-                role="menuitem"
                 onClick={() => {
                   onToggleAdmin();
                   setMoreOpen(false);
@@ -301,7 +306,6 @@ export function ControlDock({
               </button>
               <button
                 type="button"
-                role="menuitem"
                 onClick={() => {
                   setMoreOpen(false);
                   onHideUi();

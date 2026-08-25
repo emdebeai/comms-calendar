@@ -2,6 +2,7 @@ import { Fragment, useState } from "react";
 import type { InboundLaneData } from "../data/types";
 import { LABEL_W, MONTHS, TOTAL_W, laneById, scaleX } from "../lib/scale";
 import { PRINT_MODE } from "../lib/printMode";
+import { FOCUS_RING } from "../lib/styles";
 
 // Engagement volume at a given month: baseline plus gaussian bumps per peak.
 // (Legacy synthetic mode — only used when a lane has no measured series.)
@@ -113,12 +114,33 @@ export function InboundLane({ data }: { data: InboundLaneData }) {
       <Fragment>
         {channelTable}
         <svg
-          className="absolute left-0 z-10"
+          className={`absolute left-0 z-10 ${FOCUS_RING}`}
           style={{ top: lane.top }}
           width={TOTAL_W}
           height={h}
           role="img"
-          aria-label={`${lane.label} inbound enquiries over time — full per-channel figures in the table above`}
+          aria-label={`${lane.label} inbound enquiries over time — arrow keys step through the monthly breakdown; full per-channel figures in the table above`}
+          // Keyboard route to the hover breakdown (2.1.1): focus the graph,
+          // arrows step the crosshair month-by-month, Esc clears it.
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === "Escape") {
+              setHoverX(null);
+              return;
+            }
+            if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+            e.preventDefault();
+            const cur =
+              hoverX === null
+                ? null
+                : grid.reduce((best, m) =>
+                    Math.abs(scaleX(m) - hoverX) < Math.abs(scaleX(best) - hoverX) ? m : best,
+                  );
+            const idx = cur === null ? 0 : grid.indexOf(cur) + (e.key === "ArrowRight" ? 1 : -1);
+            const next = grid[Math.min(grid.length - 1, Math.max(0, idx))];
+            setHoverX(scaleX(next));
+          }}
+          onBlur={() => setHoverX(null)}
           // offsetX is relative to whatever child (a dot, a line, the tooltip)
           // is under the cursor, so it jumps as you move — measure against the
           // svg itself for a stable x.
@@ -333,16 +355,37 @@ export function InboundLane({ data }: { data: InboundLaneData }) {
         </table>
       )}
       <svg
-        className="absolute left-0 z-10"
+        className={`absolute left-0 z-10 ${series ? FOCUS_RING : ""}`}
         style={{ top: lane.top }}
         width={TOTAL_W}
         height={h}
         role={series ? "img" : undefined}
         aria-label={
           series
-            ? `${lane.label} weekly visitors over time — full figures in the adjacent table`
+            ? `${lane.label} weekly visitors over time — arrow keys step through the readings; full figures in the adjacent table`
             : `${lane.label} inbound engagement over time`
         }
+        // Keyboard route to the hover crosshair (2.1.1), series mode only.
+        tabIndex={series ? 0 : undefined}
+        onKeyDown={
+          series
+            ? (e) => {
+                if (e.key === "Escape") {
+                  setHoverX(null);
+                  return;
+                }
+                if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+                e.preventDefault();
+                const idx =
+                  hoverPt === null
+                    ? 0
+                    : series.indexOf(hoverPt) + (e.key === "ArrowRight" ? 1 : -1);
+                const next = series[Math.min(series.length - 1, Math.max(0, idx))];
+                setHoverX(scaleX(next.month));
+              }
+            : undefined
+        }
+        onBlur={series ? () => setHoverX(null) : undefined}
         onMouseMove={series ? (e) => setHoverX(e.nativeEvent.offsetX) : undefined}
         onMouseLeave={series ? () => setHoverX(null) : undefined}
       >

@@ -69,7 +69,7 @@ export function PersonaDock({
   if (axes.length === 0 && equityCohorts.length === 0) return null;
 
   return (
-    <div className="fixed bottom-5 right-5 z-40" ref={ref}>
+    <div role="region" aria-label="Persona and segment filters" className="fixed bottom-5 right-5 z-40" ref={ref}>
       <div className="relative flex items-center gap-2 rounded-full border border-grey-30 bg-card/70 px-2.5 py-1.5 shadow-xl backdrop-blur-md">
         <button
           type="button"
@@ -78,7 +78,7 @@ export function PersonaDock({
           aria-label="Domestic school leaver — segment filters"
           className={`group relative flex h-8 items-center gap-1.5 rounded-full px-3 text-xs font-semibold uppercase tracking-widest transition-colors ${FOCUS_RING} ${
             open || count > 0
-              ? "bg-rmit-blue text-white"
+              ? "bg-rmit-blue text-on-accent"
               : "bg-tint-blue text-rmit-blue hover:bg-tint-blue/70"
           }`}
         >
@@ -118,13 +118,13 @@ export function PersonaDock({
                   aria-pressed={on}
                   className={`group relative flex h-8 items-center rounded-full px-3 text-xs font-semibold uppercase tracking-widest transition-colors ${FOCUS_RING} ${
                     on
-                      ? "bg-rmit-blue text-white"
+                      ? "bg-rmit-blue text-on-accent"
                       : "bg-tint-blue text-rmit-blue hover:bg-tint-blue/70"
                   }`}
                 >
                   {c}
                   {equityCounts[c] !== undefined && (
-                    <span className={`ml-1 ${on ? "text-white/60" : "text-rmit-blue/60"}`}>
+                    <span className={`ml-1 ${on ? "text-on-accent/70" : "text-rmit-blue/60"}`}>
                       {equityCounts[c]}
                     </span>
                   )}

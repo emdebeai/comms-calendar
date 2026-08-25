@@ -62,8 +62,10 @@ export function CommCard({
   // dashed-outline chips (the "not us" motif shared with the embargo band)
   // rather than the type-coloured RMIT fills.
   const external = comm.team === "vtac";
+  // grey-60 dashed: the outline is the card's ONLY marker (no accent strip),
+  // so it must clear the 3:1 non-text minimum on the lane stripes.
   const chipClass = external
-    ? "rounded-md border border-dashed border-grey-40 bg-grey-10"
+    ? "rounded-md border border-dashed border-grey-60 bg-grey-10"
     : `rounded-l-none rounded-r-md ${colors.chip}`;
   const textClass = external ? "text-grey-80" : colors.text;
 
@@ -85,7 +87,7 @@ export function CommCard({
   const stateClass = active
     ? "ring-1 ring-rmit-blue-interactive"
     : hovered
-      ? "shadow-md"
+      ? "shadow-md ring-1 ring-grey-50"
       : "";
 
   return (
@@ -103,7 +105,7 @@ export function CommCard({
       className={`absolute flex items-start gap-1.5 px-2 py-1.5 text-left transition-[opacity,box-shadow] duration-300 ${
         chipClass
       } ${filteredOut ? "cursor-default" : "cursor-pointer"} ${stateClass} ${
-        filteredOut ? "opacity-[0.12]" : dimmed ? "opacity-[0.05] focus-visible:opacity-100" : ""
+        filteredOut ? "opacity-[0.12]" : dimmed ? "opacity-25 focus-visible:opacity-100" : ""
       } ${FOCUS_RING}`}
       style={{ left: x, top: y, width: CARD_W, minHeight: PILL_H, zIndex }}
       onMouseEnter={() => {
@@ -125,6 +127,14 @@ export function CommCard({
       onClick={(e) => {
         e.stopPropagation();
         onOpenDetail(comm.id);
+      }}
+      // 1.4.13: hover/focus-revealed content must be dismissible without
+      // moving the pointer or focus — Esc hides the date tooltip.
+      onKeyDown={(e) => {
+        if (e.key === "Escape" && hovered) {
+          e.stopPropagation();
+          setHovered(false);
+        }
       }}
     >
       {/* instant tooltip — the exact date; native title tooltip is too slow */}
@@ -155,7 +165,7 @@ export function CommCard({
         {/* audience variant — only on look-alike stacks, so "COP Explained"
             ×3 reads as three audience splits, not a triple-send */}
         {variant && (
-          <span className="mt-0.5 flex items-center gap-1 text-xs leading-tight text-grey-70">
+          <span className="mt-0.5 flex items-center gap-1 text-xs leading-tight text-grey-80">
             <Users size={10} strokeWidth={2} className="shrink-0" aria-hidden />
             <span className="truncate">{variant}</span>
           </span>
@@ -166,7 +176,7 @@ export function CommCard({
             panel (explicit "Not recorded" row) and the request spreadsheet
             instead. Never fabricate a default here. */}
         {!isEvent && comm.cta && (
-          <span className="mt-0.5 flex items-center gap-1 text-xs leading-tight text-grey-70">
+          <span className="mt-0.5 flex items-center gap-1 text-xs leading-tight text-grey-80">
             <MousePointerClick size={10} strokeWidth={2} className="shrink-0" aria-hidden />
             <span className="truncate">{comm.cta}</span>
           </span>

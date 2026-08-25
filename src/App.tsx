@@ -54,6 +54,12 @@ const ALL_TYPES: CommType[] = ["email", "sms", "webinar", "call", "event"];
 // Spoken names for the three month-zoom levels (index = level).
 const ZOOM_LEVEL_NAME = ["month view", "week view", "day view"] as const;
 
+// Programmatic scrolls honour prefers-reduced-motion (2.3.3): the CSS
+// `scroll-behavior: auto` override can't reach JS `behavior: "smooth"`,
+// so gate it here. Read per call — the setting can change mid-session.
+const scrollBehavior = (): ScrollBehavior =>
+  window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
+
 // Print/export mode (?print) — used for static captures of the map: hides the
 // intro header and the floating UI, and renders the segment filters as a
 // static legend strip below the canvas so nothing overlaps the content.
@@ -598,7 +604,7 @@ export default function App() {
 
   // Stage names in the header band double as jump links.
   const jumpToStage = (from: number) =>
-    scrollerRef.current?.scrollTo({ left: Math.max(0, scaleX(from) - 40), behavior: "smooth" });
+    scrollerRef.current?.scrollTo({ left: Math.max(0, scaleX(from) - 40), behavior: scrollBehavior() });
 
   // Comms per journey stage — the coverage number on each stage label (this is
   // where "most comms sit in Consider" becomes visible on the map itself).
@@ -611,7 +617,7 @@ export default function App() {
     scrollerRef.current.scrollTo({
       left: Math.max(0, x - 80),
       top: Math.max(0, y - 140),
-      behavior: "smooth",
+      behavior: scrollBehavior(),
     });
   }, [equity, layout]);
 
@@ -756,6 +762,7 @@ export default function App() {
   return (
     <div
       ref={scrollerRef}
+      id="map-scroller"
       data-scroller
       // overscroll-x-contain: reaching the timeline's left edge must not hand
       // the trackpad swipe to the browser's back-navigation gesture. In print
@@ -763,12 +770,15 @@ export default function App() {
       // on one page instead of being clipped to the viewport.
       className="h-screen overflow-auto overscroll-x-contain bg-surface font-sans text-grey-90"
     >
+      {/* Page heading for AT — the visual map carries no h1 of its own. */}
+      <h1 className="sr-only">Communications map — domestic school leaver</h1>
       {/* Bypass block for the 100+ tab stops on the canvas. Kept in the DOM
           (so screen readers announce it) but translated off the top edge
-          until focused. */}
+          until focused. `fixed` (not absolute) so focusing it doesn't yank
+          the scroller back to x=0 after the initial auto-scroll. */}
       <a
         href="#comms-list"
-        className="absolute left-2 top-2 z-50 -translate-y-16 rounded-md bg-header px-3 py-2 text-sm font-medium text-white transition-transform focus:translate-y-0"
+        className="fixed left-2 top-2 z-50 -translate-y-16 rounded-md bg-header px-3 py-2 text-sm font-medium text-white transition-transform focus:translate-y-0"
       >
         Skip to touchpoints list
       </a>
@@ -898,6 +908,9 @@ export default function App() {
               hiddenLanes={hiddenLanes}
               onToggleLane={cycleLane}
             />
+            {/* Breathing room under the last lane so bottom cards can scroll
+                clear of the floating control dock instead of hiding behind it. */}
+            {!PRINT_MODE && <div aria-hidden className="h-24" />}
             {/* Text alternative to the visual timeline canvas, which conveys
                 meaning through colour + position (WCAG 1.3.1). Hidden visually,
                 read in DOM order by assistive tech. Reflects the active type
@@ -1096,13 +1109,13 @@ export default function App() {
           onGoLeft={() =>
             scrollerRef.current?.scrollTo({
               left: Math.max(0, offAnswers.leftT - viewport.width / 2 + LABEL_W),
-              behavior: "smooth",
+              behavior: scrollBehavior(),
             })
           }
           onGoRight={() =>
             scrollerRef.current?.scrollTo({
               left: Math.max(0, offAnswers.rightT - viewport.width / 2 + LABEL_W),
-              behavior: "smooth",
+              behavior: scrollBehavior(),
             })
           }
         />

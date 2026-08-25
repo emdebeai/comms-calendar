@@ -258,7 +258,7 @@ export function Timeline({
                 onResetZoom();
               }}
               title="Collapse all zoomed months"
-              className={`animate-pop-in rounded-full bg-grey-20 px-2 py-0.5 font-medium text-grey-90 hover:bg-grey-30 ${FOCUS_RING}`}
+              className={`animate-pop-in relative rounded-full bg-grey-20 px-2 py-0.5 font-medium text-grey-90 after:absolute after:-inset-1 after:content-[''] hover:bg-grey-30 ${FOCUS_RING}`}
             >
               Reset zoom
             </button>
@@ -328,6 +328,43 @@ export function Timeline({
           />
         ))}
 
+        {/* Empty-stretch watermarks — a long span with no sends in an expanded
+            lane otherwise reads as broken/blank while scrolling. One quiet
+            line names the quiet period so emptiness reads as information. */}
+        {LANES.filter(
+          (lane) =>
+            lane.kind === "outbound" &&
+            lane.id !== "campaigns" &&
+            !collapsedLanes.has(lane.id) &&
+            !hiddenLanes.has(lane.id) &&
+            teamsWithComms.has(lane.id as Team),
+        ).flatMap((lane) => {
+          const months = [
+            ...new Set(comms.filter((c) => c.team === lane.id).map((c) => Math.floor(c.month))),
+          ].sort((a, b) => a - b);
+          const gaps: [number, number][] = [];
+          let prev = -1;
+          for (const m of [...months, MONTHS]) {
+            if (m - prev > 5) gaps.push([prev + 1, m]);
+            prev = m;
+          }
+          return gaps.map(([a, b]) => (
+            <span
+              key={`quiet-${lane.id}-${a}`}
+              aria-hidden
+              className="absolute flex items-center justify-center text-xs text-grey-60 italic"
+              style={{
+                left: scaleX(a) + 8,
+                width: scaleX(b) - scaleX(a) - 16,
+                top: lane.top + lane.height / 2 - 8,
+                height: 16,
+              }}
+            >
+              No sends {monthLabel(a)} – {monthLabel(b - 1)}
+            </span>
+          ));
+        })}
+
         {/* Month gridlines (heavier at year boundaries) */}
         {Array.from({ length: MONTHS - 1 }, (_, i) => i + 1).map((m) => (
           <div
@@ -367,7 +404,7 @@ export function Timeline({
             <div
               key={mo.id}
               className={`absolute z-10 border-l border-dashed transition-colors ${
-                active ? "border-rmit-blue-interactive bg-rmit-blue-interactive/8" : "border-grey-30 bg-grey-90/[0.03]"
+                active ? "border-rmit-blue-interactive bg-rmit-blue-interactive/8" : "border-grey-40 bg-rmit-blue-interactive/5"
               }`}
               style={{ left, width, top: contextTop, height: TOTAL_H - contextTop }}
             />
@@ -384,7 +421,10 @@ export function Timeline({
             <Fragment key={e.label}>
               <div
                 aria-hidden
-                className="pointer-events-none absolute z-10 border-x border-dashed border-grey-40"
+                // grey-60 edges/hatch: the band boundary is meaningful (a
+                // send-freeze window), so it needs the 3:1 non-text minimum
+                // on the light lane stripes.
+                className="pointer-events-none absolute z-10 border-x border-dashed border-grey-60"
                 style={{
                   left,
                   width,
@@ -397,7 +437,7 @@ export function Timeline({
                   // bars hard to read. laneById is safe — campaigns always exist.
                   height: laneById("campaigns").top - HEADER_H,
                   backgroundImage:
-                    "repeating-linear-gradient(45deg, var(--color-grey-50) 0 1.5px, transparent 1.5px 9px)",
+                    "repeating-linear-gradient(45deg, var(--color-grey-60) 0 1.5px, transparent 1.5px 9px)",
                 }}
               />
               <div
@@ -492,7 +532,7 @@ export function Timeline({
                   filteredOut
                     ? "opacity-[0.12]"
                     : dotDimmed
-                      ? "opacity-[0.05] focus-visible:z-50 focus-visible:opacity-100"
+                      ? "opacity-25 focus-visible:z-50 focus-visible:opacity-100"
                       : "cursor-pointer hover:z-50 focus-visible:z-50"
                 }`}
                 style={{ left: markerPos(c).x, top: markerPos(c).y }}
@@ -505,7 +545,7 @@ export function Timeline({
                     markers stacked above it. */}
                 <span
                   aria-hidden
-                  className="pointer-events-none absolute -top-7 left-1/2 z-50 hidden -translate-x-1/2 rounded-md bg-tooltip px-2 py-1 text-xs font-normal whitespace-nowrap text-white shadow-md group-hover:block"
+                  className="pointer-events-none absolute -top-7 left-1/2 z-50 hidden -translate-x-1/2 rounded-md bg-tooltip px-2 py-1 text-xs font-normal whitespace-nowrap text-white shadow-md group-hover:block group-focus-within:block"
                 >
                   {c.title} · {day} {monthLabel(Math.floor(c.month))}
                 </span>
@@ -532,14 +572,16 @@ export function Timeline({
                 }}
                 title="Expand this month to see it"
                 aria-label={`This ${COMM_LABELS[c.type].toLowerCase()} is folded here — expand this month to see it`}
-                className={`absolute z-10 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 transition-all duration-300 ${accent.replace(
+                // after:-inset-2 = an invisible 28px hit area around the 12px
+                // dot (2.5.8) without growing the visual.
+                className={`absolute z-10 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 transition-all duration-300 after:absolute after:-inset-2 after:content-[''] ${accent.replace(
                   "bg-",
                   "border-",
                 )} ${FOCUS_RING} ${
                   dotDimmed
                     ? filteredOut
                       ? "cursor-default opacity-[0.12]"
-                      : "cursor-default opacity-[0.05] focus-visible:opacity-100"
+                      : "cursor-default opacity-25 focus-visible:opacity-100"
                     : "cursor-pointer opacity-70 hover:scale-125 hover:opacity-100"
                 }`}
                 style={pos}
@@ -556,7 +598,7 @@ export function Timeline({
               aria-hidden
               title={filteredOut ? `${c.title} — hidden by filters` : undefined}
               className={`absolute z-10 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full ring-2 ring-card transition-opacity duration-300 ${accent} ${
-                filteredOut ? "opacity-[0.12]" : dotDimmed ? "opacity-[0.05]" : ""
+                filteredOut ? "opacity-[0.12]" : dotDimmed ? "opacity-25" : ""
               }`}
               style={pos}
             />
@@ -586,7 +628,7 @@ export function Timeline({
                 className={`absolute w-[1.25px] transition-opacity duration-300 ${markerAccent(
                   c.team === "vtac" ? "bg-grey-40" : COMM_COLORS[c.type].accent,
                   "line",
-                )} ${stemDimmed ? "opacity-[0.05]" : ""}`}
+                )} ${stemDimmed ? "opacity-25" : ""}`}
                 style={{ left: cx, top, height: Math.max(y - top + 2, 0) }}
               />
             );
@@ -637,8 +679,8 @@ export function Timeline({
               e.stopPropagation();
               onSetMonthLevel(chip.monthIndex, (expandedMonths.get(chip.monthIndex) ?? 0) === 0 ? 1 : 2);
             }}
-            className={`absolute z-10 flex items-center rounded-full border border-grey-30 bg-card px-2 text-xs font-medium whitespace-nowrap text-rmit-blue-interactive transition-opacity duration-300 ${FOCUS_RING} ${
-              dimChips ? "opacity-[0.05]" : "hover:border-rmit-blue-interactive"
+            className={`absolute z-10 flex items-center rounded-full border border-grey-30 bg-card px-2 text-xs font-medium whitespace-nowrap text-rmit-blue-interactive transition-opacity duration-300 after:absolute after:-inset-1 after:content-[''] ${FOCUS_RING} ${
+              dimChips ? "opacity-25" : "hover:border-rmit-blue-interactive"
             }`}
             style={{
               left: Math.min(scaleX(chip.monthIndex) + 4, TOTAL_W - 80),
@@ -669,7 +711,9 @@ export function Timeline({
           over it while scrolling, but BELOW the sticky header bands (z-40) so
           they still cover its top-left corner, and below the fixed docks. ── */}
       <div
-        className="sticky left-0 z-[35] border-r border-grey-30 bg-surface"
+        // after: a 12px fade just right of the gutter, so cards sliding under
+        // it dissolve softly instead of being chopped by a hard edge.
+        className="sticky left-0 z-[35] border-r border-grey-30 bg-surface after:pointer-events-none after:absolute after:top-0 after:bottom-0 after:left-full after:w-3 after:bg-gradient-to-r after:from-surface/70 after:to-transparent after:content-['']"
         style={{ width: LABEL_W, height: TOTAL_H - HEADER_H }}
       >
         {LANES.map((lane) => {
@@ -694,7 +738,7 @@ export function Timeline({
                 {/* comm count — the "how much does each team send" number,
                     visible while the lane is open (collapsed shows "N hidden") */}
                 {!collapsed && lane.kind === "outbound" && count > 0 && (
-                  <span className="text-xs font-normal text-grey-60">· {count}</span>
+                  <span className="text-xs font-normal text-grey-70">· {count}</span>
                 )}
               </span>
               {!collapsed && lane.sub && (
@@ -710,11 +754,21 @@ export function Timeline({
                   return note ? (
                     <span
                       data-print-hide
-                      className="group relative mt-1 ml-[19px] inline-flex w-fit items-center gap-1 text-[11px] text-grey-60"
+                      // Keyboard route to the hover note: focusable, popover
+                      // shows on focus-within, Esc blurs (1.4.13 dismissal).
+                      // The full note is also the accessible name, so AT gets
+                      // it without needing the visual popover.
+                      tabIndex={0}
+                      role="note"
+                      aria-label={`Source: ${note}`}
+                      onKeyDown={(e) => {
+                        if (e.key === "Escape") (e.currentTarget as HTMLElement).blur();
+                      }}
+                      className={`group relative mt-1 ml-[19px] inline-flex w-fit items-center gap-1 rounded-sm text-[11px] text-grey-70 ${FOCUS_RING}`}
                     >
                       <Info size={11} strokeWidth={2} aria-hidden />
                       Source
-                      <span className="absolute top-full left-0 z-50 mt-1 hidden w-64 rounded-md bg-tooltip px-2.5 py-1.5 text-[11px] leading-snug whitespace-normal text-white shadow-md group-hover:block">
+                      <span className="absolute top-full left-0 z-50 mt-1 hidden w-64 rounded-md bg-tooltip px-2.5 py-1.5 text-[11px] leading-snug whitespace-normal text-white shadow-md group-hover:block group-focus-within:block">
                         {note}
                       </span>
                     </span>
@@ -794,7 +848,7 @@ export function Timeline({
                     >
                       <Info size={11} strokeWidth={2} aria-hidden />
                       Source
-                      <span className="absolute top-full left-0 z-50 mt-1 hidden w-64 rounded-md bg-tooltip px-2.5 py-1.5 text-[11px] leading-snug whitespace-normal text-white shadow-md group-hover:block">
+                      <span className="absolute top-full left-0 z-50 mt-1 hidden w-64 rounded-md bg-tooltip px-2.5 py-1.5 text-[11px] leading-snug whitespace-normal text-white shadow-md group-hover:block group-focus-within:block">
                         VTAC 2024–25 newsletter (opens the PDF) — indicative dates, not aligned to
                         RMIT&rsquo;s 2026 comms.
                       </span>

@@ -10,7 +10,7 @@ export function HoverTip({ label, align = "center" }: { label: string; align?: "
       // normal-case + tracking-normal: never inherit an uppercase chip's
       // label styling. align="right" keeps tips on-screen for controls
       // hugging the right edge.
-      className={`pointer-events-none absolute bottom-full z-50 mb-2 hidden rounded-md bg-tooltip px-2 py-1 text-xs font-normal normal-case tracking-normal whitespace-nowrap text-white shadow-md group-hover:block ${
+      className={`pointer-events-none absolute bottom-full z-50 mb-2 hidden rounded-md bg-tooltip px-2 py-1 text-xs font-normal normal-case tracking-normal whitespace-nowrap text-white shadow-md group-hover:block group-focus-within:block ${
         align === "right" ? "right-0" : "left-1/2 -translate-x-1/2"
       }`}
     >

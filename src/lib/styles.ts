@@ -9,3 +9,10 @@ export const FOCUS_RING =
 
 // Eyebrow / overline label treatment (small, bold, wide-tracked, uppercase).
 export const EYEBROW = "text-xs font-semibold tracking-widest uppercase";
+
+// Dimming levels, defined once so they can't drift per component and so the
+// semantics stay right: a TRANSIENT spotlight dim keeps context legible
+// (things recede, they don't vanish), while a PERSISTENT filtered-out ghost
+// is fainter — hidden-by-lens must still "never read as doesn't exist".
+export const DIM_FOCUS = "opacity-25";
+export const DIM_FILTERED = "opacity-[0.12]";

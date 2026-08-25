@@ -97,7 +97,9 @@ export function StageBand({ onOpenStage, onHoverStage, onJumpStage }: StageBandP
                 aria-label={`${s.label} — full student experience (voice, needs, decisions, actions)`}
                 title="Full student experience for this stage"
                 data-print-hide
-                className={`shrink-0 rounded-full p-0.5 text-grey-40 opacity-70 transition-opacity hover:bg-grey-20 hover:text-grey-90 group-hover:opacity-100 focus-visible:opacity-100 ${FOCUS_RING}`}
+                // grey-60 resting (≥3:1 on card); relative + after:-inset-1.5
+                // pads the ~17px icon to a ≥24px hit target invisibly.
+                className={`relative shrink-0 rounded-full p-0.5 text-grey-60 transition-colors after:absolute after:-inset-1.5 after:content-[''] hover:bg-grey-20 hover:text-grey-90 ${FOCUS_RING}`}
               >
                 <Info size={12} strokeWidth={2} aria-hidden />
               </button>
@@ -339,10 +341,13 @@ export function MomentsBand({ activeMomentId, onHoverMoment, onPinMoment }: Mome
               e.stopPropagation();
               onPinMoment(moment.id);
             }}
-            className={`absolute border-l-2 pl-1.5 text-xs leading-4 font-semibold whitespace-nowrap transition-colors ${FOCUS_RING} ${
+            // font-medium grey-80 at rest: the moments band is reference
+            // chrome — the Journey Stage row is the primary framing, so
+            // moment labels recede a step until hovered/active.
+            className={`absolute border-l-2 pl-1.5 text-xs leading-4 font-medium whitespace-nowrap transition-colors ${FOCUS_RING} ${
               active
-                ? "border-rmit-blue-interactive text-rmit-blue-interactive underline decoration-2 underline-offset-2"
-                : "border-grey-40 text-grey-90 hover:text-rmit-blue"
+                ? "border-rmit-blue-interactive font-semibold text-rmit-blue-interactive underline decoration-2 underline-offset-2"
+                : "border-grey-50 text-grey-80 hover:text-rmit-blue"
             }`}
             style={{ left: x, top: 4 + line * 21, zIndex: active ? 20 : undefined }}
           >

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type RefObject } from "react";
 import type { Comm } from "../data/types";
 import { LABEL_W, MONTHS, TOTAL_W, scaleX } from "../lib/scale";
+import { FOCUS_RING } from "../lib/styles";
 
 interface Props {
   comms: Comm[];
@@ -65,16 +66,31 @@ export function Minimap({ comms, scrollerRef }: Props) {
   return (
     // Hidden below ~1160px — narrower than that and the centred control dock
     // would sit on top of it.
-    <div className="fixed bottom-5 left-5 z-40 hidden min-[1160px]:block">
+    <div role="region" aria-label="Timeline overview" className="fixed bottom-5 left-5 z-40 hidden min-[1160px]:block">
       <div className="rounded-lg border border-grey-30 bg-card/70 px-2.5 pt-2 pb-1.5 shadow-xl backdrop-blur-md">
         <div
           role="scrollbar"
-          aria-label="Timeline overview — click or drag to move around the map"
+          aria-label="Timeline overview — click, drag, or use arrow keys to move around the map"
           aria-orientation="horizontal"
           aria-valuemin={0}
           aria-valuemax={100}
           aria-valuenow={Math.round((view.left / Math.max(1, TOTAL_W)) * 100)}
-          className="relative cursor-pointer touch-none select-none"
+          aria-controls="map-scroller"
+          // role="scrollbar" promises keyboard operability — honour it:
+          // arrows nudge a month, Home/End jump to the timeline's ends.
+          tabIndex={0}
+          onKeyDown={(e) => {
+            const el = scrollerRef.current;
+            if (!el) return;
+            const step = 120; // one base month
+            if (e.key === "ArrowLeft") el.scrollBy({ left: -step });
+            else if (e.key === "ArrowRight") el.scrollBy({ left: step });
+            else if (e.key === "Home") el.scrollTo({ left: 0 });
+            else if (e.key === "End") el.scrollTo({ left: TOTAL_W });
+            else return;
+            e.preventDefault();
+          }}
+          className={`relative cursor-pointer touch-none select-none ${FOCUS_RING}`}
           style={{ width: MAP_W, height: BAR_AREA_H }}
           onPointerDown={(e) => {
             dragging.current = true;
@@ -126,7 +142,7 @@ export function Minimap({ comms, scrollerRef }: Props) {
           ].map((b) => (
             <span
               key={b.label}
-              className="absolute top-0.5 -translate-x-1/2 text-xs leading-none text-grey-60"
+              className="absolute top-0.5 -translate-x-1/2 text-xs leading-none text-grey-70"
               style={{ left: (toMap(scaleX(b.from)) + toMap(scaleX(b.to))) / 2 }}
             >
               {b.label}

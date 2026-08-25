@@ -313,7 +313,7 @@ function buildLanes(
     // student the newsletter cadence directly.
     { id: "divider-vtac", label: "External sender", kind: "divider", height: DIVIDER_H, chipStrip: false },
     outbound("vtac", "VTAC", "Direct to the student"),
-    { id: "divider-inbound", label: "Inbound Engagement", kind: "divider", height: DIVIDER_H, chipStrip: false },
+    { id: "divider-inbound", label: "Inbound engagement", kind: "divider", height: DIVIDER_H, chipStrip: false },
     inbound("digital", "Digital"),
     inbound("study", "Study@RMIT"),
   ];

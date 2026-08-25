@@ -121,12 +121,12 @@ export function StudentJourneyLane({
     // (font-semibold); open questions stay lighter, so weight itself signals
     // "this one is answered".
     const tone = !answered
-      ? "border-dashed border-grey-40 bg-grey-10 text-grey-70 hover:border-grey-50 hover:bg-grey-20"
+      ? "border-dashed border-grey-60 bg-grey-10 text-grey-70 hover:border-grey-70 hover:bg-grey-20"
       : active
         ? "font-semibold border-rmit-blue-interactive bg-tint-blue text-rmit-blue-interactive"
         : "font-semibold border-rmit-blue-interactive/40 bg-card text-grey-90 hover:border-rmit-blue-interactive hover:bg-tint-blue/40";
     const tail = !answered
-      ? "border-grey-40 bg-grey-10"
+      ? "border-grey-60 bg-grey-10"
       : active
         ? "border-rmit-blue-interactive bg-tint-blue"
         : "border-rmit-blue-interactive/40 bg-card group-hover:border-rmit-blue-interactive group-hover:bg-tint-blue/40";

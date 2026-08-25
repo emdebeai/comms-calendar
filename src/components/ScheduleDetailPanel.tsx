@@ -25,7 +25,7 @@ export function ScheduleDetailPanel({ group, onOpenChannel, onClose }: Props) {
           : `Open Day campaign · ${campaignRangeLabel(group.from, group.to)}`
       }
       title={group.title}
-      iconChipClass="bg-tint-amber text-amber"
+      iconChipClass="bg-tint-purple text-purple"
       icon={<Megaphone size={16} strokeWidth={1.75} aria-hidden />}
       onClose={onClose}
     >
