@@ -330,7 +330,7 @@ function OrgTree({ node, lead }: { node: OrgNode; lead?: boolean }) {
               <li key={r.role} className="relative pt-1.5 pl-4">
                 <span className="absolute left-0 top-[19px] h-px w-3 bg-grey-30" aria-hidden />
                 {last && (
-                  <span className="absolute -left-px top-[20px] bottom-0 w-px bg-surface" aria-hidden />
+                  <span className="absolute -left-px top-[20px] bottom-0 w-px bg-card" aria-hidden />
                 )}
                 <OrgTree node={r} />
               </li>
@@ -350,17 +350,17 @@ function PeopleConsulted() {
         <span className="text-sm font-semibold text-grey-90">{SPONSOR}</span>
       </div>
 
-      <section className="flex flex-col gap-7">
+      <section className="flex flex-col gap-5">
         <h2 className="text-base font-semibold text-grey-90">Who we worked with</h2>
+        {/* One card per business area; the typographic trees live inside.
+            Branches sit side by side — each is shallow (a lead + a few
+            reports), so columns keep the card short. */}
         {CONSULTED.map((d) => (
-          <div key={d.division}>
-            <p className="border-b border-grey-30 pb-2 text-xs font-semibold uppercase tracking-widest text-grey-70">
+          <div key={d.division} className={CARD}>
+            <p className="text-xs font-semibold uppercase tracking-widest text-grey-70">
               {d.division}
             </p>
-            {/* Branches side by side — each is shallow (a lead + a few
-                reports), so columns keep the page short instead of one long
-                stacked list. items-start so short branches don't stretch. */}
-            <div className="mt-4 grid items-start gap-x-8 gap-y-6 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="mt-5 grid items-start gap-x-8 gap-y-6 sm:grid-cols-2 lg:grid-cols-3">
               {d.leads.map((lead) => (
                 <OrgTree key={lead.role} node={lead} lead />
               ))}
