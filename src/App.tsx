@@ -1084,6 +1084,7 @@ export default function App() {
           onAdd={(entry) => addFeedback(openComm.id, entry)}
           onDelete={isAdmin ? (entryId) => removeFeedback(openComm.id, entryId) : undefined}
           onEdit={(patch) => editComm(openComm.id, patch)}
+          onOpenComm={(id) => setOpenCommId(id)}
         />
       )}
 

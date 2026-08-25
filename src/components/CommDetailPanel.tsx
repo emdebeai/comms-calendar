@@ -22,6 +22,8 @@ interface Props {
   onDelete?: (entryId: string) => void;
   /** persist a field edit made in the panel */
   onEdit?: (patch: Partial<Comm>) => void;
+  /** open another comm's panel (related-comm cards) */
+  onOpenComm?: (commId: string) => void;
 }
 
 const FIELD =
@@ -33,6 +35,7 @@ const TEAMS: Comm["team"][] = [
   "admissions",
   "conversion",
   "vtac",
+  "digital",
 ];
 
 /** Editable form for a comm's details. Text fields commit on blur, selects on
@@ -124,7 +127,7 @@ function AttributeRow({ label, value }: { label: string; value?: string | null }
   );
 }
 
-export function CommDetailPanel({ comm, allComms, entries, onClose, onAdd, onDelete, onEdit }: Props) {
+export function CommDetailPanel({ comm, allComms, entries, onClose, onAdd, onDelete, onEdit, onOpenComm }: Props) {
   const [editing, setEditing] = useState(false);
   const Icon = COMM_ICONS[comm.type];
   const colors = COMM_COLORS[comm.type];
@@ -139,14 +142,18 @@ export function CommDetailPanel({ comm, allComms, entries, onClose, onAdd, onDel
     comm.team === "vtac" ? "VTAC" : comm.team.charAt(0).toUpperCase() + comm.team.slice(1);
   // Related comms — both directions of the (now undirected) trigger links,
   // merged into one list so the panel doesn't assert who causes whom.
-  const relatedTitles = [
-    ...new Set([
-      ...(comm.triggers ?? [])
-        .map((id) => allComms.find((c) => c.id === id)?.title)
-        .filter((t): t is string => Boolean(t)),
-      ...allComms.filter((c) => c.triggers?.includes(comm.id)).map((c) => c.title),
-    ]),
-  ].join("; ");
+  // Rendered as the same clickable comm cards the student-question panel
+  // uses, so a related comm is one tap away instead of a text list.
+  const related: Comm[] = [
+    ...new Map(
+      [
+        ...(comm.triggers ?? [])
+          .map((id) => allComms.find((c) => c.id === id))
+          .filter((c): c is Comm => Boolean(c)),
+        ...allComms.filter((c) => c.triggers?.includes(comm.id)),
+      ].map((c) => [c.id, c] as const),
+    ).values(),
+  ];
   // The tailoring axes the segment lens parsed out of the audience label,
   // shown as chips (pretty labels shared with the persona-dock toggles).
   const tailoringChips = [
@@ -215,7 +222,6 @@ export function CommDetailPanel({ comm, allComms, entries, onClose, onAdd, onDel
                 <dd className="min-w-0 text-sm text-grey-70 italic">Not recorded</dd>
               </div>
             ))}
-          <AttributeRow label="Related comms" value={relatedTitles} />
           <AttributeRow
             label="Student question"
             value={
@@ -227,6 +233,50 @@ export function CommDetailPanel({ comm, allComms, entries, onClose, onAdd, onDel
           <AttributeRow label="Sent from" value={comm.platform ? PLATFORM_LABELS[comm.platform] : undefined} />
           {comm.platform === "marketo" && <AttributeRow label="Marketo ID" value={comm.marketoId} />}
         </dl>
+
+        {/* ── Related comms — trigger links in both directions, as the same
+            clickable comm cards the student-question panel uses. ── */}
+        {related.length > 0 && (
+          <>
+            <h3 className={`mt-6 border-t border-grey-30 pt-6 text-grey-70 ${EYEBROW}`}>
+              Related comms · {related.length}
+            </h3>
+            <ul className="mt-3 flex flex-col gap-1.5">
+              {related.map((c) => {
+                const RIcon = COMM_ICONS[c.type];
+                const rColors = COMM_COLORS[c.type];
+                return (
+                  <li key={c.id}>
+                    <button
+                      type="button"
+                      onClick={() => onOpenComm?.(c.id)}
+                      disabled={!onOpenComm}
+                      className={`flex w-full items-center gap-2.5 rounded-md border border-grey-30 bg-card px-2.5 py-2 text-left transition-colors ${
+                        onOpenComm
+                          ? "hover:border-rmit-blue-interactive/60 hover:bg-tint-blue/30"
+                          : ""
+                      } ${FOCUS_RING}`}
+                    >
+                      <span
+                        className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full ${rColors.chip} ${rColors.text}`}
+                      >
+                        <RIcon size={13} strokeWidth={2} aria-hidden />
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-sm text-grey-90">
+                          <TokenText text={c.title} />
+                        </span>
+                        <span className="block text-xs text-grey-70">
+                          {COMM_LABELS[c.type]} · {commDateLabel(c.month)}
+                        </span>
+                      </span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </>
+        )}
 
         {/* ── Audience & tailoring — who this send goes to and how it's cut.
             The raw audience label is the messy source of truth (verbatim from
