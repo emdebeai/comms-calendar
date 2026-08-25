@@ -58,6 +58,9 @@
   --color-teal: #0d6f64;
   --color-pink: #a92561;
   --color-indigo: #2e3a8c;
+  /* webpage touchpoints (owned digital pages) — same tracked deviation */
+  --color-tint-cyan: #d9f0f8;
+  --color-cyan: #0a6180;
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
@@ -113,6 +116,8 @@
   --color-teal: #4dd4c4;
   --color-pink: #f486b4;
   --color-indigo: #93a4f7;
+  --color-tint-cyan: #0c2733;
+  --color-cyan: #5cc4e8;
 }
 
 html {

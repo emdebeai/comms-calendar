@@ -340,6 +340,7 @@ let cardAreaByTeam: Record<Team, number> = {
   admissions: DEFAULT_CARD_H,
   conversion: DEFAULT_CARD_H,
   vtac: DEFAULT_CARD_H,
+  digital: DEFAULT_CARD_H,
 };
 // Placed-card rectangles per team (card-area-relative bottoms), so a "+N more"
 // chip can sit below the deepest card that actually overlaps its x — hugging
@@ -350,6 +351,7 @@ let placedByTeam: Record<Team, PlacedRect[]> = {
   "marketing-events": [],
   marketing: [],
   admissions: [],
+  digital: [],
   conversion: [],
   vtac: [],
 };
@@ -495,6 +497,7 @@ export function layoutTimeline(
     admissions: [],
     conversion: [],
     vtac: [],
+    digital: [],
   };
   const nextCardArea: Record<Team, number> = {
     recruitment: DEFAULT_CARD_H,
@@ -503,6 +506,7 @@ export function layoutTimeline(
     admissions: DEFAULT_CARD_H,
     conversion: DEFAULT_CARD_H,
     vtac: DEFAULT_CARD_H,
+    digital: DEFAULT_CARD_H,
   };
   // The media schedule sits below the marketing cards, but only needs to
   // clear the cards in ITS OWN column (the campaign x-span) — not the lane's

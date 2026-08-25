@@ -87,8 +87,8 @@ export const COMMS_COLUMNS = [
   "event_state",
 ] as const;
 
-const TEAMS: Team[] = ["recruitment", "marketing", "marketing-events", "admissions", "conversion", "vtac"];
-const TYPES: CommType[] = ["email", "sms", "webinar", "call", "event"];
+const TEAMS: Team[] = ["recruitment", "marketing", "marketing-events", "admissions", "conversion", "vtac", "digital"];
+const TYPES: CommType[] = ["email", "sms", "webinar", "call", "event", "webpage"];
 const MONTH_NAMES = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
 
 // Equity cohort a send TARGETS, read from the audience label — but only when
@@ -126,6 +126,8 @@ function matchType(raw: string): CommType {
   const aliases: Record<string, CommType> = {
     "in-person": "event",
     "in-person event": "event",
+    "web page": "webpage",
+    "landing page": "webpage",
     "event": "event",
   };
   const found = aliases[norm] ?? TYPES.find((t) => t === norm || t.startsWith(norm));

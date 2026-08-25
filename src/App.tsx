@@ -49,7 +49,7 @@ import { COMM_COLORS, COMM_ICONS, COMM_LABELS } from "./components/icons";
 
 const THEME_KEY = "comms-calendar-theme";
 
-const ALL_TYPES: CommType[] = ["email", "sms", "webinar", "call", "event"];
+const ALL_TYPES: CommType[] = ["email", "sms", "webinar", "call", "event", "webpage"];
 
 // Spoken names for the three month-zoom levels (index = level).
 const ZOOM_LEVEL_NAME = ["month view", "week view", "day view"] as const;

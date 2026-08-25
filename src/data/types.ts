@@ -1,5 +1,5 @@
-export type CommType = "email" | "sms" | "webinar" | "call" | "event";
-export type Team = "recruitment" | "marketing-events" | "marketing" | "admissions" | "conversion" | "vtac";
+export type CommType = "email" | "sms" | "webinar" | "call" | "event" | "webpage";
+export type Team = "recruitment" | "marketing-events" | "marketing" | "admissions" | "conversion" | "vtac" | "digital";
 /** Sending/management platform a comm goes out of. Marketing eDMs run out of
  *  Marketo (Adobe); event registration + confirmation emails out of Cvent;
  *  text messages out of ClickSend. */

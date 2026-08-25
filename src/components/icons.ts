@@ -1,4 +1,4 @@
-import { Mail, MessageSquare, Video, Phone, MapPin, type LucideIcon } from "lucide-react";
+import { Globe, Mail, MessageSquare, Video, Phone, MapPin, type LucideIcon } from "lucide-react";
 import type { CommType, Platform } from "../data/types";
 
 export const COMM_ICONS: Record<CommType, LucideIcon> = {
@@ -7,6 +7,7 @@ export const COMM_ICONS: Record<CommType, LucideIcon> = {
   webinar: Video,
   call: Phone,
   event: MapPin,
+  webpage: Globe,
 };
 
 // Categorical colour per comm type. Team stays encoded by swimlane.
@@ -20,6 +21,7 @@ export const COMM_COLORS: Record<
   webinar: { chip: "bg-tint-purple", text: "text-purple", border: "border-purple/30", accent: "bg-purple" },
   call: { chip: "bg-tint-indigo", text: "text-indigo", border: "border-indigo/30", accent: "bg-indigo" },
   event: { chip: "bg-tint-pink", text: "text-pink", border: "border-pink/30", accent: "bg-pink" },
+  webpage: { chip: "bg-tint-cyan", text: "text-cyan", border: "border-cyan/30", accent: "bg-cyan" },
 };
 
 export const COMM_LABELS: Record<CommType, string> = {
@@ -28,6 +30,7 @@ export const COMM_LABELS: Record<CommType, string> = {
   webinar: "Webinar",
   call: "Call",
   event: "In-person event",
+  webpage: "Webpage",
 };
 
 // Sending-platform labels, brand-cased. Rendered as a quiet grey badge, not
