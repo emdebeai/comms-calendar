@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ArrowRight, Layers, Moon, Route, Sun, Target, Users } from "lucide-react";
+import { ArrowRight, Layers, Moon, Route, Sun, Target, UserRound, Users } from "lucide-react";
 import { FOCUS_RING } from "../lib/styles";
 import {
   ABOUT_PAGES,
@@ -300,39 +300,59 @@ function Home({ onEnter, setPage }: { onEnter: () => void; setPage: (p: Page) =>
   );
 }
 
-// ── People consulted — little org trees by division ────────────────────────
-/** One role — plain type, no box. Leads (the top of each branch) are
- *  semibold; the "| team" suffix sits under the title in grey. */
-function NodeBox({ node, lead }: { node: OrgNode; lead?: boolean }) {
+// ── People consulted — avatar rows in per-division trees ───────────────────
+// Follows the display components' avatar guidance: a tinted initials-style
+// circle per person, where COLOUR IS A GROUPING AID (one tone per division,
+// mirroring the landing pillars' tinted-circle treatment), and the role text
+// always sits beside it.
+interface DivTone {
+  circle: string; // avatar circle
+  dot: string; // division header dot
+}
+
+/** One person — avatar circle + role. Leads get the bigger circle + weight. */
+function PersonRow({ node, lead, tone }: { node: OrgNode; lead?: boolean; tone: DivTone }) {
   return (
-    <div className="flex flex-col py-0.5">
-      <span className={`text-sm leading-snug ${lead ? "font-semibold text-grey-90" : "text-grey-80"}`}>
-        {node.role}
+    <div className="flex items-center gap-2.5">
+      <span
+        aria-hidden
+        className={`flex shrink-0 items-center justify-center rounded-full ${tone.circle} ${
+          lead ? "h-9 w-9" : "h-7 w-7"
+        }`}
+      >
+        <UserRound size={lead ? 16 : 13} strokeWidth={2} />
       </span>
-      {node.team && <span className="text-xs leading-snug text-grey-60">{node.team}</span>}
+      <span className="flex min-w-0 flex-col">
+        <span
+          className={`text-sm leading-snug ${lead ? "font-semibold text-grey-90" : "font-medium text-grey-80"}`}
+        >
+          {node.role}
+        </span>
+        {node.team && <span className="text-xs leading-snug text-grey-60">{node.team}</span>}
+      </span>
     </div>
   );
 }
 
-/** A node and its reports, drawn as an indented tree: a vertical spine down
- *  from the parent with an elbow into each child; the last child masks the
- *  spine's tail so it stops cleanly. Recurses for the (few) deeper branches. */
-function OrgTree({ node, lead }: { node: OrgNode; lead?: boolean }) {
+/** A person and their reports: a spine drops from the lead's avatar with an
+ *  elbow into each report's avatar; the last report masks the spine's tail.
+ *  Recurses for the (few) deeper branches. */
+function OrgTree({ node, lead, tone }: { node: OrgNode; lead?: boolean; tone: DivTone }) {
   const reports = node.reports ?? [];
   return (
     <div>
-      <NodeBox node={node} lead={lead} />
+      <PersonRow node={node} lead={lead} tone={tone} />
       {reports.length > 0 && (
-        <ul className="ml-1.5 border-l border-grey-30">
+        <ul className={`border-l border-grey-30 ${lead ? "ml-[17px]" : "ml-[13px]"}`}>
           {reports.map((r, i) => {
             const last = i === reports.length - 1;
             return (
-              <li key={r.role} className="relative pt-1.5 pl-4">
-                <span className="absolute left-0 top-[19px] h-px w-3 bg-grey-30" aria-hidden />
+              <li key={r.role} className="relative pt-2.5 pl-5">
+                <span className="absolute left-0 top-[24px] h-px w-4 bg-grey-30" aria-hidden />
                 {last && (
-                  <span className="absolute -left-px top-[20px] bottom-0 w-px bg-card" aria-hidden />
+                  <span className="absolute -left-px top-[25px] bottom-0 w-px bg-card" aria-hidden />
                 )}
-                <OrgTree node={r} />
+                <OrgTree node={r} tone={tone} />
               </li>
             );
           })}
@@ -342,31 +362,52 @@ function OrgTree({ node, lead }: { node: OrgNode; lead?: boolean }) {
   );
 }
 
+// One tone per division — the same tint set the landing pillars use.
+const DIV_TONES: DivTone[] = [
+  { circle: "bg-tint-blue text-rmit-blue", dot: "bg-rmit-blue" },
+  { circle: "bg-tint-purple text-purple", dot: "bg-purple" },
+  { circle: "bg-tint-teal text-teal", dot: "bg-teal" },
+];
+
 function PeopleConsulted() {
   return (
     <div className="flex flex-col gap-8">
-      <div className="flex flex-col gap-1">
-        <span className="text-xs font-semibold uppercase tracking-widest text-grey-70">Sponsor</span>
-        <span className="text-sm font-semibold text-grey-90">{SPONSOR}</span>
+      <div className="flex items-center gap-2.5">
+        <span
+          aria-hidden
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-tint-indigo text-indigo"
+        >
+          <UserRound size={16} strokeWidth={2} />
+        </span>
+        <span className="flex flex-col">
+          <span className="text-xs font-semibold uppercase tracking-widest text-grey-70">
+            Sponsor
+          </span>
+          <span className="text-sm font-semibold text-grey-90">{SPONSOR}</span>
+        </span>
       </div>
 
       <section className="flex flex-col gap-5">
         <h2 className="text-base font-semibold text-grey-90">Who we worked with</h2>
-        {/* One card per business area; the typographic trees live inside.
-            Branches sit side by side — each is shallow (a lead + a few
-            reports), so columns keep the card short. */}
-        {CONSULTED.map((d) => (
-          <div key={d.division} className={CARD}>
-            <p className="text-xs font-semibold uppercase tracking-widest text-grey-70">
-              {d.division}
-            </p>
-            <div className="mt-5 grid items-start gap-x-8 gap-y-6 sm:grid-cols-2 lg:grid-cols-3">
-              {d.leads.map((lead) => (
-                <OrgTree key={lead.role} node={lead} lead />
-              ))}
+        {/* One card per business area; avatar trees inside. Branches sit side
+            by side — each is shallow (a lead + a few reports), so columns keep
+            the card short. */}
+        {CONSULTED.map((d, di) => {
+          const tone = DIV_TONES[di % DIV_TONES.length];
+          return (
+            <div key={d.division} className={CARD}>
+              <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-grey-70">
+                <span aria-hidden className={`h-2 w-2 rounded-full ${tone.dot}`} />
+                {d.division}
+              </p>
+              <div className="mt-5 grid items-start gap-x-8 gap-y-7 sm:grid-cols-2 lg:grid-cols-3">
+                {d.leads.map((lead) => (
+                  <OrgTree key={lead.role} node={lead} lead tone={tone} />
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </section>
     </div>
   );
