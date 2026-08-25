@@ -1,6 +1,6 @@
 import { Fragment, useState } from "react";
 import type { InboundLaneData } from "../data/types";
-import { LABEL_W, MONTHS, TOTAL_W, laneById, scaleX } from "../lib/scale";
+import { MONTHS, TOTAL_W, laneById, scaleX } from "../lib/scale";
 import { PRINT_MODE } from "../lib/printMode";
 import { FOCUS_RING } from "../lib/styles";
 
@@ -149,7 +149,15 @@ export function InboundLane({ data }: { data: InboundLaneData }) {
           }
           onMouseLeave={() => setHoverX(null)}
         >
-          <text x={LABEL_W + 12} y={16} className="fill-rmit-blue-interactive text-xs font-medium">
+          {/* Title + legend anchor at the START OF THE DATA (the Study@RMIT
+              series only covers the application season), not the canvas
+              origin — at LABEL_W they'd float over months of empty lane,
+              nowhere near the curves they describe. */}
+          <text
+            x={scaleX(grid[0]) + 4}
+            y={16}
+            className="fill-rmit-blue-interactive text-xs font-medium"
+          >
             {hovering
               ? "Enquiries by channel"
               : PRINT_MODE
@@ -159,7 +167,7 @@ export function InboundLane({ data }: { data: InboundLaneData }) {
           {/* legend while the breakdown is showing */}
           {hovering &&
             channels.map((c, i) => {
-              const lx = LABEL_W + 12 + i * 104;
+              const lx = scaleX(grid[0]) + 4 + i * 104;
               return (
                 <g key={c.label}>
                   <circle cx={lx} cy={30} r={3.5} fill={`var(${c.color})`} />
