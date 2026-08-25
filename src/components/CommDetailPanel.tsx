@@ -264,11 +264,17 @@ export function CommDetailPanel({ comm, allComms, entries, onClose, onAdd, onDel
               <div className="mt-2 flex gap-10">
                 <div>
                   <p className="text-2xl font-semibold text-grey-90">{comm.openRate || "—"}</p>
-                  <p className="text-xs text-grey-70">Open rate</p>
+                  {/* A webpage's two stats are traffic attribution + form
+                      conversion, not send metrics — same slots, honest labels. */}
+                  <p className="text-xs text-grey-70">
+                    {comm.type === "webpage" ? "Traffic from linked eDM" : "Open rate"}
+                  </p>
                 </div>
                 <div>
                   <p className="text-2xl font-semibold text-grey-90">{comm.clickRate || "—"}</p>
-                  <p className="text-xs text-grey-70">Click rate</p>
+                  <p className="text-xs text-grey-70">
+                    {comm.type === "webpage" ? "Forms started → registrations" : "Click rate"}
+                  </p>
                 </div>
               </div>
             ) : (

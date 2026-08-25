@@ -465,6 +465,12 @@ export default function App() {
   // so the map doesn't reflow as the mouse moves.
   const autoExpandMonths = useMemo(() => {
     if (!baseLayout || !filterActive) return null;
+    // The DEFAULT lens (applied at load) must not zoom anything — the map
+    // opens with every month zoomed out. Auto-expand only once the user has
+    // actually changed a lens (segments keeps its initial object identity
+    // until then).
+    if (segments === SEG_FROM_URL && equity === null && activeTypes.size === ALL_TYPES.length)
+      return null;
     const months = new Set<number>();
     for (const c of baseLayout.comms) {
       if (!baseLayout.hiddenIds.has(c.id) || collapsedLanes.has(c.team)) continue;

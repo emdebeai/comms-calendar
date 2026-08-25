@@ -164,19 +164,8 @@ export function InboundLane({ data }: { data: InboundLaneData }) {
                 ? "Total enquiries"
                 : "Total enquiries · hover for the channel breakdown"}
           </text>
-          {/* legend while the breakdown is showing */}
-          {hovering &&
-            channels.map((c, i) => {
-              const lx = scaleX(grid[0]) + 4 + i * 104;
-              return (
-                <g key={c.label}>
-                  <circle cx={lx} cy={30} r={3.5} fill={`var(${c.color})`} />
-                  <text x={lx + 8} y={33.5} className="fill-grey-70 text-xs">
-                    {c.label}
-                  </text>
-                </g>
-              );
-            })}
+          {/* No separate legend — the hover tooltip already names every
+              channel with its colour dot, so a key would just repeat it. */}
           {/* total: filled curve at rest, thin context line during hover */}
           {splitRuns(totals).map((run, ri) => {
             const line = run
