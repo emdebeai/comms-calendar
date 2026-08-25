@@ -328,43 +328,6 @@ export function Timeline({
           />
         ))}
 
-        {/* Empty-stretch watermarks — a long span with no sends in an expanded
-            lane otherwise reads as broken/blank while scrolling. One quiet
-            line names the quiet period so emptiness reads as information. */}
-        {LANES.filter(
-          (lane) =>
-            lane.kind === "outbound" &&
-            lane.id !== "campaigns" &&
-            !collapsedLanes.has(lane.id) &&
-            !hiddenLanes.has(lane.id) &&
-            teamsWithComms.has(lane.id as Team),
-        ).flatMap((lane) => {
-          const months = [
-            ...new Set(comms.filter((c) => c.team === lane.id).map((c) => Math.floor(c.month))),
-          ].sort((a, b) => a - b);
-          const gaps: [number, number][] = [];
-          let prev = -1;
-          for (const m of [...months, MONTHS]) {
-            if (m - prev > 5) gaps.push([prev + 1, m]);
-            prev = m;
-          }
-          return gaps.map(([a, b]) => (
-            <span
-              key={`quiet-${lane.id}-${a}`}
-              aria-hidden
-              className="absolute flex items-center justify-center text-xs text-grey-60 italic"
-              style={{
-                left: scaleX(a) + 8,
-                width: scaleX(b) - scaleX(a) - 16,
-                top: lane.top + lane.height / 2 - 8,
-                height: 16,
-              }}
-            >
-              No sends {monthLabel(a)} – {monthLabel(b - 1)}
-            </span>
-          ));
-        })}
-
         {/* Month gridlines (heavier at year boundaries) */}
         {Array.from({ length: MONTHS - 1 }, (_, i) => i + 1).map((m) => (
           <div
