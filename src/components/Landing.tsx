@@ -65,12 +65,22 @@ function HeroStrip() {
 }
 
 /** RMIT Harvard reference line: Author (Year) *Title*, Publisher, accessed
- *  Date. URL — title italic, URL plain (never hyperlinked, per the style). */
+ *  Date. URL — title italic, the URL a working hyperlink (new tab). */
 function harvardLine(r: Reference) {
   return (
     <>
       {r.author} ({r.year}) <em>{r.title}</em>, {r.publisher}
-      {r.accessed ? `, accessed ${r.accessed}` : ""}.{r.url ? ` ${r.url}` : ""}
+      {r.accessed ? `, accessed ${r.accessed}` : ""}.{" "}
+      {r.url && (
+        <a
+          href={r.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={`break-all text-rmit-blue-interactive underline-offset-2 hover:underline ${FOCUS_RING} rounded-sm`}
+        >
+          {r.url}
+        </a>
+      )}
     </>
   );
 }
