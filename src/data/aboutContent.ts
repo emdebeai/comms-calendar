@@ -106,12 +106,77 @@ export const DATA_SOURCES: { title: string; note: string }[] = [
   },
 ];
 
-/** people consulted — placeholder until confirmed */
-export const PEOPLE: { name: string; role: string }[] = [
-  { name: "To be confirmed", role: "Marketing — eDMs and campaigns" },
-  { name: "To be confirmed", role: "Recruitment — events and schools" },
-  { name: "To be confirmed", role: "Admissions and Conversion" },
-  { name: "To be confirmed", role: "Study@RMIT / Student Connect" },
+// People consulted — by role, as little org trees per division. `reports`
+// nests one or two levels deep; `team` is the "| …" business-area suffix.
+export interface OrgNode {
+  role: string;
+  team?: string;
+  reports?: OrgNode[];
+}
+export const SPONSOR = "Director, Digital & Experience";
+export const CONSULTED: { division: string; leads: OrgNode[] }[] = [
+  {
+    division: "Global Student Recruitment",
+    leads: [
+      {
+        role: "Assistant Director, Student Recruitment (Australia)",
+        reports: [
+          { role: "Senior Manager, Student Recruitment" },
+          { role: "Senior Manager, Student Recruitment Events & Initiatives" },
+        ],
+      },
+      {
+        role: "Assistant Director, Global Sales & Conversion",
+        reports: [
+          { role: "Senior Manager, Global Sales & Services", team: "Customer Service & Sales" },
+          { role: "Prospective Student Performance Manager", team: "Customer Service & Sales" },
+        ],
+      },
+      {
+        role: "Associate Director, Admissions, Pathways & Operations",
+        reports: [
+          {
+            role: "Manager, Admissions",
+            reports: [{ role: "Project Officer, Admissions", team: "VTAC" }],
+          },
+        ],
+      },
+    ],
+  },
+  {
+    division: "Global Marketing",
+    leads: [
+      {
+        role: "Associate Director, Audiences, Campaigns & Media",
+        reports: [
+          { role: "Segment Manager", team: "Audiences" },
+          { role: "Campaign Manager", team: "Audiences" },
+        ],
+      },
+    ],
+  },
+  {
+    division: "Digital & Experience",
+    leads: [
+      { role: "Assistant Director, Customer Experience" },
+      {
+        role: "CRM Enablement Manager",
+        reports: [{ role: "CRM Specialist and Project Lead" }],
+      },
+      {
+        role: "Associate Director, Digital Engagement",
+        reports: [
+          { role: "Senior Manager, Digital Experience" },
+          { role: "Digital Experience Manager" },
+        ],
+      },
+      {
+        role: "Associate Director, Digital Data and Experience Platforms",
+        reports: [{ role: "CRM and Automation Manager" }],
+      },
+      { role: "Senior Product Owner" },
+    ],
+  },
 ];
 
 export const ABOUT_PAGES: AboutPage[] = [

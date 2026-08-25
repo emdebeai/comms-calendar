@@ -3,14 +3,16 @@ import { ArrowRight, Layers, Moon, Route, Sun, Target, Users } from "lucide-reac
 import { FOCUS_RING } from "../lib/styles";
 import {
   ABOUT_PAGES,
+  CONSULTED,
   DATA_SOURCES,
   REFERENCES,
   type Reference,
   GLOSSARY,
   INTRO,
-  PEOPLE,
+  type OrgNode,
   PERSONAS,
   PILLARS,
+  SPONSOR,
   type AboutPage,
 } from "../data/aboutContent";
 
@@ -298,6 +300,81 @@ function Home({ onEnter, setPage }: { onEnter: () => void; setPage: (p: Page) =>
   );
 }
 
+// ── People consulted — little org trees by division ────────────────────────
+/** One role box. Leads (the top of each branch) get the tinted treatment; the
+ *  "| team" suffix sits under the title. */
+function NodeBox({ node, lead }: { node: OrgNode; lead?: boolean }) {
+  return (
+    <div
+      className={`inline-flex max-w-full flex-col rounded-md border px-3 py-1.5 ${
+        lead
+          ? "border-rmit-blue-interactive/40 bg-tint-blue"
+          : "border-grey-30 bg-card"
+      }`}
+    >
+      <span className={`text-sm leading-snug text-grey-90 ${lead ? "font-semibold" : "font-medium"}`}>
+        {node.role}
+      </span>
+      {node.team && <span className="text-xs leading-snug text-grey-60">{node.team}</span>}
+    </div>
+  );
+}
+
+/** A node and its reports, drawn as an indented tree: a vertical spine down
+ *  from the parent with an elbow into each child; the last child masks the
+ *  spine's tail so it stops cleanly. Recurses for the (few) deeper branches. */
+function OrgTree({ node, lead }: { node: OrgNode; lead?: boolean }) {
+  const reports = node.reports ?? [];
+  return (
+    <div>
+      <NodeBox node={node} lead={lead} />
+      {reports.length > 0 && (
+        <ul className="ml-5 border-l border-grey-30">
+          {reports.map((r, i) => {
+            const last = i === reports.length - 1;
+            return (
+              <li key={r.role} className="relative pt-2 pl-6">
+                <span className="absolute left-0 top-[22px] h-px w-6 bg-grey-30" aria-hidden />
+                {last && (
+                  <span className="absolute -left-px top-[23px] bottom-0 w-px bg-surface" aria-hidden />
+                )}
+                <OrgTree node={r} />
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+function PeopleConsulted() {
+  return (
+    <div className="flex flex-col gap-8">
+      <div className="inline-flex flex-col gap-1 self-start rounded-lg border border-rmit-blue-interactive/40 bg-tint-blue px-4 py-3">
+        <span className="text-xs font-semibold uppercase tracking-widest text-rmit-blue">Sponsor</span>
+        <span className="text-sm font-semibold text-grey-90">{SPONSOR}</span>
+      </div>
+
+      <section className="flex flex-col gap-6">
+        <h2 className="text-base font-semibold text-grey-90">Who we worked with</h2>
+        {CONSULTED.map((d) => (
+          <div key={d.division}>
+            <p className="text-xs font-semibold uppercase tracking-widest text-grey-70">
+              {d.division}
+            </p>
+            <div className="mt-4 flex flex-col gap-6">
+              {d.leads.map((lead) => (
+                <OrgTree key={lead.role} node={lead} lead />
+              ))}
+            </div>
+          </div>
+        ))}
+      </section>
+    </div>
+  );
+}
+
 // ── Reference pages ────────────────────────────────────────────────────────
 function Reference({ slug, onBack }: { slug: AboutPage["slug"]; onBack: () => void }) {
   const meta = ABOUT_PAGES.find((p) => p.slug === slug)!;
@@ -351,16 +428,7 @@ function Reference({ slug, onBack }: { slug: AboutPage["slug"]; onBack: () => vo
         </div>
       )}
 
-      {slug === "people" && (
-        <ul className="grid gap-3 sm:grid-cols-2">
-          {PEOPLE.map((p, i) => (
-            <li key={i} className={CARD}>
-              <p className="text-sm font-semibold text-grey-90">{p.name}</p>
-              <p className="mt-1 text-sm text-grey-70">{p.role}</p>
-            </li>
-          ))}
-        </ul>
-      )}
+      {slug === "people" && <PeopleConsulted />}
 
     </article>
   );
