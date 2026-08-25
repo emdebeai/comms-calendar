@@ -301,18 +301,12 @@ function Home({ onEnter, setPage }: { onEnter: () => void; setPage: (p: Page) =>
 }
 
 // ── People consulted — little org trees by division ────────────────────────
-/** One role box. Leads (the top of each branch) get the tinted treatment; the
- *  "| team" suffix sits under the title. */
+/** One role — plain type, no box. Leads (the top of each branch) are
+ *  semibold; the "| team" suffix sits under the title in grey. */
 function NodeBox({ node, lead }: { node: OrgNode; lead?: boolean }) {
   return (
-    <div
-      className={`flex w-full flex-col rounded-md border px-3 py-1.5 ${
-        lead
-          ? "border-rmit-blue-interactive/40 bg-tint-blue"
-          : "border-grey-30 bg-card"
-      }`}
-    >
-      <span className={`text-sm leading-snug text-grey-90 ${lead ? "font-semibold" : "font-medium"}`}>
+    <div className="flex flex-col py-0.5">
+      <span className={`text-sm leading-snug ${lead ? "font-semibold text-grey-90" : "text-grey-80"}`}>
         {node.role}
       </span>
       {node.team && <span className="text-xs leading-snug text-grey-60">{node.team}</span>}
@@ -329,14 +323,14 @@ function OrgTree({ node, lead }: { node: OrgNode; lead?: boolean }) {
     <div>
       <NodeBox node={node} lead={lead} />
       {reports.length > 0 && (
-        <ul className="ml-5 border-l border-grey-30">
+        <ul className="ml-1.5 border-l border-grey-30">
           {reports.map((r, i) => {
             const last = i === reports.length - 1;
             return (
-              <li key={r.role} className="relative pt-2 pl-6">
-                <span className="absolute left-0 top-[22px] h-px w-6 bg-grey-30" aria-hidden />
+              <li key={r.role} className="relative pt-1.5 pl-4">
+                <span className="absolute left-0 top-[19px] h-px w-3 bg-grey-30" aria-hidden />
                 {last && (
-                  <span className="absolute -left-px top-[23px] bottom-0 w-px bg-surface" aria-hidden />
+                  <span className="absolute -left-px top-[20px] bottom-0 w-px bg-surface" aria-hidden />
                 )}
                 <OrgTree node={r} />
               </li>
@@ -351,8 +345,8 @@ function OrgTree({ node, lead }: { node: OrgNode; lead?: boolean }) {
 function PeopleConsulted() {
   return (
     <div className="flex flex-col gap-8">
-      <div className="inline-flex flex-col gap-1 self-start rounded-lg border border-rmit-blue-interactive/40 bg-tint-blue px-4 py-3">
-        <span className="text-xs font-semibold uppercase tracking-widest text-rmit-blue">Sponsor</span>
+      <div className="flex flex-col gap-1">
+        <span className="text-xs font-semibold uppercase tracking-widest text-grey-70">Sponsor</span>
         <span className="text-sm font-semibold text-grey-90">{SPONSOR}</span>
       </div>
 
