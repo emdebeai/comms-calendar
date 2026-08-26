@@ -224,8 +224,10 @@ export default function App() {
         ? new Set(OVERVIEW_LANES)
         : // Sparse lanes (1 and 4 comms) start collapsed — their marker strips
           // carry the cadence; a click expands them. Saves ~240px of mostly
-          // empty card area on first load.
-          new Set(["admissions", "conversion", "marketing-events"]),
+          // empty card area on first load. VTAC starts collapsed too: an
+          // external sender's cadence matters, but its cards don't need the
+          // first-load real estate.
+          new Set(["admissions", "conversion", "marketing-events", "vtac"]),
   );
   // Fully-hidden lanes (a subset of collapsed): just the label strip, no
   // marker stack. Set from each lane's hide button; the label click restores.
