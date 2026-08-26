@@ -228,7 +228,7 @@ export function StudentJourneyLane({
         onClick={onToggleCollapse}
         aria-expanded={!collapsed}
         aria-label={collapsed ? "Expand student questions" : "Collapse student questions"}
-        className={`sticky left-0 flex h-full w-full flex-col py-2.5 border-r border-b border-grey-30 bg-card px-4 text-left hover:bg-grey-20 ${FOCUS_RING}`}
+        className={`sticky left-0 flex h-full w-full flex-col py-2.5 border-r border-b border-grey-30 bg-card/75 backdrop-blur-md px-4 text-left hover:bg-grey-20 ${FOCUS_RING}`}
         style={{ width: LABEL_W }}
       >
         <span className="flex items-center gap-1.5">

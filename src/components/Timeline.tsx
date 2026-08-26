@@ -211,6 +211,14 @@ export function Timeline({
     }
     return map;
   })();
+  // Gutter variant of the stripes — translucent, so the panel's frosted
+  // backdrop-blur (matching the dock) shows scrolled content through it.
+  const gutterBg: Record<string, string> = Object.fromEntries(
+    Object.entries(laneBg).map(([id, bg]) => [
+      id,
+      bg === "bg-grey-20" ? "bg-grey-20/70" : bg === "bg-grey-10" ? "bg-grey-10/70" : "bg-surface/50",
+    ]),
+  );
 
   // Extra scrollable space below the last lane so it can clear the floating
   // docks (control/persona docks + filter pill sit ~110px off the viewport
@@ -247,7 +255,7 @@ export function Timeline({
           <MonthBand expandedMonths={expandedMonths} onSetLevel={onSetMonthLevel} />
         </div>
         <div
-          className="sticky left-0 z-20 flex h-full items-center justify-between gap-2 border-r border-b border-grey-30 bg-card pl-[35px] pr-4 text-[11px] text-grey-60"
+          className="sticky left-0 z-20 flex h-full items-center justify-between gap-2 border-r border-b border-grey-30 bg-card/70 backdrop-blur-md pl-[35px] pr-4 text-[11px] text-grey-60"
           style={{ width: LABEL_W }}
         >
           Month
@@ -278,7 +286,7 @@ export function Timeline({
           />
         </div>
         <div
-          className="sticky left-0 z-30 flex h-full items-start border-r border-b-2 border-grey-40 bg-card pt-2 pl-[35px] pr-4 text-[11px] text-grey-60"
+          className="sticky left-0 z-30 flex h-full items-start border-r border-b-2 border-grey-40 bg-card/70 backdrop-blur-md pt-2 pl-[35px] pr-4 text-[11px] text-grey-60"
           style={{ width: LABEL_W }}
         >
           Moments that matter
@@ -297,7 +305,7 @@ export function Timeline({
           />
         </div>
         <div
-          className={`sticky left-0 z-20 flex h-full items-center border-r border-b border-grey-30 bg-card pl-[35px] pr-4 text-grey-90 ${EYEBROW}`}
+          className={`sticky left-0 z-20 flex h-full items-center border-r border-b border-grey-30 bg-card/75 backdrop-blur-md pl-[35px] pr-4 text-grey-90 ${EYEBROW}`}
           style={{ width: LABEL_W }}
         >
           Journey Stage
@@ -840,7 +848,7 @@ export function Timeline({
             return (
               <div
                 key={lane.id}
-                className={`absolute left-0 flex w-full flex-col border-b border-grey-30 px-4 ${laneBg[lane.id]}`}
+                className={`absolute left-0 flex w-full flex-col border-b border-grey-30 px-4 ${gutterBg[lane.id]}`}
                 style={posStyle}
               >
                 {content}
@@ -857,7 +865,7 @@ export function Timeline({
               }}
               aria-expanded={!collapsed}
               aria-label={`${lane.label} lane — ${hidden ? "show" : collapsed ? "expand" : "collapse"}`}
-              className={`absolute left-0 flex w-full flex-col border-b border-grey-30 px-4 text-left hover:bg-grey-20 ${laneBg[lane.id]} ${FOCUS_RING}`}
+              className={`absolute left-0 flex w-full flex-col border-b border-grey-30 px-4 text-left hover:bg-grey-20 ${gutterBg[lane.id]} ${FOCUS_RING}`}
               style={posStyle}
             >
               {content}

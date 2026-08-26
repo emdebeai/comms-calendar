@@ -115,7 +115,7 @@ export function StageBand({ onOpenStage, onHoverStage, onJumpStage }: StageBandP
 export function YearBand() {
   return (
     <div className="absolute top-0 left-0" style={{ width: TOTAL_W }}>
-      <div className="relative border-b border-grey-30 bg-card" style={{ height: YEAR_H }}>
+      <div className="relative border-b border-grey-30 bg-card/70 backdrop-blur-md" style={{ height: YEAR_H }}>
         {YEARS.map((y, i) => (
           <div
             key={y.label}
@@ -159,7 +159,7 @@ export function MonthBand({ expandedMonths, onSetLevel }: MonthBandProps) {
   }
   return (
     <div
-      className="absolute top-0 left-0 border-b border-grey-30 bg-card"
+      className="absolute top-0 left-0 border-b border-grey-30 bg-card/70 backdrop-blur-md"
       style={{ width: TOTAL_W, height: MONTH_H }}
     >
       {/* Year-boundary ticks — the year LABELS live in the school-year band
@@ -323,7 +323,7 @@ interface MomentsBandProps {
 export function MomentsBand({ activeMomentId, onHoverMoment, onPinMoment }: MomentsBandProps) {
   return (
     <div
-      className="absolute top-0 left-0 border-b-2 border-grey-40 bg-card"
+      className="absolute top-0 left-0 border-b-2 border-grey-40 bg-card/70 backdrop-blur-md"
       style={{ width: TOTAL_W, height: MOMENT_H }}
     >
       {momentLines().map(({ moment, line, x, nudge }) => {
