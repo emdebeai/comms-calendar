@@ -74,8 +74,8 @@ for (const r of csv.slice(1)) {
     campaign: col(r, "campaign"), title,
     audience: col(r, "audience"), theme: col(r, "theme"),
     ctaPrimary: col(r, "cta"),
-    ctaSecondary: col(r, "secondary_cta_1"),
-    ctaTertiary: col(r, "secondary_cta_2"),
+    ctaSecondary: col(r, "secondary_cta"),
+    ctaTertiary: col(r, "tertiary_cta"),
   });
 }
 rows.sort((a, b) => a.sort - b.sort);

@@ -11,8 +11,8 @@ export interface Comm {
   title: string;
   /** primary CTA */
   cta: string;
-  secondaryCta1?: string;
-  secondaryCta2?: string;
+  secondaryCta?: string;
+  tertiaryCta?: string;
   type: CommType;
   /** 0 = January of Year 10. Fractional values position within the month,
    *  e.g. 31.5 = mid-August of Year 12. */

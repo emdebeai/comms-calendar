@@ -1,4 +1,4 @@
-id,title,cta,type,school_year,month,day,moment,triggers,secondary_cta_1,secondary_cta_2,marketo_id,open_rate,click_rate,platform,time,audience,recipient,campaign,theme,preference,college,campus,event_state,personas
+id,title,primary_cta,type,school_year,month,day,moment,triggers,secondary_cta,tertiary_cta,marketo_id,open_rate,click_rate,platform,time,audience,recipient,campaign,theme,preference,college,campus,event_state,personas
 ,RMIT On-Campus Experience,,Event,10,Feb,18,,,,,,,,,,Year 10 & parents · SNAP,,,,,,city,,domsl
 ,April School Holidays Campus Tour – Bundoora,,Event,10,Apr,13,,campus-tours-webpage,,,,,,,,Year 10 & parents · SNAP,,,,,,bundoora,,domsl
 ,April School Holidays Campus Tour – City,,Event,10,Apr,14,,campus-tours-webpage,,,,,,,,Year 10 & parents · SNAP,,,,,,city,,domsl

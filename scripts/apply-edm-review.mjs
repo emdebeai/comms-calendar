@@ -5,7 +5,7 @@
 //      which student question). Baseline = the current links; the review
 //      supplies the diffs.
 //   2. data/comms/marketing.csv — each reviewed send's cta /
-//      secondary_cta_1 / secondary_cta_2 columns (Primary / Secondary /
+//      secondary_cta / tertiary_cta columns (Primary / Secondary /
 //      Tertiary CTA from the review).
 //
 // It never writes silently: it prints exactly what changed, and it leaves
@@ -224,8 +224,8 @@ writeFileSync(resolve(root, "src/data/studentExperience.ts"), se.slice(0, linkSt
 let ctaWrites = 0;
 const CTA_COLS = {
   ctaPrimary: ci("cta"),
-  ctaSecondary: ci("secondary_cta_1"),
-  ctaTertiary: ci("secondary_cta_2"),
+  ctaSecondary: ci("secondary_cta"),
+  ctaTertiary: ci("tertiary_cta"),
 };
 for (const [id, a] of Object.entries(answers)) {
   const ri = rowById.get(id);

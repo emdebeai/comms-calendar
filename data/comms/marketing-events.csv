@@ -1,4 +1,4 @@
-id,title,cta,type,school_year,month,day,moment,triggers,secondary_cta_1,secondary_cta_2,marketo_id,open_rate,click_rate,platform,time,audience,recipient,campaign,theme,preference,college,campus,event_state,personas
+id,title,primary_cta,type,school_year,month,day,moment,triggers,secondary_cta,tertiary_cta,marketo_id,open_rate,click_rate,platform,time,audience,recipient,campaign,theme,preference,college,campus,event_state,personas
 oncampus-experience-confirmation,You're registered: On-Campus Experience,Add to calendar,email,10,Feb,11,,rmit-on-campus-experience,Getting here and parking,,,,,cvent,,Registered attendees,,On-Campus Experience,,,,city,registered,domsl
 oncampus-experience-reminder-email,On-Campus Experience is in 2 days,Getting here and parking,email,10,Feb,16,,rmit-on-campus-experience,See the program,,,,,cvent,,Registered attendees,,On-Campus Experience,,,,city,registered,domsl
 oncampus-experience-reminder-sms,Reminder: On-Campus Experience today,,sms,10,Feb,18,,rmit-on-campus-experience,,,,,,clicksend,8:00 AM,Registered attendees,,On-Campus Experience,,,,city,registered,domsl

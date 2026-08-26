@@ -104,8 +104,8 @@ function EditForm({ comm, onEdit }: { comm: Comm; onEdit: (patch: Partial<Comm>)
         </select>
       </label>
       <Text label="Primary CTA" field="cta" />
-      <Text label="Secondary CTA 1" field="secondaryCta1" />
-      <Text label="Secondary CTA 2" field="secondaryCta2" />
+      <Text label="Secondary CTA" field="secondaryCta" />
+      <Text label="Tertiary CTA" field="tertiaryCta" />
       <Text label="Audience" field="audience" />
       <Text label="Campaign" field="campaign" />
       <Text label="Theme" field="theme" />
@@ -213,8 +213,8 @@ export function CommDetailPanel({ comm, allComms, entries, onClose, onAdd, onDel
             (comm.cta ? (
               <>
                 <AttributeRow label="Primary CTA" value={comm.cta} />
-                <AttributeRow label="Secondary 1" value={comm.secondaryCta1} />
-                <AttributeRow label="Secondary 2" value={comm.secondaryCta2} />
+                <AttributeRow label="Secondary CTA" value={comm.secondaryCta} />
+                <AttributeRow label="Tertiary CTA" value={comm.tertiaryCta} />
               </>
             ) : (
               /* explicit, not omitted — "we don't know the CTA" is a data gap

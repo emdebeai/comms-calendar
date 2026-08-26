@@ -18,7 +18,7 @@ import type { Comm, CommType, Platform, Team } from "../data/types";
 //               order, so keep titles unique if you plan to link to them.
 // team          Recruitment / Marketing / Admissions / Conversion
 // title         comm name
-// cta           primary call to action
+// primary_cta   the send's main call to action
 // type          Email / SMS / Webinar / Call / Event
 // school_year   10 / 11 / 12 / Post
 // month         Jan..Dec (full name or abbreviation)
@@ -34,7 +34,7 @@ import type { Comm, CommType, Platform, Team } from "../data/types";
 //               you don't need to know the internal id. A title that
 //               doesn't match anything is dropped silently rather than
 //               erroring the whole import.
-// secondary_cta_1 / secondary_cta_2
+// secondary_cta / tertiary_cta
 //               optional — extra CTAs shown in the comm's detail panel.
 //               Kept at the END of the column order so older sheets
 //               without them still load.
@@ -63,15 +63,15 @@ export const COMMS_COLUMNS = [
   "id",
   "team",
   "title",
-  "cta",
+  "primary_cta",
   "type",
   "school_year",
   "month",
   "day",
   "moment",
   "triggers",
-  "secondary_cta_1",
-  "secondary_cta_2",
+  "secondary_cta",
+  "tertiary_cta",
   "marketo_id",
   "open_rate",
   "click_rate",
@@ -251,9 +251,9 @@ export function normalizeCommRow(
     // sends genuinely have no recorded CTA. Fabricating one ("Learn more")
     // would present made-up evidence — a blank stays blank and the card/panel
     // surface the gap instead.
-    cta: row.cta || "",
-    secondaryCta1: row.secondary_cta_1 || undefined,
-    secondaryCta2: row.secondary_cta_2 || undefined,
+    cta: row.primary_cta || "",
+    secondaryCta: row.secondary_cta || undefined,
+    tertiaryCta: row.tertiary_cta || undefined,
     type: matchType(row.type || "email"),
     month: toMonthValue(row.school_year, row.month, row.day),
     row: 0, // overwritten by layoutTimeline on the client
