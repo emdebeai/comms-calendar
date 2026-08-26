@@ -66,9 +66,9 @@ const page = (p) => `<!doctype html>
     color: var(--rmit-blue); font-size: 12pt; font-weight: 600;
     letter-spacing: 0.12em; text-transform: uppercase;
     padding: 2mm 5mm; border-radius: 2.5mm; }
-  h1 { margin-top: 10mm; max-width: 330mm; font-size: 44pt; line-height: 1.15;
-    font-weight: 700; letter-spacing: -0.01em; }
-  .sub { margin-top: 5mm; font-size: 26pt; font-weight: 500; color: var(--grey-70); }
+  h1 { margin-top: 10mm; max-width: 370mm; font-size: 64pt; line-height: 1.12;
+    font-weight: 700; letter-spacing: -0.015em; }
+  .sub { margin-top: 6mm; font-size: 36pt; font-weight: 500; color: var(--grey-70); }
   /* ── Footer ── */
   .footer { display: flex; justify-content: space-between; align-items: baseline;
     border-top: 0.4mm solid var(--grey-30); margin: 0 18mm; padding: 5mm 0 10mm;
