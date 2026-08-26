@@ -23,6 +23,8 @@ import { Minimap } from "./components/Minimap";
 import { Landing } from "./components/Landing";
 import { PersonaIntroModal } from "./components/PersonaIntroModal";
 import { HoverTip } from "./components/HoverTip";
+import { NameGate } from "./components/NameGate";
+import { getUser, logVisit, type MapUser } from "./lib/user";
 import { linkedCommIds } from "./data/studentExperience";
 import type { CommType, FeedbackEntry, Comm } from "./data/types";
 import {
@@ -117,6 +119,14 @@ export default function App() {
   // Presentation mode: hide the floating chrome (docks, minimap, filter
   // pill), leaving one small restore button.
   const [uiHidden, setUiHidden] = useState(false);
+  // Who is using the map — first name given once after the site password
+  // (NameGate), stored locally + in the app's own store, never sent to any
+  // AI service. Print/export views skip the gate (headless captures must
+  // never block on a dialog).
+  const [mapUser, setMapUser] = useState<MapUser | null>(() => getUser());
+  useEffect(() => {
+    if (mapUser) logVisit(mapUser);
+  }, [mapUser]);
   // Back/forward: follow the hash.
   useEffect(() => {
     const onHash = () =>
@@ -776,7 +786,14 @@ export default function App() {
     };
   }, []);
 
-  if (!entered) return <Landing onEnter={enterMap} theme={theme} onToggleTheme={toggleTheme} />;
+  const needsName = !mapUser && !PRINT_MODE;
+  if (!entered)
+    return (
+      <>
+        <Landing onEnter={enterMap} theme={theme} onToggleTheme={toggleTheme} />
+        {needsName && <NameGate onDone={setMapUser} />}
+      </>
+    );
 
   return (
     <div
@@ -1167,6 +1184,9 @@ export default function App() {
       {openStage && (
         <StudentStagePanel stageLabel={openStage} onClose={() => setOpenStage(null)} />
       )}
+
+      {/* Identity gate — first name once, right after the site password. */}
+      {needsName && <NameGate onDone={setMapUser} />}
     </div>
   );
 }
