@@ -90,7 +90,7 @@ export function StudentJourneyLane({
           title={c.question}
           {...handlers}
           className={`absolute flex h-6 w-6 -translate-x-1/2 items-center justify-center rounded-md transition-opacity ${FOCUS_RING} ${
-            stageDim ? "opacity-25" : ""
+            stageDim ? "opacity-[0.15]" : ""
           }`}
           style={{ left: x + c.w / 2, top: (STUDENT_LANE_H - 24) / 2 }}
         >
@@ -137,7 +137,7 @@ export function StudentJourneyLane({
         aria-pressed={answered ? active : undefined}
         title={answered ? `${c.question} — answered by linked touchpoints` : `${c.question} — no touchpoint answers this yet`}
         {...handlers}
-        className={`${shell} ${FOCUS_RING} ${tone} ${stageDim ? "opacity-25" : ""}`}
+        className={`${shell} ${FOCUS_RING} ${tone} ${stageDim ? "opacity-[0.15]" : ""}`}
         style={{ left: x, top: c.y, width: c.w, fontSize: FONT_PX }}
       >
         {answered ? (

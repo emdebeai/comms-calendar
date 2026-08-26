@@ -105,7 +105,7 @@ export function CommCard({
       className={`absolute flex items-start gap-1.5 px-2 py-1.5 text-left transition-[opacity,box-shadow] duration-300 ${
         chipClass
       } ${filteredOut ? "cursor-default" : "cursor-pointer"} ${stateClass} ${
-        filteredOut ? "opacity-[0.12]" : dimmed ? "opacity-25 focus-visible:opacity-100" : ""
+        filteredOut ? "opacity-[0.08]" : dimmed ? "opacity-[0.15] focus-visible:opacity-100" : ""
       } ${FOCUS_RING}`}
       style={{ left: x, top: y, width: CARD_W, minHeight: PILL_H, zIndex }}
       onMouseEnter={() => {
