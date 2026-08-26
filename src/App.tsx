@@ -75,6 +75,11 @@ const EXPORT_MODE = new URLSearchParams(window.location.search).has("export");
 // The overview / "show all lanes at once" toggle collapses every lane to its
 // compact touchpoint strip so the whole map fits vertically.
 const COLLAPSIBLE_LANES = ["recruitment", "marketing-events", "marketing", "admissions", "conversion", "vtac", "campaigns", "digital", "study"];
+// Overview / ?dots collapse only the CARD lanes — the inbound graphs and the
+// campaigns gantt already read compactly and stay on.
+const OVERVIEW_LANES = COLLAPSIBLE_LANES.filter(
+  (id) => id !== "digital" && id !== "study" && id !== "campaigns",
+);
 // Segment filters straight from the URL (?preference=%232-8&college=COBL&
 // campus=city&eventState=registered,attended) so a filtered view can be
 // captured/shared by link. Comma-separates multiple values on one axis.
@@ -207,43 +212,52 @@ export default function App() {
     // inbound engagement lanes expanded — collapsed, their graphs vanish.
     () =>
       DOTS_MODE
-        ? new Set(COLLAPSIBLE_LANES.filter((id) => id !== "digital" && id !== "study"))
+        ? new Set(OVERVIEW_LANES)
         : // Sparse lanes (1 and 4 comms) start collapsed — their marker strips
           // carry the cadence; a click expands them. Saves ~240px of mostly
           // empty card area on first load.
           new Set(["admissions", "conversion", "marketing-events"]),
   );
   // Fully-hidden lanes (a subset of collapsed): just the label strip, no
-  // marker stack. The lane toggle cycles expanded -> collapsed -> hidden.
+  // marker stack. Set from each lane's hide button; the label click restores.
   const [hiddenLanes, setHiddenLanes] = useState<Set<string>>(new Set());
-  const allLanesCollapsed = COLLAPSIBLE_LANES.every((id) => collapsedLanes.has(id));
+  const allLanesCollapsed = OVERVIEW_LANES.every((id) => collapsedLanes.has(id));
   const toggleAllLanes = () => {
     if (allLanesCollapsed) {
       setCollapsedLanes(new Set());
       setHiddenLanes(new Set());
     } else {
-      setCollapsedLanes(new Set(COLLAPSIBLE_LANES));
+      // Overview keeps the inbound graphs and the campaigns gantt on — they
+      // ARE the compact reading of their lanes; only card lanes collapse.
+      setCollapsedLanes(new Set(OVERVIEW_LANES));
     }
   };
+  // Label click: hidden -> restore expanded; otherwise toggle collapsed.
+  // (Hiding is its own explicit eye button, not a stop on a blind cycle.)
   const cycleLane = (laneId: string) => {
-    const isCollapsed = collapsedLanes.has(laneId);
-    const isHidden = hiddenLanes.has(laneId);
-    if (!isCollapsed) {
-      setCollapsedLanes((prev) => new Set(prev).add(laneId)); // expanded -> collapsed
-    } else if (!isHidden) {
-      setHiddenLanes((prev) => new Set(prev).add(laneId)); // collapsed -> hidden
-    } else {
-      setCollapsedLanes((prev) => {
-        const n = new Set(prev);
-        n.delete(laneId);
-        return n;
-      });
+    if (hiddenLanes.has(laneId)) {
       setHiddenLanes((prev) => {
         const n = new Set(prev);
         n.delete(laneId);
         return n;
       });
+      setCollapsedLanes((prev) => {
+        const n = new Set(prev);
+        n.delete(laneId);
+        return n;
+      });
+      return;
     }
+    setCollapsedLanes((prev) => {
+      const n = new Set(prev);
+      if (n.has(laneId)) n.delete(laneId);
+      else n.add(laneId);
+      return n;
+    });
+  };
+  const hideLane = (laneId: string) => {
+    setCollapsedLanes((prev) => new Set(prev).add(laneId));
+    setHiddenLanes((prev) => new Set(prev).add(laneId));
   };
   const [feedback, setFeedback] = useState<FeedbackStore>({});
   // Admin unlock — a second gate (above the site password) for deleting
@@ -913,6 +927,7 @@ export default function App() {
               collapsedLanes={collapsedLanes}
               hiddenLanes={hiddenLanes}
               onToggleLane={cycleLane}
+              onHideLane={hideLane}
             />
             {/* Breathing room under the last lane so bottom cards can scroll
                 clear of the floating control dock instead of hiding behind it. */}

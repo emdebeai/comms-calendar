@@ -230,6 +230,8 @@ export const INBOUND_H = 96;
 /** Taller variant for multi-line (per-channel) inbound lanes — the legend row
  *  plus six lines need the extra headroom. */
 export const INBOUND_CHANNELS_H = 150;
+/** Collapsed inbound lane — short but still a real graph. */
+export const INBOUND_COLLAPSED_H = 72;
 export const DIVIDER_H = 32;
 
 // VTAC is included so its comms pack + lay out like the RMIT lanes, but it's
@@ -314,7 +316,9 @@ function buildLanes(
     kind: "inbound",
     chipStrip: false,
     height: collapsed.has(id)
-      ? COLLAPSED_LANE_H
+      ? // Collapsed inbound keeps a compact GRAPH (the curve IS the lane's
+        // summary — a bare label strip would hide the data entirely).
+        INBOUND_COLLAPSED_H
       : inboundData.find((d) => d.id === id)?.channels?.length
         ? INBOUND_CHANNELS_H
         : INBOUND_H,

@@ -166,8 +166,10 @@ export function StudentJourneyLane({
   return (
     // z-30 keeps the lane below the sticky header bands (z-40) so it scrolls
     // cleanly under them, and above the canvas moment windows (z-10) so the
-    // cards stay clickable. Matches the stage row it hangs from.
-    <div className="relative z-30" style={{ height: STUDENT_LANE_H }}>
+    // cards stay clickable. Matches the stage row it hangs from. border-b
+    // closes the band along its FULL width (the gutter's own border only
+    // covered the label cell).
+    <div className="relative z-30 border-b border-grey-30" style={{ height: STUDENT_LANE_H }}>
       {/* ── Canvas side (transparent — moment context shows through) ── */}
       <div className="absolute top-0" style={{ left: LABEL_W, width: TOTAL_W, height: STUDENT_LANE_H }}>
         <div className="relative h-full">

@@ -1,5 +1,5 @@
 import { Fragment } from "react";
-import { Ban, ChevronDown, ChevronRight, Info } from "lucide-react";
+import { Ban, ChevronDown, ChevronRight, Eye, EyeOff, Info } from "lucide-react";
 import { inbound } from "../data/comms";
 import { EMBARGOES, MOMENTS } from "../data/journey";
 import type { Comm, CommType, Team } from "../data/types";
@@ -97,6 +97,8 @@ interface Props {
   collapsedLanes: Set<string>;
   hiddenLanes: Set<string>;
   onToggleLane: (laneId: string) => void;
+  /** hide a lane entirely (its own eye button; label click restores) */
+  onHideLane: (laneId: string) => void;
 }
 
 export function Timeline({
@@ -141,6 +143,7 @@ export function Timeline({
   collapsedLanes,
   hiddenLanes,
   onToggleLane,
+  onHideLane,
 }: Props) {
   // focusSet (question > moment > trigger precedence) is computed in App and
   // passed in, so the auto-expand pass and the per-comm dimming agree on which
@@ -441,7 +444,7 @@ export function Timeline({
 
         {/* Inbound engagement curves */}
         {inbound
-          .filter((d) => !collapsedLanes.has(d.id))
+          .filter((d) => !hiddenLanes.has(d.id))
           .map((d) => (
             <InboundLane key={d.id} data={d} />
           ))}
@@ -787,7 +790,11 @@ export function Timeline({
             return (
               <div
                 key={lane.id}
-                className={`absolute left-0 w-full border-b border-grey-30 px-4 ${laneBg[lane.id]}`}
+                // The wrapper itself toggles too, so the WHOLE box is
+                // clickable like every other lane — the inner button stays
+                // as the accessible toggle; the link stops propagation.
+                onClick={() => onToggleLane(lane.id)}
+                className={`absolute left-0 w-full cursor-pointer border-b border-grey-30 px-4 hover:bg-grey-20 ${laneBg[lane.id]}`}
                 style={posStyle}
               >
                 <div
@@ -849,11 +856,43 @@ export function Timeline({
                 onToggleLane(lane.id);
               }}
               aria-expanded={!collapsed}
-              aria-label={`${lane.label} lane — ${hidden ? "expand" : collapsed ? "hide" : "collapse"}`}
+              aria-label={`${lane.label} lane — ${hidden ? "show" : collapsed ? "expand" : "collapse"}`}
               className={`absolute left-0 flex w-full flex-col border-b border-grey-30 px-4 text-left hover:bg-grey-20 ${laneBg[lane.id]} ${FOCUS_RING}`}
               style={posStyle}
             >
               {content}
+            </button>
+          );
+        })}
+
+        {/* Per-lane hide / show — a dedicated eye control instead of a stop
+            on a blind click-cycle: chevron/label = expand-collapse, eye =
+            hide. Sits as a sibling ABOVE the lane buttons (a button can't
+            nest a button). */}
+        {LANES.filter((l) => l.kind === "outbound" || l.kind === "inbound").map((lane) => {
+          const hidden = hiddenLanes.has(lane.id);
+          return (
+            <button
+              key={`eye-${lane.id}`}
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (hidden) onToggleLane(lane.id);
+                else onHideLane(lane.id);
+              }}
+              aria-pressed={hidden}
+              aria-label={hidden ? `Show the ${lane.label} lane` : `Hide the ${lane.label} lane`}
+              title={hidden ? "Show lane" : "Hide lane"}
+              className={`group absolute z-10 flex h-6 w-6 items-center justify-center rounded-md ${
+                hidden ? "text-grey-70" : "text-grey-50"
+              } hover:bg-grey-20 hover:text-grey-90 ${FOCUS_RING}`}
+              style={{ top: lane.top - HEADER_H + 6, right: 6 }}
+            >
+              {hidden ? (
+                <Eye size={13} strokeWidth={2} aria-hidden />
+              ) : (
+                <EyeOff size={13} strokeWidth={2} aria-hidden />
+              )}
             </button>
           );
         })}
