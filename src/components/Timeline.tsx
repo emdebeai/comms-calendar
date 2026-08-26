@@ -695,7 +695,9 @@ export function Timeline({
                   ) : (
                     <ChevronDown size={13} strokeWidth={2} className="shrink-0 text-grey-60" aria-hidden />
                   ))}
-                <span className={`${EYEBROW} ${lane.kind === "divider" ? "text-grey-70" : "text-grey-90"}`}>
+                <span
+                  className={`line-clamp-2 ${EYEBROW} ${lane.kind === "divider" ? "text-grey-70" : "text-grey-90"}`}
+                >
                   {lane.label}
                 </span>
                 {/* comm count — the "how much does each team send" number,

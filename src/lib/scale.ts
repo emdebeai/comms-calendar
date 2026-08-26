@@ -264,6 +264,32 @@ function laneBlockHeight(cardArea: number, chipStrip: boolean): number {
  *  campaigns / curves aren't rendered. */
 export const COLLAPSED_LANE_H = 54;
 
+/** How many lines an EYEBROW lane label wraps to in the gutter (~19 uppercase
+ *  wide-tracked chars per line; the gutter clamps labels to 2 lines). Greedy
+ *  word wrap, counting hyphen segments as break points like the browser does. */
+function labelLines(label: string): number {
+  const cap = 16;
+  let lines = 1;
+  let len = 0;
+  for (const part of label.split(/[\s]+/).flatMap((w) => w.split(/(?<=-)/))) {
+    const add = part.length + (len && !part.startsWith("-") && label.includes(` ${part}`) ? 1 : 0);
+    if (len + add > cap) {
+      lines++;
+      len = part.length;
+    } else {
+      len += add;
+    }
+  }
+  return Math.min(2, lines);
+}
+
+/** Height of a collapsed/hidden lane's label strip so nothing ever clips:
+ *  py-2.5 (20) + label lines (18 each) + the one sub-line (16). A one-line
+ *  label lands exactly on COLLAPSED_LANE_H. */
+function labelStripH(label: string): number {
+  return 20 + labelLines(label) * 18 + 16;
+}
+
 function buildLanes(
   cardAreaPerTeam: Record<Team, number>,
   chipTeams: Set<Team>,
@@ -277,8 +303,9 @@ function buildLanes(
     chipStrip: !collapsed.has(id) && chipTeams.has(id),
     height: collapsed.has(id)
       ? // collapsed → the stacked-marker area with equal top/bottom padding
-        // (min = the label strip). Matches markerPos so the stack is centred.
-        Math.max(COLLAPSED_LANE_H, cardAreaPerTeam[id] + 2 * MARKER_PAD)
+        // (min = the label strip, sized to the label so long two-line names
+        // like "Marketing — events" never clip). Matches markerPos.
+        Math.max(labelStripH(label), cardAreaPerTeam[id] + 2 * MARKER_PAD)
       : laneBlockHeight(cardAreaPerTeam[id], chipTeams.has(id)),
   });
   const inbound = (id: "digital" | "study", label: string): Omit<LaneDef, "top"> => ({
@@ -307,7 +334,9 @@ function buildLanes(
       sub: "Paid + always-on",
       kind: "outbound",
       chipStrip: false,
-      height: collapsed.has("campaigns") ? COLLAPSED_LANE_H : campaignsLaneHeight(),
+      height: collapsed.has("campaigns")
+        ? labelStripH("Digital and out-of-home campaigns")
+        : campaignsLaneHeight(),
     },
     // VTAC — a third party, not an RMIT team: its own section, sending the
     // student the newsletter cadence directly.
