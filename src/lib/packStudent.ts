@@ -64,9 +64,10 @@ function wrappedLines(text: string, bold: boolean, innerW: number): number {
   return lines;
 }
 
-/** A card's rendered height at a given card width and weight. */
+/** A card's rendered height at a given card width and weight. Answered
+ *  (bold) cards carry a leading check icon that narrows the text column. */
 export function estimateCardH(text: string, bold: boolean, cardW: number): number {
-  const innerW = cardW - 16 - 2; // px-2 both sides + 1px border each side
+  const innerW = cardW - 16 - 2 - (bold ? 17 : 0); // px-2 + borders + icon column
   return wrappedLines(text, bold, innerW) * LINE_H + PAD_V;
 }
 

@@ -1,5 +1,5 @@
 import { useEffect, useReducer } from "react";
-import { ChevronDown, ChevronRight, MessageSquare } from "lucide-react";
+import { CheckCircle2, ChevronDown, ChevronRight, MessageSquare } from "lucide-react";
 import { STAGES } from "../data/journey";
 import { bubbleLayout } from "../lib/studentBubbles";
 import { FONT_PX } from "../lib/packStudent";
@@ -117,34 +117,48 @@ export function StudentJourneyLane({
     // and print reads larger — the layout measured at the same size.
     const shell =
       "group absolute block rounded-xl border px-2 py-1.5 text-left leading-tight transition-opacity";
-    // Answered questions carry the touchpoint cards' title weight
-    // (font-semibold); open questions stay lighter, so weight itself signals
-    // "this one is answered".
+    // ANSWERED reads as answered: blue-tinted fill at rest, a check mark, the
+    // speech tail (someone speaks back), semibold, hover invitation. A GAP
+    // reads as a quiet open note: dashed outline, muted regular text, NO tail
+    // and NO hover feedback — still clickable for its sources, but it doesn't
+    // advertise itself.
     const tone = !answered
-      ? "border-dashed border-grey-60 bg-grey-10 text-grey-70 hover:border-grey-70 hover:bg-grey-20"
+      ? "cursor-default border-dashed border-grey-60 bg-grey-10 text-grey-70"
       : active
         ? "font-semibold border-rmit-blue-interactive bg-tint-blue text-rmit-blue-interactive"
-        : "font-semibold border-rmit-blue-interactive/40 bg-card text-grey-90 hover:border-rmit-blue-interactive hover:bg-tint-blue/40";
-    const tail = !answered
-      ? "border-grey-60 bg-grey-10"
-      : active
-        ? "border-rmit-blue-interactive bg-tint-blue"
-        : "border-rmit-blue-interactive/40 bg-card group-hover:border-rmit-blue-interactive group-hover:bg-tint-blue/40";
+        : "font-semibold border-rmit-blue-interactive/50 bg-tint-blue/50 text-grey-90 hover:border-rmit-blue-interactive hover:bg-tint-blue";
+    const tail = active
+      ? "border-rmit-blue-interactive bg-tint-blue"
+      : "border-rmit-blue-interactive/50 bg-tint-blue/50 group-hover:border-rmit-blue-interactive group-hover:bg-tint-blue";
     return (
       <button
         key={`${c.stage}-${c.question}`}
         type="button"
         aria-pressed={answered ? active : undefined}
-        title={c.question}
+        title={answered ? `${c.question} — answered by linked touchpoints` : `${c.question} — no touchpoint answers this yet`}
         {...handlers}
         className={`${shell} ${FOCUS_RING} ${tone} ${stageDim ? "opacity-25" : ""}`}
         style={{ left: x, top: c.y, width: c.w, fontSize: FONT_PX }}
       >
-        {c.question}
-        <span
-          className={`pointer-events-none absolute -bottom-[4px] left-4 h-2 w-2 rotate-45 border-r border-b transition-colors ${tail}`}
-          aria-hidden
-        />
+        {answered ? (
+          <span className="flex items-start gap-1">
+            <CheckCircle2
+              size={13}
+              strokeWidth={2.25}
+              className={`mt-[1.5px] shrink-0 ${active ? "text-rmit-blue-interactive" : "text-rmit-blue-interactive/80"}`}
+              aria-hidden
+            />
+            <span>{c.question}</span>
+          </span>
+        ) : (
+          c.question
+        )}
+        {answered && (
+          <span
+            className={`pointer-events-none absolute -bottom-[4px] left-4 h-2 w-2 rotate-45 border-r border-b transition-colors ${tail}`}
+            aria-hidden
+          />
+        )}
       </button>
     );
   };
