@@ -249,7 +249,7 @@ function Home({ onEnter, setPage }: { onEnter: () => void; setPage: (p: Page) =>
                 key={p.code}
                 type="button"
                 onClick={onEnter}
-                className={`group ${CARD} border-l-4 border-l-rmit-blue text-left transition-colors hover:border-rmit-blue-interactive hover:border-l-rmit-blue ${FOCUS_RING}`}
+                className={`group ${CARD} text-left transition-colors hover:border-rmit-blue-interactive ${FOCUS_RING}`}
               >
                 <span className="inline-block rounded-md bg-tint-blue px-2 py-0.5 text-xs font-semibold uppercase tracking-widest text-rmit-blue">
                   {p.code}
