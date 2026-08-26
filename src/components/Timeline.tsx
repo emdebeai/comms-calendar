@@ -216,7 +216,7 @@ export function Timeline({
   const gutterBg: Record<string, string> = Object.fromEntries(
     Object.entries(laneBg).map(([id, bg]) => [
       id,
-      bg === "bg-grey-20" ? "bg-grey-20/70" : bg === "bg-grey-10" ? "bg-grey-10/70" : "bg-surface/50",
+      bg === "bg-grey-20" ? "bg-grey-20/60" : bg === "bg-grey-10" ? "bg-grey-10/55" : "bg-surface/40",
     ]),
   );
 
