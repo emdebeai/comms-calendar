@@ -1,7 +1,6 @@
 import { Fragment, useState } from "react";
 import type { InboundLaneData } from "../data/types";
 import { MONTHS, TOTAL_W, laneById, scaleX } from "../lib/scale";
-import { PRINT_MODE } from "../lib/printMode";
 import { FOCUS_RING } from "../lib/styles";
 
 // Engagement volume at a given month: baseline plus gaussian bumps per peak.
@@ -153,17 +152,17 @@ export function InboundLane({ data }: { data: InboundLaneData }) {
               series only covers the application season), not the canvas
               origin — at LABEL_W they'd float over months of empty lane,
               nowhere near the curves they describe. */}
-          <text
-            x={scaleX(grid[0]) + 4}
-            y={16}
-            className="fill-rmit-blue-interactive text-xs font-medium"
-          >
-            {hovering
-              ? "Enquiries by channel"
-              : PRINT_MODE
-                ? "Total enquiries"
-                : "Total enquiries · hover for the channel breakdown"}
-          </text>
+          {/* No resting title — the gutter label already names the lane; the
+              mode label only appears while the breakdown is showing. */}
+          {hovering && (
+            <text
+              x={scaleX(grid[0]) + 4}
+              y={16}
+              className="fill-rmit-blue-interactive text-xs font-medium"
+            >
+              Enquiries by channel
+            </text>
+          )}
           {/* No separate legend — the hover tooltip already names every
               channel with its colour dot, so a key would just repeat it. */}
           {/* total: filled curve at rest, thin context line during hover */}
@@ -308,8 +307,16 @@ export function InboundLane({ data }: { data: InboundLaneData }) {
   const from = series ? series[0].month : 0;
   const to = series ? series[series.length - 1].month : MONTHS;
   const pts: string[] = [];
-  for (let m = from; m <= to; m += step) {
-    pts.push(`${scaleX(m).toFixed(1)},${yFor(volAt(m)).toFixed(1)}`);
+  if (series) {
+    // Measured series: draw straight THROUGH the weekly points — resampling
+    // on a fixed grid cut the corners, so dots interpolated off the line.
+    for (const p of series) {
+      pts.push(`${scaleX(p.month).toFixed(1)},${yFor((p.value / seriesMax) * 100).toFixed(1)}`);
+    }
+  } else {
+    for (let m = from; m <= to; m += step) {
+      pts.push(`${scaleX(m).toFixed(1)},${yFor(volAt(m)).toFixed(1)}`);
+    }
   }
   const x0 = scaleX(from);
   const x1 = series ? scaleX(to) : TOTAL_W;
@@ -406,20 +413,47 @@ export function InboundLane({ data }: { data: InboundLaneData }) {
             />
           </g>
         )}
-        {data.peaks
-          .filter((p) => p.label)
-          .map((p) => {
-            const x = Math.min(Math.max(scaleX(p.month), 50), TOTAL_W - 90);
-            const y = yFor(volAt(p.month));
+        {(() => {
+          // Peak markers snap to the NEAREST MEASURED point, so the dot sits
+          // exactly on the drawn line; labels that would collide with the
+          // previous one step up a row, with a surface halo for legibility.
+          const labelled = data.peaks
+            .filter((p) => p.label)
+            .map((p) => {
+              const near = series
+                ? series.reduce((best, s) =>
+                    Math.abs(s.month - p.month) < Math.abs(best.month - p.month) ? s : best,
+                  )
+                : null;
+              const dotX = scaleX(near ? near.month : p.month);
+              const dotY = near ? yFor((near.value / seriesMax) * 100) : yFor(volAt(p.month));
+              return { p, dotX, dotY };
+            })
+            .sort((a, b) => a.dotX - b.dotX);
+          let prevEnd = -Infinity;
+          return labelled.map(({ p, dotX, dotY }) => {
+            const width = p.label!.length * 6.6; // rough label width at text-xs
+            // Centre on the dot, but never overlap the previous label — a
+            // colliding label slides RIGHT until it clears (single tidy row).
+            let x = Math.min(Math.max(dotX, 8 + width / 2), TOTAL_W - width / 2 - 8);
+            if (x - width / 2 < prevEnd + 10) x = prevEnd + 10 + width / 2;
+            prevEnd = x + width / 2;
             return (
               <g key={`${p.month}`}>
-                <circle cx={scaleX(p.month)} cy={y} r={3} fill="var(--color-rmit-blue)" />
-                <text x={x} y={y - 8} textAnchor="middle" className="fill-grey-90 text-xs font-medium">
+                <circle cx={dotX} cy={dotY} r={3} fill="var(--color-rmit-blue)" />
+                <text
+                  x={x}
+                  y={dotY - 8}
+                  textAnchor="middle"
+                  className="fill-grey-90 text-xs font-medium"
+                  style={{ paintOrder: "stroke", stroke: "var(--color-surface)", strokeWidth: 3 }}
+                >
                   {p.label}
                 </text>
               </g>
             );
-          })}
+          });
+        })()}
       </svg>
       {hoverLive && (
         <div
