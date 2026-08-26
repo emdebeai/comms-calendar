@@ -386,8 +386,11 @@ export function Timeline({
                 aria-hidden
                 // grey-60 edges/hatch: the band boundary is meaningful (a
                 // send-freeze window), so it needs the 3:1 non-text minimum
-                // on the light lane stripes.
-                className="pointer-events-none absolute z-10 border-x border-dashed border-grey-60"
+                // on the light lane stripes. Under a spotlight/lens the whole
+                // band recedes with everything else — the crosshatch is loud.
+                className={`pointer-events-none absolute z-10 border-x border-dashed border-grey-60 transition-opacity duration-300 ${
+                  dimBackground ? "opacity-[0.1]" : ""
+                }`}
                 style={{
                   left,
                   width,
@@ -404,7 +407,9 @@ export function Timeline({
                 }}
               />
               <div
-                className="pointer-events-none absolute z-20 flex justify-center items-start"
+                className={`pointer-events-none absolute z-20 flex justify-center items-start transition-opacity duration-300 ${
+                  dimBackground ? "opacity-[0.1]" : ""
+                }`}
                 style={{ left, width, top: HEADER_H, height: laneById("campaigns").top - HEADER_H }}
               >
                 <span
@@ -493,9 +498,9 @@ export function Timeline({
                 // just big enough to carry the icon.
                 className={`group absolute z-10 flex h-7 w-7 -translate-x-1/2 items-center justify-center rounded-full text-on-accent ring-2 ring-card transition-opacity duration-300 ${accent} ${FOCUS_RING} ${
                   filteredOut
-                    ? "opacity-[0.08]"
+                    ? "opacity-[0.06]"
                     : dotDimmed
-                      ? "opacity-[0.15] focus-visible:z-50 focus-visible:opacity-100"
+                      ? "opacity-[0.1] focus-visible:z-50 focus-visible:opacity-100"
                       : "cursor-pointer hover:z-50 focus-visible:z-50"
                 }`}
                 style={{ left: markerPos(c).x, top: markerPos(c).y }}
@@ -543,8 +548,8 @@ export function Timeline({
                 )} ${FOCUS_RING} ${
                   dotDimmed
                     ? filteredOut
-                      ? "cursor-default opacity-[0.08]"
-                      : "cursor-default opacity-[0.15] focus-visible:opacity-100"
+                      ? "cursor-default opacity-[0.06]"
+                      : "cursor-default opacity-[0.1] focus-visible:opacity-100"
                     : "cursor-pointer opacity-70 hover:scale-125 hover:opacity-100"
                 }`}
                 style={pos}
@@ -561,7 +566,7 @@ export function Timeline({
               aria-hidden
               title={filteredOut ? `${c.title} — hidden by filters` : undefined}
               className={`absolute z-10 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full ring-2 ring-card transition-opacity duration-300 ${accent} ${
-                filteredOut ? "opacity-[0.08]" : dotDimmed ? "opacity-[0.15]" : ""
+                filteredOut ? "opacity-[0.06]" : dotDimmed ? "opacity-[0.1]" : ""
               }`}
               style={pos}
             />
@@ -591,7 +596,7 @@ export function Timeline({
                 className={`absolute w-[1.25px] transition-opacity duration-300 ${markerAccent(
                   c.team === "vtac" ? "bg-grey-40" : COMM_COLORS[c.type].accent,
                   "line",
-                )} ${stemDimmed ? "opacity-[0.15]" : ""}`}
+                )} ${stemDimmed ? "opacity-[0.1]" : ""}`}
                 style={{ left: cx, top, height: Math.max(y - top + 2, 0) }}
               />
             );
@@ -643,7 +648,7 @@ export function Timeline({
               onSetMonthLevel(chip.monthIndex, (expandedMonths.get(chip.monthIndex) ?? 0) === 0 ? 1 : 2);
             }}
             className={`absolute z-10 flex items-center rounded-full border border-grey-30 bg-card px-2 text-xs font-medium whitespace-nowrap text-rmit-blue-interactive transition-opacity duration-300 after:absolute after:-inset-1 after:content-[''] ${FOCUS_RING} ${
-              dimChips ? "opacity-[0.15]" : "hover:border-rmit-blue-interactive"
+              dimChips ? "opacity-[0.1]" : "hover:border-rmit-blue-interactive"
             }`}
             style={{
               left: Math.min(scaleX(chip.monthIndex) + 4, TOTAL_W - 80),

@@ -25,7 +25,7 @@ const BAR_H = 26;
  *  which expands into its placements — the original interaction. */
 export function CampaignGantt({ expanded, dimmed, onToggle, onOpenChannel, onOpenAlwaysOn }: Props) {
   const rows = buildCampaignRows(expanded);
-  const dim = `transition-opacity duration-300 ${dimmed ? "opacity-[0.15] focus-visible:opacity-100" : ""}`;
+  const dim = `transition-opacity duration-300 ${dimmed ? "opacity-[0.1] focus-visible:opacity-100" : ""}`;
   return (
     <>
       {rows.map((row) => {

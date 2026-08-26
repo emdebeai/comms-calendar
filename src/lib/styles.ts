@@ -11,8 +11,8 @@ export const FOCUS_RING =
 export const EYEBROW = "text-xs font-semibold tracking-widest uppercase";
 
 // Dimming levels (reference — components inline these values): a TRANSIENT
-// spotlight dim at 0.15 quiets everything hard so the lit items own the view,
-// while the PERSISTENT filtered-out ghost sits below it at 0.08 — hidden-by-
+// spotlight dim at 0.10 quiets everything hard so the lit items own the view,
+// while the PERSISTENT filtered-out ghost sits below it at 0.06 — hidden-by-
 // lens must still "never read as doesn't exist".
-export const DIM_FOCUS = "opacity-[0.15]";
-export const DIM_FILTERED = "opacity-[0.08]";
+export const DIM_FOCUS = "opacity-[0.1]";
+export const DIM_FILTERED = "opacity-[0.06]";
