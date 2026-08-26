@@ -2,6 +2,10 @@
 // team's figures. Matched by title prefix so multi-campus programmes (Open
 // Day × 3, April tours × 2) share one programme-level figure; the badge and
 // panel label the basis year so a 2025 figure never reads as a 2026 count.
+// The RANKING is whole-of-recruitment (all audiences): #2 Victorian Careers
+// Show and #5 Tech and Trades sit in the list so the plotted ranks stay
+// honest, but they are NOT on this map — Persona 01 (DOM SL) doesn't attend
+// them, and this is her journey.
 export interface LeadGenEntry {
   rank: number;
   leads: number;

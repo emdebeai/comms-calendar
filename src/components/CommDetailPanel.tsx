@@ -322,7 +322,8 @@ export function CommDetailPanel({ comm, allComms, entries, onClose, onAdd, onDel
                     {lg.leads.toLocaleString()}
                   </p>
                   <p className="text-xs text-grey-70">
-                    Leads — #{lg.rank} lead-generating event ({lg.basis})
+                    Leads — #{lg.rank} of RMIT&rsquo;s top 5 lead-generating events, all audiences (
+                    {lg.basis})
                   </p>
                 </div>
               </>
