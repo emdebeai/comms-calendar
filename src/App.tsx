@@ -75,11 +75,10 @@ const EXPORT_MODE = new URLSearchParams(window.location.search).has("export");
 // The overview / "show all lanes at once" toggle collapses every lane to its
 // compact touchpoint strip so the whole map fits vertically.
 const COLLAPSIBLE_LANES = ["recruitment", "marketing-events", "marketing", "admissions", "conversion", "vtac", "campaigns", "digital", "study"];
-// Overview / ?dots collapse only the CARD lanes — the inbound graphs and the
-// campaigns gantt already read compactly and stay on.
-const OVERVIEW_LANES = COLLAPSIBLE_LANES.filter(
-  (id) => id !== "digital" && id !== "study" && id !== "campaigns",
-);
+// Overview / ?dots: card lanes collapse to marker strips and the two inbound
+// lanes collapse to their COMPACT graphs (the curve stays on, just shorter);
+// only the campaigns gantt keeps its full height — bars can't shrink further.
+const OVERVIEW_LANES = COLLAPSIBLE_LANES.filter((id) => id !== "campaigns");
 // Segment filters straight from the URL (?preference=%232-8&college=COBL&
 // campus=city&eventState=registered,attended) so a filtered view can be
 // captured/shared by link. Comma-separates multiple values on one axis.
