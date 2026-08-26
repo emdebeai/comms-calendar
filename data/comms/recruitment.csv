@@ -5,8 +5,6 @@ id,title,primary_cta,type,school_year,month,day,moment,triggers,secondary_cta,te
 ,"School Expo (school-run, RMIT attending)",,Event,10,Jun,10,,,,,,,,,,Year 10 · SNAP,,,,,,,,domsl
 ,VCE and Careers Expo (MCEC),,Event,11,Apr,30,,,,,,,,,,Year 11 · SNAP,,,,,,,,domsl
 ,RMIT Student For A Day,,Event,11,Sep,30,,,,,,,,,,Year 11 · SNAP,,,,,,city,,domsl
-,Open Day – Bundoora Campus registration confirmation,,Email,12,Jul,26,,,,,,,,,,,,,,,,bundoora,,domsl
 ,Open Day – Bundoora Campus,,Event,12,Aug,2,openday-y12,,,,,,,,,Year 12 · SNAP,,,,,,bundoora,,domsl
-,Open Day – Brunswick registration confirmation,,Email,12,Aug,2,,,,,,,,,,,,,,,,brunswick,,domsl
 ,Open Day – City,,Event,12,Aug,9,openday-y12,,,,,,,,,Year 12 · SNAP,,,,,,city,,domsl
 ,Open Day – Brunswick,,Event,12,Aug,9,openday-y12,,,,,,,,,Year 12 · SNAP,,,,,,brunswick,,domsl
