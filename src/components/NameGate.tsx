@@ -10,7 +10,12 @@ const FIELD =
  *  stored only in this browser and the app's own store — never sent to any
  *  AI service. Blocking on purpose: the whole point is knowing who's here. */
 // The portfolios the work consulted (People consulted page), plus free text.
-const PORTFOLIOS = ["Global Student Recruitment", "Global Marketing", "Digital & Experience"];
+const PORTFOLIOS = [
+  "Global Student Recruitment",
+  "Global Marketing",
+  "Digital & Experience",
+  "Market Intelligence and Proposition",
+];
 const OTHER = "__other__";
 
 export function NameGate({ onDone }: { onDone: (user: MapUser) => void }) {
