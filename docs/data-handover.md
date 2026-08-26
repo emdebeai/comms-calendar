@@ -5,12 +5,12 @@ This is the guide to hand a coworker who owns a team's communications
 comms to the timeline themselves. It needs no code knowledge.
 
 Fill in **one row per communication** in the spreadsheet. A blank template
-lives at [`docs/comms-template.csv`](comms-template.csv) — copy the header row
+lives at [`data/comms-template.csv`](../data/comms-template.csv) — copy the header row
 and go.
 
 ## Where the data lives
 
-- **Today:** a single file, `server/data/comms.csv`. Edit it (or paste rows
+- **Today:** a single file, `data/comms.csv`. Edit it (or paste rows
   exported from a spreadsheet) and refresh the page.
 - **Recommended for real multi-team use:** a shared **SharePoint Excel
   workbook, one sheet per team**, so each team edits only their own rows in a

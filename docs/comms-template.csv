@@ -1,5 +1,0 @@
-id,team,title,cta,type,school_year,month,day,moment,triggers,secondary_cta_1,secondary_cta_2,marketo_id,open_rate,click_rate,platform
-,Marketing,Example — Open Day launch email,Register now,Email,12,Jul,4,Open Day · Yr 12,,Explore courses,,8457,56.7%,1.9%,
-,Recruitment,Example — Open Day (Bundoora),Attend Open Day,Event,12,Aug,2,Open Day · Yr 12,,,,,,,
-,Recruitment,Example — Open Day (Bundoora) confirmation,View event details,Email,12,Jul,26,Open Day · Yr 12,Example — Open Day (Bundoora),,,,,,Cvent
-,Marketing,Example — Open Day reminder SMS,Open Day is tomorrow,SMS,12,Aug,1,Open Day · Yr 12,Example — Open Day (Bundoora),,,,,,

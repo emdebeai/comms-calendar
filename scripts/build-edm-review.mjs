@@ -33,7 +33,7 @@ function parseCsv(text) {
 
 const slugify = (t) => t.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 
-const csv = parseCsv(read("server/data/comms.csv"));
+const csv = parseCsv(read("data/comms.csv"));
 const header = csv[0].map((h) => h.trim());
 const col = (r, name) => (r[header.indexOf(name)] ?? "").trim();
 

@@ -4,7 +4,7 @@
 //   1. src/data/studentExperience.ts  — QUESTION_LINKS (which comm answers
 //      which student question). Baseline = the current links; the review
 //      supplies the diffs.
-//   2. server/data/comms.csv          — each reviewed send's cta /
+//   2. data/comms.csv          — each reviewed send's cta /
 //      secondary_cta_1 / secondary_cta_2 columns (Primary / Secondary /
 //      Tertiary CTA from the review).
 //
@@ -85,7 +85,7 @@ function toCsv(rows) {
 }
 const slugify = (t) => t.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 
-const csv = parseCsv(rd("server/data/comms.csv")).filter((r, i) => i === 0 || r.some((v) => v.trim()));
+const csv = parseCsv(rd("data/comms.csv")).filter((r, i) => i === 0 || r.some((v) => v.trim()));
 const header = csv[0].map((h) => h.trim());
 const ci = (n) => header.indexOf(n);
 
@@ -227,7 +227,7 @@ for (const [id, a] of Object.entries(answers)) {
   }
   if (touched) ctaWrites++;
 }
-if (ctaWrites) writeFileSync(resolve(root, "server/data/comms.csv"), toCsv(csv) + "\n");
+if (ctaWrites) writeFileSync(resolve(root, "data/comms.csv"), toCsv(csv) + "\n");
 
 // ── report ────────────────────────────────────────────────────────────────
 const total = Object.keys(answers).length;
@@ -244,4 +244,4 @@ if (flags.other.length)
   );
 if (flags.missing.length)
   console.log(`\n  ${WARN} ${flags.missing.length} answer(s) for unknown comm ids (renamed/removed?):\n     ${flags.missing.join(", ")}`);
-console.log(`\nReview the changes: git diff src/data/studentExperience.ts server/data/comms.csv\n`);
+console.log(`\nReview the changes: git diff src/data/studentExperience.ts data/comms.csv\n`);

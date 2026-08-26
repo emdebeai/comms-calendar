@@ -15,7 +15,7 @@ import { isRedisConfigured } from "./redis.js";
 import { appendToCollection, readCollection, removeFromCollection } from "./stores.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const CSV_PATH = path.join(__dirname, "data", "comms.csv");
+const CSV_PATH = path.join(__dirname, "..", "data", "comms.csv");
 const FEEDBACK_PATH = path.join(__dirname, "data", "feedback.json");
 const EDM_REVIEW_PATH = path.join(__dirname, "data", "edm-review.json");
 

@@ -18,7 +18,7 @@ import { appendToCollection, readCollection } from "../server/stores.js";
 const COLLECTION = "edm-review";
 
 export interface EdmAnswer {
-  /** comm id from server/data/comms.csv (the slugified title) */
+  /** comm id from data/comms.csv (the slugified title) */
   commId: string;
   /** "yes" | "wrong" | "none" — blank string clears the verdict */
   verdict: string;
