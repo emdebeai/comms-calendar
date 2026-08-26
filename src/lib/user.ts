@@ -12,6 +12,8 @@
 export interface MapUser {
   userId: string;
   firstName: string;
+  /** which portfolio they're from (the People-consulted divisions, or free text) */
+  portfolio?: string;
 }
 
 const KEY = "cc-user";
@@ -43,8 +45,12 @@ async function post(entry: Record<string, string>): Promise<void> {
 }
 
 /** First-run registration: mint an opaque id, persist locally, log remotely. */
-export async function registerUser(firstName: string): Promise<MapUser> {
-  const user: MapUser = { userId: crypto.randomUUID(), firstName: firstName.trim() };
+export async function registerUser(firstName: string, portfolio: string): Promise<MapUser> {
+  const user: MapUser = {
+    userId: crypto.randomUUID(),
+    firstName: firstName.trim(),
+    portfolio: portfolio.trim(),
+  };
   localStorage.setItem(KEY, JSON.stringify(user));
   sessionStorage.setItem(SESSION_FLAG, "1");
   await post({ ...user, event: "register" });
