@@ -1,0 +1,14 @@
+id,title,cta,type,school_year,month,day,moment,triggers,secondary_cta_1,secondary_cta_2,marketo_id,open_rate,click_rate,platform,time,audience,recipient,campaign,theme,preference,college,campus,event_state,personas
+,Getting the most out of your VTAC application,,email,12,Aug,25,,,,,,,,vtac,,2024 Year 12s,student,VTAC Newsletter,,,,,,domsl
+,SEAS and VTAC Scholarships,,email,12,Sep,3,,,,,,,,vtac,,All applicants,student,VTAC Newsletter,,,,,,domsl
+,Researching courses with VTAC CourseSearch,,email,12,Sep,15,,,,,,,,vtac,,All applicants,student,VTAC Newsletter,,,,,,domsl
+,Timely applications close,,email,12,Sep,27,vtac-close,,,,,,,vtac,,2024 Year 12s,student,VTAC Newsletter,,,,,,domsl
+,SEAS and VTAC Scholarships applications close,,email,12,Oct,7,,,,,,,,vtac,,All applicants,student,VTAC Newsletter,,,,,,domsl
+,Good luck for your VCE exams,,email,12,Oct,24,,,,,,,,vtac,,2024 Year 12s,student,VTAC Newsletter,,,,,,domsl
+,Getting organised for VCE results release + December offers,,email,12,Nov,25,,,,,,,,vtac,,2024 Year 12s,student,VTAC Newsletter,,,,,,domsl
+,VCE results and ATAR release,,email,12,Dec,10,results,,,,,,,vtac,,2024 Year 12s,student,VTAC Newsletter,,,,,,domsl
+,December offers and change of preference,,email,12,Dec,12,cop,,,,,,,vtac,,2024 Year 12s,student,VTAC Newsletter,,,,,,domsl
+,December offers release,,email,12,Dec,15,offers,,,,,,,vtac,,2024 Year 12s,student,VTAC Newsletter,,,,,,domsl
+,January offers release,,email,Post,Jan,8,,,,,,,,vtac,,All applicants,student,VTAC Newsletter,,,,,,domsl
+,Costs associated with tertiary study,,email,Post,Jan,20,,,,,,,,vtac,,All applicants,student,VTAC Newsletter,,,,,,domsl
+,Preparing for tertiary study,,email,Post,Jan,28,,,,,,,,vtac,,All applicants,student,VTAC Newsletter,,,,,,domsl

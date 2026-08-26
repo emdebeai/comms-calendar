@@ -9,8 +9,19 @@ copies, never source of truth.
 
 | File | What it is |
 |---|---|
-| `comms.csv` | Every touchpoint on the map — one row per communication/event. Column reference: `src/lib/commsSchema.ts`. Read by the dev API (`server/dataStore.ts`) and baked into the standalone build (`src/lib/loadComms.ts`). |
-| `comms-template.csv` | Blank header row for teams adding sends — always the same columns as `comms.csv` (see `docs/data-handover.md`). |
+| `comms/<team>.csv` | Every touchpoint on the map, ONE FILE PER SENDER TEAM — the filename is the team (no team column), so a file can go to that team's rep and come back without touching anyone else's rows. Column reference: `src/lib/commsSchema.ts` (`FILE_COLUMNS`). Read by the dev API (`server/dataStore.ts`) and baked into the standalone build (`src/lib/loadComms.ts`). |
+| `comms-template.csv` | Blank header row for teams adding sends — same columns as the per-team files (see `docs/data-handover.md`). |
+
+Two rules for the CSVs:
+
+- **`personas` is a lens, not a split** — shared touchpoints tag every journey
+  they appear on (semicolon list, e.g. `domsl;nsl`; blank = `domsl`). The map
+  filters by the active persona, so a second persona is a different filter
+  over the same files, never a second copy of the rows.
+- **No narrative text in cells** — fields hold terse values (labels, tags,
+  dates, figures). Anything that reads as a sentence lives in
+  `src/data/commNotes.ts`, keyed by comm id, and renders in the detail
+  panel's Notes row.
 
 ## `src/data/` — code-shaped map data
 

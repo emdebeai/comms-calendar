@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { readFile, writeFile } from "node:fs/promises";
+import { readdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseCsvRows } from "../src/lib/csv.js";
@@ -15,7 +15,7 @@ import { isRedisConfigured } from "./redis.js";
 import { appendToCollection, readCollection, removeFromCollection } from "./stores.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const CSV_PATH = path.join(__dirname, "..", "data", "comms.csv");
+const COMMS_DIR = path.join(__dirname, "..", "data", "comms");
 const FEEDBACK_PATH = path.join(__dirname, "data", "feedback.json");
 const EDM_REVIEW_PATH = path.join(__dirname, "data", "edm-review.json");
 
@@ -31,8 +31,17 @@ export async function getComms(): Promise<CommsParseResult> {
 }
 
 async function readCommsFromCsv(): Promise<CommsParseResult> {
-  const text = await readFile(CSV_PATH, "utf-8");
-  return parseCommRows(parseCsvRows(text));
+  // One CSV per team in data/comms/ — the FILENAME is the team, injected onto
+  // every row so a rep's file can't mis-tag rows. Parsed as one batch so id
+  // de-duplication still works across teams.
+  const files = (await readdir(COMMS_DIR)).filter((f) => f.endsWith(".csv")).sort();
+  const rows: Record<string, string>[] = [];
+  for (const f of files) {
+    const team = f.replace(/\.csv$/, "");
+    const text = await readFile(path.join(COMMS_DIR, f), "utf-8");
+    for (const row of parseCsvRows(text)) rows.push({ ...row, team });
+  }
+  return parseCommRows(rows);
 }
 
 async function readCommsFromGraph(): Promise<CommsParseResult> {
@@ -50,8 +59,13 @@ export async function addComm(input: NewCommInput): Promise<Comm> {
   if (isGraphConfigured()) {
     await appendTableRow(tableNames().comms, COMMS_COLUMNS.map((col) => input[col] ?? ""));
   } else {
-    const line = COMMS_COLUMNS.map((col) => csvEscape(col === "id" ? comm.id : input[col] ?? "")).join(",");
-    await appendFileLine(CSV_PATH, line);
+    // Append to the TEAM's file — the filename carries the team column.
+    const fileCols = COMMS_COLUMNS.filter((c) => c !== "team");
+    const line = fileCols
+      .map((col) => csvEscape(col === "id" ? comm.id : input[col] ?? ""))
+      .concat([csvEscape((comm.personas ?? ["domsl"]).join(";"))])
+      .join(",");
+    await appendFileLine(path.join(COMMS_DIR, `${comm.team}.csv`), line);
   }
   return comm;
 }

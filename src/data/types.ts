@@ -57,6 +57,8 @@ export interface Comm {
   eventState?: string;
   /** equity cohort this send is tailored to, if any: "SNAP", "DDINTON" */
   equity?: string;
+  /** personas whose journey this comm appears on (default ["domsl"]) */
+  personas?: string[];
 }
 
 export type CampaignChannel =

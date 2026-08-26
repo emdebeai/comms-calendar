@@ -33,7 +33,17 @@ function parseCsv(text) {
 
 const slugify = (t) => t.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 
-const csv = parseCsv(read("data/comms.csv"));
+// Per-team files; concatenated in sorted filename order — the SAME order the
+// app parses them — so slug de-dup suffixes match the app's comm ids.
+import { readdirSync } from "node:fs";
+const commFiles = readdirSync("data/comms").filter((f) => f.endsWith(".csv")).sort();
+const csv = [];
+for (const f of commFiles) {
+  const t = parseCsv(read(`data/comms/${f}`));
+  const hdr = t[0].map((h) => h.trim()).concat(["team"]);
+  if (!csv.length) csv.push(hdr);
+  for (const r of t.slice(1)) csv.push(r.concat([f.replace(/\.csv$/, "")]));
+}
 const header = csv[0].map((h) => h.trim());
 const col = (r, name) => (r[header.indexOf(name)] ?? "").trim();
 
@@ -52,7 +62,7 @@ for (const r of csv.slice(1)) {
   const n = (seen.get(id) ?? 0) + 1;
   seen.set(id, n);
   if (n > 1) id = `${id}-${n}`;
-  if (col(r, "team") !== "Marketing") continue;
+  if (col(r, "team") !== "marketing") continue;
 
   const sy = col(r, "school_year");
   const month = BASE[sy] + MONTHS.indexOf(col(r, "month").slice(0, 3)) + (Number(col(r, "day") || 1) - 1) / 30;

@@ -10,7 +10,7 @@ and go.
 
 ## Where the data lives
 
-- **Today:** a single file, `data/comms.csv`. Edit it (or paste rows
+- **Today:** a single file, `data/comms/<team>.csv`. Edit it (or paste rows
   exported from a spreadsheet) and refresh the page.
 - **Recommended for real multi-team use:** a shared **SharePoint Excel
   workbook, one sheet per team**, so each team edits only their own rows in a

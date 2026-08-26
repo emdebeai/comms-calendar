@@ -3,6 +3,7 @@ import { Check, Pencil } from "lucide-react";
 import { MOMENTS, STAGES } from "../data/journey";
 import { linkedQuestions } from "../data/studentExperience";
 import { leadGenFor } from "../data/leadGen";
+import { commNote } from "../data/commNotes";
 import type { Comm, CommType, FeedbackEntry } from "../data/types";
 import { commDateLabel } from "../lib/scale";
 import { SEGMENT_AXES } from "../lib/segments";
@@ -231,6 +232,7 @@ export function CommDetailPanel({ comm, allComms, entries, onClose, onAdd, onDel
                 .join("; ") || undefined
             }
           />
+          <AttributeRow label="Notes" value={commNote(comm.id)} />
           <AttributeRow label="Sent from" value={comm.platform ? PLATFORM_LABELS[comm.platform] : undefined} />
           {comm.platform === "marketo" && <AttributeRow label="Marketo ID" value={comm.marketoId} />}
         </dl>

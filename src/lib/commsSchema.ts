@@ -87,6 +87,14 @@ export const COMMS_COLUMNS = [
   "event_state",
 ] as const;
 
+// Column set for the per-team files in data/comms/ — the filename IS the
+// team (so a rep can't mis-tag rows), and `personas` scopes each row to the
+// journeys it appears on (semicolon list; blank = domsl).
+export const FILE_COLUMNS: string[] = [
+  ...COMMS_COLUMNS.filter((c) => c !== "team"),
+  "personas",
+];
+
 const TEAMS: Team[] = ["recruitment", "marketing", "marketing-events", "admissions", "conversion", "vtac", "digital"];
 const TYPES: CommType[] = ["email", "sms", "webinar", "call", "event", "webpage"];
 const MONTH_NAMES = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
@@ -267,6 +275,12 @@ export function normalizeCommRow(
     campus: row.campus || undefined,
     eventState: row.event_state || undefined,
     equity: resolveEquity(row.audience || ""),
+    // Personas this row belongs to — a LENS, not a file split: shared
+    // touchpoints (Open Day, VTAC sends) tag several personas rather than
+    // being duplicated per journey. Blank = the current default persona.
+    personas: row.personas
+      ? row.personas.split(";").map((p) => p.trim().toLowerCase()).filter(Boolean)
+      : ["domsl"],
   };
 }
 

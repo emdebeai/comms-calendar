@@ -1,0 +1,12 @@
+id,title,cta,type,school_year,month,day,moment,triggers,secondary_cta_1,secondary_cta_2,marketo_id,open_rate,click_rate,platform,time,audience,recipient,campaign,theme,preference,college,campus,event_state,personas
+,RMIT On-Campus Experience,,Event,10,Feb,18,,,,,,,,,,Year 10 & parents · SNAP,,,,,,city,,domsl
+,April School Holidays Campus Tour – Bundoora,,Event,10,Apr,13,,campus-tours-webpage,,,,,,,,Year 10 & parents · SNAP,,,,,,bundoora,,domsl
+,April School Holidays Campus Tour – City,,Event,10,Apr,14,,campus-tours-webpage,,,,,,,,Year 10 & parents · SNAP,,,,,,city,,domsl
+,"School Expo (school-run, RMIT attending)",,Event,10,Jun,10,,,,,,,,,,Year 10 · SNAP,,,,,,,,domsl
+,VCE and Careers Expo (MCEC),,Event,11,Apr,30,,,,,,,,,,Year 11 · SNAP,,,,,,,,domsl
+,RMIT Student For A Day,,Event,11,Sep,30,,,,,,,,,,Year 11 · SNAP,,,,,,city,,domsl
+,Open Day – Bundoora Campus registration confirmation,,Email,12,Jul,26,,,,,,,,,,,,,,,,bundoora,,domsl
+,Open Day – Bundoora Campus,,Event,12,Aug,2,openday-y12,,,,,,,,,Year 12 · SNAP,,,,,,bundoora,,domsl
+,Open Day – Brunswick registration confirmation,,Email,12,Aug,2,,,,,,,,,,,,,,,,brunswick,,domsl
+,Open Day – City,,Event,12,Aug,9,openday-y12,,,,,,,,,Year 12 · SNAP,,,,,,city,,domsl
+,Open Day – Brunswick,,Event,12,Aug,9,openday-y12,,,,,,,,,Year 12 · SNAP,,,,,,brunswick,,domsl

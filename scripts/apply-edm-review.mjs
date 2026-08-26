@@ -4,7 +4,7 @@
 //   1. src/data/studentExperience.ts  — QUESTION_LINKS (which comm answers
 //      which student question). Baseline = the current links; the review
 //      supplies the diffs.
-//   2. data/comms.csv          — each reviewed send's cta /
+//   2. data/comms/marketing.csv — each reviewed send's cta /
 //      secondary_cta_1 / secondary_cta_2 columns (Primary / Secondary /
 //      Tertiary CTA from the review).
 //
@@ -85,7 +85,20 @@ function toCsv(rows) {
 }
 const slugify = (t) => t.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 
-const csv = parseCsv(rd("data/comms.csv")).filter((r, i) => i === 0 || r.some((v) => v.trim()));
+// Per-team files, concatenated in sorted order (matches the app's id de-dup);
+// CTA writes go back to marketing.csv only.
+import { readdirSync } from "node:fs";
+const commFiles = readdirSync(resolve(root, "data/comms")).filter((f) => f.endsWith(".csv")).sort();
+const perFile = new Map();
+const csv = [];
+for (const f of commFiles) {
+  const t = parseCsv(rd(`data/comms/${f}`)).filter((r, i) => i === 0 || r.some((v) => v.trim()));
+  const hdr = t[0].map((h) => h.trim()).concat(["team"]);
+  if (!csv.length) csv.push(hdr);
+  const start = csv.length;
+  for (const r of t.slice(1)) csv.push(r.concat([f.replace(/\.csv$/, "")]));
+  perFile.set(f, { header: t[0], start, end: csv.length });
+}
 const header = csv[0].map((h) => h.trim());
 const ci = (n) => header.indexOf(n);
 
@@ -102,7 +115,7 @@ const rowById = new Map();
   });
 }
 const marketingIds = new Set(
-  [...rowById].filter(([, i]) => csv[i][ci("team")] === "Marketing").map(([id]) => id),
+  [...rowById].filter(([, i]) => csv[i][ci("team")] === "marketing").map(([id]) => id),
 );
 
 // ── studentExperience.ts: question -> stage, and the current links ────────
@@ -227,7 +240,11 @@ for (const [id, a] of Object.entries(answers)) {
   }
   if (touched) ctaWrites++;
 }
-if (ctaWrites) writeFileSync(resolve(root, "data/comms.csv"), toCsv(csv) + "\n");
+if (ctaWrites) {
+  const mk = perFile.get("marketing.csv");
+  const body = csv.slice(mk.start, mk.end).map((r) => r.slice(0, mk.header.length));
+  writeFileSync(resolve(root, "data/comms/marketing.csv"), toCsv([mk.header, ...body]) + "\n");
+}
 
 // ── report ────────────────────────────────────────────────────────────────
 const total = Object.keys(answers).length;
@@ -244,4 +261,4 @@ if (flags.other.length)
   );
 if (flags.missing.length)
   console.log(`\n  ${WARN} ${flags.missing.length} answer(s) for unknown comm ids (renamed/removed?):\n     ${flags.missing.join(", ")}`);
-console.log(`\nReview the changes: git diff src/data/studentExperience.ts data/comms.csv\n`);
+console.log(`\nReview the changes: git diff src/data/studentExperience.ts data/comms/marketing.csv\n`);

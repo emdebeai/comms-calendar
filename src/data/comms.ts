@@ -1,6 +1,6 @@
 import type { CampaignGroup, InboundLaneData } from "./types";
 
-// Individual comms now live in data/comms.csv, loaded at runtime by
+// Individual comms now live in data/comms/<team>.csv, loaded at runtime by
 // src/lib/loadComms.ts — see that file for the column schema. That's the
 // file to hand a coworker to fill in; edit it (or replace it with an
 // export from a spreadsheet) and refresh the page.

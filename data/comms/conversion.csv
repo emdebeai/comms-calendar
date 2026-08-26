@@ -1,0 +1,5 @@
+id,title,cta,type,school_year,month,day,moment,triggers,secondary_cta_1,secondary_cta_2,marketo_id,open_rate,click_rate,platform,time,audience,recipient,campaign,theme,preference,college,campus,event_state,personas
+,VTAC Post-Offer SMS,Check email,sms,12,Dec,23,offers,,Check spam / junk,,,,,clicksend,After 2pm,VTAC offer holders (DOM SL),student,,,,,,,domsl
+,"Congratulations {{First Name}}, for receiving an RMIT offer",Start my enrolment,email,Post,Jan,6,offers,,Complete enrolment checklist (multiple links),,,,,marketo,,VTAC offer holders (HE),student,,,,,,,domsl
+,SMS2 — Do you need enrolment support?,Check email,sms,Post,Jan,20,offers,,Click link to student connect,,,,,clicksend,,VTAC offer holders (HE),student,,,,,,,domsl
+,"{{First Name}}, last chance to complete your enrolment",Enrol now — link to enrolment guide,email,Post,Feb,24,offers,,Click link to student connect,,,,,marketo,,VTAC offer holders (HE),student,,,,,,,domsl

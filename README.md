@@ -41,7 +41,7 @@ so adding datasets or reviews never adds a serverless function.
 
 ## Where the data lives
 
-Comms are read from **`data/comms.csv`** (see `src/lib/commsSchema.ts`
+Comms are read from **`data/comms/<team>.csv`** (see `src/lib/commsSchema.ts`
 for the column schema). Both are plain local files — edit the CSV or replace
 it with a spreadsheet export and refresh the page.
 
