@@ -1,6 +1,7 @@
 import { useLayoutEffect, useRef, useState } from "react";
-import { Link2, MessageCircle, MousePointerClick, Users } from "lucide-react";
+import { Link2, MessageCircle, MousePointerClick, TrendingUp, Users } from "lucide-react";
 import type { Comm } from "../data/types";
+import { leadGenFor } from "../data/leadGen";
 import { CARD_W, PILL_H, commPos, monthLabel } from "../lib/scale";
 import { markerAccent } from "../lib/designConfig";
 import { FOCUS_RING } from "../lib/styles";
@@ -58,6 +59,8 @@ export function CommCard({
   const colors = COMM_COLORS[comm.type];
   const hasTriggers = comm.triggers && comm.triggers.length > 0;
   const isEvent = comm.type === "event";
+  // Top-5 lead-generating events wear a rank badge on the card.
+  const leadGen = isEvent ? leadGenFor(comm.title) : null;
   // VTAC is an external sender, not an RMIT team — style its cards as muted,
   // dashed-outline chips (the "not us" motif shared with the embargo band)
   // rather than the type-coloured RMIT fills.
@@ -179,6 +182,18 @@ export function CommCard({
           <span className="mt-0.5 flex items-center gap-1 text-xs leading-tight text-grey-80">
             <MousePointerClick size={10} strokeWidth={2} className="shrink-0" aria-hidden />
             <span className="truncate">{comm.cta}</span>
+          </span>
+        )}
+        {/* Top lead-gen rank — a solid pill so the five biggest recruiters
+            jump out of the events sea. Programme-level figure; the basis
+            year/scope lives in the detail panel. */}
+        {leadGen && (
+          <span
+            className="mt-1 inline-flex w-fit items-center gap-1 rounded-full bg-pink px-1.5 py-0.5 text-[11px] font-semibold leading-none text-on-accent"
+            title={`Top lead-generating event — #${leadGen.rank} · ${leadGen.leads.toLocaleString()} leads (${leadGen.basis})`}
+          >
+            <TrendingUp size={10} strokeWidth={2.5} aria-hidden />
+            #{leadGen.rank} · {leadGen.leads.toLocaleString()} leads
           </span>
         )}
       </span>

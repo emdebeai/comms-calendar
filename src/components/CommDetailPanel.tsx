@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Check, Pencil } from "lucide-react";
 import { MOMENTS, STAGES } from "../data/journey";
 import { linkedQuestions } from "../data/studentExperience";
+import { leadGenFor } from "../data/leadGen";
 import type { Comm, CommType, FeedbackEntry } from "../data/types";
 import { commDateLabel } from "../lib/scale";
 import { SEGMENT_AXES } from "../lib/segments";
@@ -305,6 +306,28 @@ export function CommDetailPanel({ comm, allComms, entries, onClose, onAdd, onDel
             )}
           </>
         )}
+
+        {/* ── Top lead-gen events: the programme's lead figure as the same
+            big-stat treatment sends get. ── */}
+        {comm.type === "event" &&
+          (() => {
+            const lg = leadGenFor(comm.title);
+            return lg ? (
+              <>
+                <h3 className={`mt-6 border-t border-grey-30 pt-6 text-grey-70 ${EYEBROW}`}>
+                  Performance
+                </h3>
+                <div className="mt-2">
+                  <p className="text-2xl font-semibold text-grey-90">
+                    {lg.leads.toLocaleString()}
+                  </p>
+                  <p className="text-xs text-grey-70">
+                    Leads — #{lg.rank} lead-generating event ({lg.basis})
+                  </p>
+                </div>
+              </>
+            ) : null;
+          })()}
 
         {/* ── Send performance — plain stats, whitespace does the work ── */}
         {comm.type !== "event" && (
