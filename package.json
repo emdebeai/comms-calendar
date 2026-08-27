@@ -30,7 +30,6 @@
     "@types/react-dom": "^19.1.6",
     "@vitejs/plugin-react": "^4.6.0",
     "concurrently": "^9.1.0",
-    "qrcode": "^1.5.4",
     "tailwindcss": "^4.1.11",
     "tsx": "^4.19.2",
     "typescript": "~5.8.3",

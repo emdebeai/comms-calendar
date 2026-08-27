@@ -2,7 +2,6 @@ import { useRef, useState } from "react";
 import { MessageSquarePlus, Trash2 } from "lucide-react";
 import type { FeedbackEntry } from "../data/types";
 import { EYEBROW, FOCUS_RING } from "../lib/styles";
-import { getUser } from "../lib/user";
 
 interface Props {
   entries: FeedbackEntry[];
@@ -80,9 +79,6 @@ export function FeedbackThread({
  *  metric fields (with visible labels) only appear while composing. Pinned
  *  to the bottom of the panel, outside the scroll area. */
 export function FeedbackComposer({ onAdd }: Pick<Props, "onAdd">) {
-  // Signed automatically by the NameGate identity — no per-note name typing.
-  // Falls back to the manual field only if somehow no identity exists.
-  const knownName = getUser()?.firstName ?? "";
   const [author, setAuthor] = useState("");
   const [comment, setComment] = useState("");
   const [metricLabel, setMetricLabel] = useState("");
@@ -111,7 +107,7 @@ export function FeedbackComposer({ onAdd }: Pick<Props, "onAdd">) {
     setError(null);
     try {
       await onAdd({
-        author: knownName || author.trim() || "Anonymous",
+        author: author.trim() || "Anonymous",
         comment: comment.trim(),
         metricLabel: metricLabel.trim() || undefined,
         metricValue: metricValue.trim() || undefined,
@@ -150,26 +146,20 @@ export function FeedbackComposer({ onAdd }: Pick<Props, "onAdd">) {
         />
         {composing && (
           <>
-            {knownName ? (
-              <p className="text-xs text-grey-70">
-                Commenting as <span className="font-semibold text-grey-90">{knownName}</span>
-              </p>
-            ) : (
-              <div className="flex gap-2">
-                <div className="flex min-w-0 flex-1 flex-col gap-1">
-                  <label htmlFor="fb-author" className="text-xs text-grey-70">
-                    Your name (optional)
-                  </label>
-                  <input
-                    id="fb-author"
-                    type="text"
-                    value={author}
-                    onChange={(e) => setAuthor(e.target.value)}
-                    className={INPUT_CLASS}
-                  />
-                </div>
+            <div className="flex gap-2">
+              <div className="flex min-w-0 flex-1 flex-col gap-1">
+                <label htmlFor="fb-author" className="text-xs text-grey-70">
+                  Your name (optional)
+                </label>
+                <input
+                  id="fb-author"
+                  type="text"
+                  value={author}
+                  onChange={(e) => setAuthor(e.target.value)}
+                  className={INPUT_CLASS}
+                />
               </div>
-            )}
+            </div>
             <div className="flex gap-2">
               <div className="flex min-w-0 flex-1 flex-col gap-1">
                 <label htmlFor="fb-metric" className="text-xs text-grey-70">

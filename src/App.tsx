@@ -23,10 +23,6 @@ import { Minimap } from "./components/Minimap";
 import { Landing } from "./components/Landing";
 import { PersonaIntroModal } from "./components/PersonaIntroModal";
 import { HoverTip } from "./components/HoverTip";
-import { NameGate } from "./components/NameGate";
-import { UsersPanel } from "./components/UsersPanel";
-import { EmailSignup } from "./components/EmailSignup";
-import { getUser, logVisit, type MapUser } from "./lib/user";
 import { linkedCommIds } from "./data/studentExperience";
 import type { CommType, FeedbackEntry, Comm } from "./data/types";
 import {
@@ -101,9 +97,6 @@ const SEG_FROM_URL: SegmentSelection = (() => {
   return out;
 })();
 
-// The printed QR opens #/signup — a bare email-capture page, no automation.
-const SIGNUP_MODE = window.location.hash === "#/signup";
-
 // The landing/map split lives in the URL hash so the browser's Back button
 // walks back through the flow (map -> landing) instead of leaving the site,
 // and #/map is shareable. Print mode and deep-linked filter URLs skip the door.
@@ -124,16 +117,6 @@ export default function App() {
   // Presentation mode: hide the floating chrome (docks, minimap, filter
   // pill), leaving one small restore button.
   const [uiHidden, setUiHidden] = useState(false);
-  // Admin-only access-log panel ("who's been in").
-  const [usersOpen, setUsersOpen] = useState(false);
-  // Who is using the map — first name given once after the site password
-  // (NameGate), stored locally + in the app's own store, never sent to any
-  // AI service. Print/export views skip the gate (headless captures must
-  // never block on a dialog).
-  const [mapUser, setMapUser] = useState<MapUser | null>(() => getUser());
-  useEffect(() => {
-    if (mapUser) logVisit(mapUser);
-  }, [mapUser]);
   // Back/forward: follow the hash.
   useEffect(() => {
     const onHash = () =>
@@ -795,17 +778,7 @@ export default function App() {
     };
   }, []);
 
-  // The printed QR's email-capture page — standalone, before anything else.
-  if (SIGNUP_MODE) return <EmailSignup />;
-
-  const needsName = !mapUser && !PRINT_MODE;
-  if (!entered)
-    return (
-      <>
-        <Landing onEnter={enterMap} theme={theme} onToggleTheme={toggleTheme} />
-        {needsName && <NameGate onDone={setMapUser} />}
-      </>
-    );
+  if (!entered) return <Landing onEnter={enterMap} theme={theme} onToggleTheme={toggleTheme} />;
 
   return (
     <div
@@ -1082,7 +1055,6 @@ export default function App() {
         onToggleTheme={toggleTheme}
         isAdmin={isAdmin}
         onToggleAdmin={toggleAdmin}
-        onOpenUsers={() => setUsersOpen(true)}
         onGoHome={goHome}
       />
       )}
@@ -1198,11 +1170,6 @@ export default function App() {
         <StudentStagePanel stageLabel={openStage} onClose={() => setOpenStage(null)} />
       )}
 
-      {/* Admin: who has used the map */}
-      {usersOpen && isAdmin && <UsersPanel onClose={() => setUsersOpen(false)} />}
-
-      {/* Identity gate — first name once, right after the site password. */}
-      {needsName && <NameGate onDone={setMapUser} />}
     </div>
   );
 }
