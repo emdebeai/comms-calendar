@@ -13,12 +13,12 @@ function volumeAt(data: InboundLaneData, m: number): number {
 }
 
 const CAL = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-/** "w/c 19 Jul" for a weekly point, "Jul" for a mid-month one. */
+/** "Week of 19 Jul" for a weekly point, "Jul" for a mid-month one. */
 function pointLabel(month: number, weekly: boolean): string {
   const name = CAL[Math.floor(month) % 12];
   if (!weekly) return name;
   const day = Math.round((month - Math.floor(month)) * 30) + 1;
-  return `w/c ${day} ${name}`;
+  return `Week of ${day} ${name}`;
 }
 
 const TIP_CLASS =
@@ -340,7 +340,7 @@ export function InboundLane({ data }: { data: InboundLaneData }) {
         <table className="sr-only">
           <caption>
             {lane.label} weekly visitors — peak {peak.value.toLocaleString()} in the week of{" "}
-            {pointLabel(peak.month, true).replace("w/c ", "")}
+            {pointLabel(peak.month, true).replace("Week of ", "")}
           </caption>
           <thead>
             <tr>
