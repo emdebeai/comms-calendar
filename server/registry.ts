@@ -69,6 +69,13 @@ export const COLLECTIONS: Record<string, CollectionDef> = {
     itemKey: "commId",
     label: "Detail-panel edits to comms",
   },
+  // Emails captured by the printed QR (#/signup) — a plain interest list the
+  // team exports and emails INDIVIDUALLY, by hand. No automation.
+  signups: {
+    mode: "thread",
+    itemKey: "email",
+    label: "QR email sign-ups",
+  },
   // Who is using the map. One "register" entry when a person first gives
   // their name, then a "visit" entry per session — so access is auditable.
   // The first name lives ONLY here (Redis behind the Vercel API) and in the

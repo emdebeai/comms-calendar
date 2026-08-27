@@ -25,6 +25,7 @@ import { PersonaIntroModal } from "./components/PersonaIntroModal";
 import { HoverTip } from "./components/HoverTip";
 import { NameGate } from "./components/NameGate";
 import { UsersPanel } from "./components/UsersPanel";
+import { EmailSignup } from "./components/EmailSignup";
 import { getUser, logVisit, type MapUser } from "./lib/user";
 import { linkedCommIds } from "./data/studentExperience";
 import type { CommType, FeedbackEntry, Comm } from "./data/types";
@@ -99,6 +100,9 @@ const SEG_FROM_URL: SegmentSelection = (() => {
   }
   return out;
 })();
+
+// The printed QR opens #/signup — a bare email-capture page, no automation.
+const SIGNUP_MODE = window.location.hash === "#/signup";
 
 // The landing/map split lives in the URL hash so the browser's Back button
 // walks back through the flow (map -> landing) instead of leaving the site,
@@ -790,6 +794,9 @@ export default function App() {
       window.removeEventListener("keydown", onKey);
     };
   }, []);
+
+  // The printed QR's email-capture page — standalone, before anything else.
+  if (SIGNUP_MODE) return <EmailSignup />;
 
   const needsName = !mapUser && !PRINT_MODE;
   if (!entered)

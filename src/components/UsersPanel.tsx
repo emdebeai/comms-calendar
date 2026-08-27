@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { UsersRound } from "lucide-react";
-import { EYEBROW } from "../lib/styles";
+import { Check, Copy, Download, UsersRound } from "lucide-react";
+import { EYEBROW, FOCUS_RING } from "../lib/styles";
 import { DetailPanelShell } from "./DetailPanelShell";
 
 interface UserEntry {
@@ -56,6 +56,9 @@ function fmt(iso?: string): string {
 export function UsersPanel({ onClose }: { onClose: () => void }) {
   const [rows, setRows] = useState<UserRow[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // QR sign-ups — the email-capture list, deduped, oldest first.
+  const [signups, setSignups] = useState<{ email: string; at?: string }[] | null>(null);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     let live = true;
@@ -63,10 +66,37 @@ export function UsersPanel({ onClose }: { onClose: () => void }) {
       .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`API returned ${r.status}`))))
       .then((data) => live && setRows(aggregate(data)))
       .catch((e) => live && setError((e as Error).message));
+    fetch("/api/collection/signups")
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((data: Record<string, { email: string; updatedAt?: string }[]>) => {
+        if (!live) return;
+        const list = Object.entries(data)
+          .map(([email, entries]) => ({ email, at: entries[0]?.updatedAt }))
+          .sort((a, b) => (a.at ?? "").localeCompare(b.at ?? ""));
+        setSignups(list);
+      })
+      .catch(() => live && setSignups([]));
     return () => {
       live = false;
     };
   }, []);
+
+  const copyEmails = async () => {
+    if (!signups?.length) return;
+    await navigator.clipboard.writeText(signups.map((s) => s.email).join("\n"));
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  };
+
+  const downloadCsv = () => {
+    if (!signups?.length) return;
+    const csv = "email,signed_up\n" + signups.map((s) => `${s.email},${s.at ?? ""}`).join("\n");
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+    a.download = "map-signups.csv";
+    a.click();
+    URL.revokeObjectURL(a.href);
+  };
 
   return (
     <DetailPanelShell
@@ -77,6 +107,45 @@ export function UsersPanel({ onClose }: { onClose: () => void }) {
       onClose={onClose}
     >
       <div className="flex-1 overflow-y-auto p-6">
+        {/* ── QR sign-ups — export and email these people by hand ── */}
+        {signups && signups.length > 0 && (
+          <div className="mb-7">
+            <div className="flex items-center justify-between gap-3">
+              <p className={`text-grey-70 ${EYEBROW}`}>
+                QR sign-ups · {signups.length}
+              </p>
+              <span className="flex gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => void copyEmails()}
+                  className={`flex items-center gap-1 rounded-md border border-grey-30 px-2 py-1 text-xs font-medium text-grey-80 hover:bg-grey-10 ${FOCUS_RING}`}
+                >
+                  {copied ? <Check size={12} strokeWidth={2} aria-hidden /> : <Copy size={12} strokeWidth={2} aria-hidden />}
+                  {copied ? "Copied" : "Copy emails"}
+                </button>
+                <button
+                  type="button"
+                  onClick={downloadCsv}
+                  className={`flex items-center gap-1 rounded-md border border-grey-30 px-2 py-1 text-xs font-medium text-grey-80 hover:bg-grey-10 ${FOCUS_RING}`}
+                >
+                  <Download size={12} strokeWidth={2} aria-hidden />
+                  CSV
+                </button>
+              </span>
+            </div>
+            <ul className="mt-2 flex flex-col">
+              {signups.map((su) => (
+                <li key={su.email} className="flex items-baseline justify-between gap-3 border-b border-grey-30 py-2 last:border-b-0">
+                  <a href={`mailto:${su.email}`} className={`truncate text-sm text-rmit-blue-interactive hover:underline ${FOCUS_RING} rounded-sm`}>
+                    {su.email}
+                  </a>
+                  <span className="shrink-0 text-xs text-grey-70">{fmt(su.at)}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         {error && <p className="text-sm text-danger">Couldn&rsquo;t load the access log — {error}</p>}
         {!error && rows === null && <p className="text-sm text-grey-70">Loading…</p>}
         {rows && rows.length === 0 && (
