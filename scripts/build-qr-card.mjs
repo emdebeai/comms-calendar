@@ -61,13 +61,13 @@ const html = `<!doctype html><html><head><meta charset="utf-8"><style>
   </div>
   <div class="body">
     <div>
-      <h1>Want the map?</h1>
-      <p class="sub">Scan, leave your RMIT email, and we&rsquo;ll send you the link.</p>
+      <h1>Get early access</h1>
+      <p class="sub">Scan, leave your email, and we&rsquo;ll send you the link and password.</p>
     </div>
     <div class="qr">${qrSvg}</div>
   </div>
   <div class="footer">
-    <span><b>Current State Touchpoints</b> · Prospective student journey · DOM SL</span>
+    <span><b>Current State Touchpoints</b> · cx@rmit.edu.au</span>
     <span>${target.replace("https://", "")}</span>
   </div>
 </body></html>`;
