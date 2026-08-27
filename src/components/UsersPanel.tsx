@@ -7,6 +7,7 @@ interface UserEntry {
   userId: string;
   firstName?: string;
   portfolio?: string;
+  email?: string;
   event?: string;
   updatedAt?: string;
 }
@@ -15,6 +16,7 @@ interface UserRow {
   userId: string;
   firstName: string;
   portfolio?: string;
+  email?: string;
   firstSeen?: string;
   lastSeen?: string;
   visits: number;
@@ -29,6 +31,7 @@ function aggregate(byUser: Record<string, UserEntry[]>): UserRow[] {
       userId,
       firstName: named?.firstName ?? "(no name)",
       portfolio: [...entries].reverse().find((e) => e.portfolio)?.portfolio,
+      email: [...entries].reverse().find((e) => e.email)?.email,
       firstSeen: stamps[0],
       lastSeen: stamps[stamps.length - 1],
       visits: entries.length, // register + one per later session
@@ -96,6 +99,11 @@ export function UsersPanel({ onClose }: { onClose: () => void }) {
                     </span>
                     {u.portfolio && (
                       <span className="block truncate text-xs text-grey-70">{u.portfolio}</span>
+                    )}
+                    {u.email && (
+                      <span className="block truncate text-xs text-rmit-blue-interactive">
+                        {u.email}
+                      </span>
                     )}
                   </span>
                   <span className="shrink-0 text-right">
