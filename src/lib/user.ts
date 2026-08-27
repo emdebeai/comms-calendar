@@ -44,9 +44,7 @@ async function post(entry: Record<string, string>): Promise<void> {
   }
 }
 
-/** First-run registration: mint an opaque id, persist locally, log remotely.
- *  When this device holds a QR-invite pass, its email joins the register
- *  entry so the access log ties the browser to a real address. */
+/** First-run registration: mint an opaque id, persist locally, log remotely. */
 export async function registerUser(firstName: string, portfolio: string): Promise<MapUser> {
   const user: MapUser = {
     userId: crypto.randomUUID(),
@@ -55,17 +53,8 @@ export async function registerUser(firstName: string, portfolio: string): Promis
   };
   localStorage.setItem(KEY, JSON.stringify(user));
   sessionStorage.setItem(SESSION_FLAG, "1");
-  await post({ ...user, ...inviteEmail(), event: "register" });
+  await post({ ...user, event: "register" });
   return user;
-}
-
-function inviteEmail(): Record<string, string> {
-  try {
-    const pass = JSON.parse(localStorage.getItem("cc-invite-pass") ?? "null");
-    return pass?.email ? { email: pass.email } : {};
-  } catch {
-    return {};
-  }
 }
 
 /** Once per browser session, log that this known user opened the map. */
