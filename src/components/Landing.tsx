@@ -268,14 +268,9 @@ function Home({ onEnter, setPage }: { onEnter: () => void; setPage: (p: Page) =>
               </button>
             ) : (
               <div key={p.code} className={`${CARD} opacity-60`} aria-disabled="true">
-                <div className="flex items-center gap-2">
-                  <span className="inline-block rounded-md bg-grey-20 px-2 py-0.5 text-xs font-semibold uppercase tracking-widest text-grey-70">
-                    {p.code}
-                  </span>
-                  <span className="rounded-full bg-grey-10 px-2 py-0.5 text-xs text-grey-60">
-                    Planned
-                  </span>
-                </div>
+                <span className="inline-block rounded-md bg-grey-20 px-2 py-0.5 text-xs font-semibold uppercase tracking-widest text-grey-70">
+                  {p.code}
+                </span>
                 <p className="mt-3 text-base font-semibold text-grey-80">{p.name}</p>
                 <p className="mt-1 text-sm text-grey-60">{p.blurb}</p>
               </div>
