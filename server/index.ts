@@ -13,6 +13,7 @@ import {
 import { isGraphConfigured } from "./graph.js";
 import { isRedisConfigured } from "./redis.js";
 import { COLLECTIONS, DATASETS } from "./registry.js";
+import { createInvite, EMAIL_SENDING_LIVE, redeemInvite, sendInviteEmail, validInviteEmail } from "./invites.js";
 import { appendToCollection, readCollection, readDataset } from "./stores.js";
 import { COMMS_COLUMNS } from "../src/lib/commsSchema.js";
 
@@ -200,6 +201,31 @@ app.get("/api/export-pdf", async (req, res) => {
   } catch (err) {
     console.error("[pdf] export failed:", err);
     res.status(500).json({ error: String(err instanceof Error ? err.message : err) });
+  }
+});
+
+// QR invite flow — mirrors api/invite.ts for local dev.
+app.post("/api/invite", async (req, res) => {
+  const body = (req.body ?? {}) as { action?: string; email?: string; token?: string };
+  try {
+    if (body.action === "request") {
+      const email = (body.email ?? "").trim().toLowerCase();
+      if (!validInviteEmail(email))
+        return void res.status(400).json({ error: "Enter your RMIT email address" });
+      const token = await createInvite(email);
+      const link = `http://localhost:5173/?invite=${token}`;
+      const sent = await sendInviteEmail(email, link);
+      return void res.status(200).json(EMAIL_SENDING_LIVE ? { sent } : { sent, link, stub: true });
+    }
+    if (body.action === "redeem") {
+      const record = await redeemInvite(body.token ?? "");
+      if (!record)
+        return void res.status(410).json({ error: "This invite has been used or has expired" });
+      return void res.status(200).json({ ok: true, email: record.email });
+    }
+    res.status(400).json({ error: "Unknown action" });
+  } catch (err) {
+    res.status(500).json({ error: (err as Error).message });
   }
 });
 

@@ -25,6 +25,8 @@ import { PersonaIntroModal } from "./components/PersonaIntroModal";
 import { HoverTip } from "./components/HoverTip";
 import { NameGate } from "./components/NameGate";
 import { UsersPanel } from "./components/UsersPanel";
+import { RequestAccess } from "./components/RequestAccess";
+import { redeemInviteToken } from "./lib/invite";
 import { getUser, logVisit, type MapUser } from "./lib/user";
 import { linkedCommIds } from "./data/studentExperience";
 import type { CommType, FeedbackEntry, Comm } from "./data/types";
@@ -100,6 +102,11 @@ const SEG_FROM_URL: SegmentSelection = (() => {
   return out;
 })();
 
+// The printed QR opens #/request; a ?invite=TOKEN in the query is a one-time
+// link from that flow, redeemed (and burned) on load.
+const REQUEST_MODE = window.location.hash === "#/request";
+const INVITE_TOKEN = new URLSearchParams(window.location.search).get("invite");
+
 // The landing/map split lives in the URL hash so the browser's Back button
 // walks back through the flow (map -> landing) instead of leaving the site,
 // and #/map is shareable. Print mode and deep-linked filter URLs skip the door.
@@ -122,6 +129,28 @@ export default function App() {
   const [uiHidden, setUiHidden] = useState(false);
   // Admin-only access-log panel ("who's been in").
   const [usersOpen, setUsersOpen] = useState(false);
+  // ?invite= redemption: burn the token, hold the device pass, clean the URL.
+  const [inviteState, setInviteState] = useState<"idle" | "redeeming" | "failed">(
+    INVITE_TOKEN ? "redeeming" : "idle",
+  );
+  const [inviteError, setInviteError] = useState<string | null>(null);
+  useEffect(() => {
+    if (!INVITE_TOKEN) return;
+    redeemInviteToken(INVITE_TOKEN)
+      .then(() => {
+        // Drop the burned token from the URL (and the address bar history).
+        const url = new URL(window.location.href);
+        url.searchParams.delete("invite");
+        window.history.replaceState(null, "", url.pathname + url.search + "#/map");
+        setInviteState("idle");
+        setEntered(true);
+      })
+      .catch((e) => {
+        setInviteError((e as Error).message);
+        setInviteState("failed");
+      });
+  }, []);
+
   // Who is using the map — first name given once after the site password
   // (NameGate), stored locally + in the app's own store, never sent to any
   // AI service. Print/export views skip the gate (headless captures must
@@ -790,6 +819,29 @@ export default function App() {
       window.removeEventListener("keydown", onKey);
     };
   }, []);
+
+  // The printed QR's request page — standalone, before anything else.
+  if (REQUEST_MODE) return <RequestAccess />;
+
+  // A one-time link being redeemed (or having failed) replaces the app until
+  // resolved — a burned/expired token gets a clear dead end, not a broken map.
+  if (inviteState === "redeeming")
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-surface font-sans text-sm text-grey-70">
+        Checking your invite…
+      </div>
+    );
+  if (inviteState === "failed")
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-surface p-6 font-sans">
+        <div className="w-full max-w-sm rounded-lg border border-grey-30 bg-card p-6 text-center shadow-lg">
+          <p className="text-base font-semibold text-grey-90">{inviteError}</p>
+          <p className="mt-2 text-sm text-grey-70">
+            Scan the QR code again to request a fresh link.
+          </p>
+        </div>
+      </div>
+    );
 
   const needsName = !mapUser && !PRINT_MODE;
   if (!entered)
