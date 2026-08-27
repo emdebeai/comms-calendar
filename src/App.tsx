@@ -24,6 +24,7 @@ import { Landing } from "./components/Landing";
 import { PersonaIntroModal } from "./components/PersonaIntroModal";
 import { HoverTip } from "./components/HoverTip";
 import { NameGate } from "./components/NameGate";
+import { UsersPanel } from "./components/UsersPanel";
 import { getUser, logVisit, type MapUser } from "./lib/user";
 import { linkedCommIds } from "./data/studentExperience";
 import type { CommType, FeedbackEntry, Comm } from "./data/types";
@@ -119,6 +120,8 @@ export default function App() {
   // Presentation mode: hide the floating chrome (docks, minimap, filter
   // pill), leaving one small restore button.
   const [uiHidden, setUiHidden] = useState(false);
+  // Admin-only access-log panel ("who's been in").
+  const [usersOpen, setUsersOpen] = useState(false);
   // Who is using the map — first name given once after the site password
   // (NameGate), stored locally + in the app's own store, never sent to any
   // AI service. Print/export views skip the gate (headless captures must
@@ -1072,6 +1075,7 @@ export default function App() {
         onToggleTheme={toggleTheme}
         isAdmin={isAdmin}
         onToggleAdmin={toggleAdmin}
+        onOpenUsers={() => setUsersOpen(true)}
         onGoHome={goHome}
       />
       )}
@@ -1186,6 +1190,9 @@ export default function App() {
       {openStage && (
         <StudentStagePanel stageLabel={openStage} onClose={() => setOpenStage(null)} />
       )}
+
+      {/* Admin: who has used the map */}
+      {usersOpen && isAdmin && <UsersPanel onClose={() => setUsersOpen(false)} />}
 
       {/* Identity gate — first name once, right after the site password. */}
       {needsName && <NameGate onDone={setMapUser} />}

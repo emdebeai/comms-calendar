@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { EyeOff, FileDown, Home, Info, Link2, MoreHorizontal, Moon, Rows3, Shield, ShieldCheck, Sun } from "lucide-react";
+import { EyeOff, FileDown, Home, Info, Link2, MoreHorizontal, Moon, Rows3, Shield, ShieldCheck, Sun, UsersRound } from "lucide-react";
 import type { CommType } from "../data/types";
 import { FOCUS_RING } from "../lib/styles";
 import { HoverTip } from "./HoverTip";
@@ -23,6 +23,8 @@ interface Props {
   onGoHome: () => void;
   /** hide the floating chrome (presentation mode) */
   onHideUi: () => void;
+  /** admin only — open the "who's been in" access log */
+  onOpenUsers: () => void;
 }
 
 /** Sleek floating control dock — pinned bottom-centre, frosted, always in
@@ -44,6 +46,7 @@ export function ControlDock({
   onToggleAdmin,
   onGoHome,
   onHideUi,
+  onOpenUsers,
 }: Props) {
   const allActive = activeTypes.size === ALL_TYPES.length;
   const [legendOpen, setLegendOpen] = useState(false);
@@ -304,6 +307,19 @@ export function ControlDock({
                 )}
                 {isAdmin ? "Admin: unlocked" : "Admin"}
               </button>
+              {isAdmin && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onOpenUsers();
+                    setMoreOpen(false);
+                  }}
+                  className={`flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-left text-sm text-grey-90 hover:bg-grey-10 ${FOCUS_RING}`}
+                >
+                  <UsersRound size={15} strokeWidth={2} aria-hidden className="text-grey-70" />
+                  Who&rsquo;s been in
+                </button>
+              )}
               <button
                 type="button"
                 onClick={() => {
