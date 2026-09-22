@@ -68,42 +68,59 @@ const esc = (s: string) =>
 
 const FOCUS = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rmit-blue-interactive";
 
-/** Access as a small status pill — the one thing to scan for on this page. */
-function accessPill(a: string): string {
+/** Access as a muted dot + word — scannable without shouting. */
+function access(a: string): string {
   const on = /^yes/i.test(a);
-  const via = /^via/i.test(a);
-  const req = /^requested/i.test(a);
-  const tone = on
-    ? "bg-tint-green text-grey-90"
-    : via || req
-      ? "bg-tint-blue text-rmit-blue"
-      : "bg-tint-red text-grey-90";
-  const label = a || "No source yet";
-  return `<span class="rounded-full px-2 py-0.5 text-xs font-medium ${tone}">${esc(label)}</span>`;
+  const via = /^via|^requested/i.test(a);
+  const dot = on ? "bg-success" : via ? "bg-rmit-blue-interactive" : "bg-danger";
+  return `<span class="inline-flex items-center gap-1.5"><span class="size-1.5 rounded-full ${dot}" aria-hidden></span>${esc(a || "No source yet")}</span>`;
 }
 
-function card(m: Metric): string {
-  const bench = m.benchmark
-    ? `<span class="font-semibold text-grey-90">${esc(m.benchmark)}</span>${m.level ? ` <span class="text-grey-60">· ${esc(m.level)}</span>` : ""}`
-    : m.level === "n/a"
-      ? `<span class="text-grey-60">Not a benchmarked metric</span>`
-      : `<span class="text-grey-60">No benchmark yet</span>`;
-  const row = (label: string, value: string) =>
-    value ? `<div class="flex gap-3 text-sm"><dt class="w-20 shrink-0 text-grey-60">${label}</dt><dd class="text-grey-80">${value}</dd></div>` : "";
-  return `<article class="rounded-lg border border-grey-30 bg-card p-4">
-      <div class="flex items-start justify-between gap-3">
-        <h3 class="text-base font-semibold text-grey-90">${esc(m.metric || "Metrics not yet defined")}${m.unit ? ` <span class="text-sm font-normal text-grey-60">${esc(m.unit)}</span>` : ""}</h3>
-        ${accessPill(m.access)}
+/** The usual value for a group — shown once in the header; rows only say
+ *  where they differ from it. */
+function shared(ms: Metric[]): { system: string; owner: string; access: string; joinKey: string } {
+  const most = (k: keyof Metric) => {
+    const counts = new Map<string, number>();
+    for (const m of ms) if (m[k]) counts.set(m[k], (counts.get(m[k]) ?? 0) + 1);
+    const top = [...counts].sort((a, b) => b[1] - a[1])[0];
+    return top && top[1] > ms.length / 2 ? top[0] : "";
+  };
+  return { system: most("system"), owner: most("owner"), access: most("access"), joinKey: most("joinKey") };
+}
+
+function row(m: Metric, common: ReturnType<typeof shared>): string {
+  const meta = [
+    m.system !== common.system && m.system && esc(m.system),
+    m.owner !== common.owner && m.owner && esc(m.owner),
+    m.access !== common.access && m.access && access(m.access),
+    m.joinKey !== common.joinKey && m.joinKey && `<code class="rounded bg-grey-10 px-1">${esc(m.joinKey)}</code>`,
+    m.benchmark && `Benchmark ${esc(m.benchmark)}${m.level ? ` (${esc(m.level.toLowerCase())})` : ""}`,
+  ].filter(Boolean) as string[];
+  return `<li class="grid gap-x-6 gap-y-1 py-3 sm:grid-cols-[14rem_1fr]">
+      <div class="text-sm font-semibold text-grey-90">${esc(m.metric || "Not yet defined")}${m.unit ? ` <span class="font-normal text-grey-60">${esc(m.unit)}</span>` : ""}</div>
+      <div>
+        <p class="text-sm text-grey-80">${esc(m.definition)}</p>
+        ${meta.length ? `<p class="mt-0.5 text-xs text-grey-60">${meta.join(" · ")}</p>` : ""}
+        ${m.notes ? `<p class="mt-0.5 text-xs text-grey-60">${esc(m.notes)}</p>` : ""}
       </div>
-      ${m.definition ? `<p class="mt-1 text-sm text-grey-80">${esc(m.definition)}</p>` : ""}
-      <dl class="mt-3 flex flex-col gap-1 border-t border-grey-30 pt-3">
-        ${row("Benchmark", bench)}
-        ${row("Source", m.system ? esc(m.system) : `<span class="text-grey-60">Unknown</span>`)}
-        ${row("Owner", m.owner ? esc(m.owner) : `<span class="text-grey-60">Not yet identified</span>`)}
-        ${row("Join key", m.joinKey ? `<code class="rounded bg-grey-10 px-1 text-xs">${esc(m.joinKey)}</code>` : "")}
-        ${row("Notes", m.notes ? esc(m.notes) : "")}
-      </dl>
-    </article>`;
+    </li>`;
+}
+
+function section(type: string, ms: Metric[]): string {
+  const common = shared(ms);
+  const line = [
+    common.system ? esc(common.system) : "",
+    common.owner ? esc(common.owner) : "",
+    common.access ? access(common.access) : "",
+    common.joinKey ? `<code class="rounded bg-grey-10 px-1">${esc(common.joinKey)}</code>` : "",
+  ].filter(Boolean).join(" · ");
+  return `<section class="mt-8">
+      <div class="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 border-b border-grey-30 pb-2">
+        <h2 class="text-base font-semibold text-grey-90">${esc(type)}</h2>
+        ${line ? `<p class="text-xs text-grey-60">${line}</p>` : ""}
+      </div>
+      <ul class="divide-y divide-grey-30">${ms.map((m) => row(m, common)).join("")}</ul>
+    </section>`;
 }
 
 function render() {
@@ -124,7 +141,7 @@ function render() {
   const chip = (label: string, value: string, on: boolean, n: number) =>
     `<button type="button" data-type="${esc(value)}" aria-pressed="${on}"
         class="rounded-full border px-3 py-1.5 text-sm transition-colors ${FOCUS} ${
-          on ? "border-rmit-blue-interactive bg-rmit-blue-interactive text-on-accent" : "border-grey-30 bg-card text-grey-80 hover:bg-grey-10"
+          on ? "border-grey-90 bg-grey-90 text-on-accent" : "border-grey-30 bg-card text-grey-80 hover:bg-grey-10"
         }">${esc(label)} <span class="${on ? "text-on-accent/70" : "text-grey-60"}">${n}</span></button>`;
   const chips = [chip("All", "", type === "", inTeam.length)]
     .concat(types.map((t) => chip(t, t, type === t, inTeam.filter((m) => m.type === t).length)))
@@ -134,7 +151,7 @@ function render() {
   const groups = type ? [type] : types;
 
   document.getElementById("app")!.innerHTML = `
-    <div class="mx-auto max-w-6xl px-5 pt-10 pb-24">
+    <div class="mx-auto max-w-4xl px-5 pt-10 pb-24">
       <h1 class="text-3xl font-bold text-rmit-blue">Metrics Catalogue</h1>
       <p class="mt-2 max-w-3xl text-grey-80">Every metric per touchpoint type for the Change of Preference pilot — where it lives and whether we can get it.</p>
 
@@ -148,15 +165,7 @@ function render() {
         ${noSource ? `· <b class="text-grey-90">${noSource}</b> with no known source` : ""}
       </p>
 
-      ${groups
-        .map((g) => {
-          const ms = shown.filter((m) => m.type === g);
-          return `<section class="mt-6">
-            <h2 class="text-xs font-semibold tracking-widest text-grey-70 uppercase">${esc(g)}</h2>
-            <div class="mt-2 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">${ms.map(card).join("")}</div>
-          </section>`;
-        })
-        .join("")}
+      ${groups.map((g) => section(g, shown.filter((m) => m.type === g))).join("")}
 
       <footer class="mt-10 border-t border-grey-30 pt-4 text-xs text-grey-60">
         Source: <code>data/metrics-catalogue.csv</code>. Edit the CSV to change what&rsquo;s here.
