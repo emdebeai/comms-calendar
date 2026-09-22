@@ -69,6 +69,14 @@ export const COLLECTIONS: Record<string, CollectionDef> = {
     itemKey: "commId",
     label: "Detail-panel edits to comms",
   },
+  // Edits to the metrics catalogue made on /metrics (add / change / confirm /
+  // remove a metric). Definitions and sources only — never figures. Folded
+  // back into data/metrics-catalogue.csv by scripts/apply-metrics-catalogue.mjs.
+  "metrics-catalogue": {
+    mode: "latest",
+    itemKey: "metricId",
+    label: "Metrics catalogue edits",
+  },
 };
 
 const NS = "comms-calendar";
