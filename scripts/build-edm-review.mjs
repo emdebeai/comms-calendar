@@ -73,7 +73,8 @@ for (const r of csv.slice(1)) {
     year: { "10": "Year 10", "11": "Year 11", "12": "Year 12", Post: "Post-school" }[sy] ?? sy,
     campaign: col(r, "campaign"), title,
     audience: col(r, "audience"), theme: col(r, "theme"),
-    ctaPrimary: col(r, "cta"),
+    marketoId: col(r, "marketo_id"),
+    ctaPrimary: col(r, "primary_cta"),
     ctaSecondary: col(r, "secondary_cta"),
     ctaTertiary: col(r, "tertiary_cta"),
   });

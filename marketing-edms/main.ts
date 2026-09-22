@@ -14,12 +14,12 @@ import snapshot from "./data.json";
 interface Row {
   id: string; date: string; year: string; campaign: string; title: string;
   audience: string; theme: string; stage: string; q: string; qstage: string;
-  ctaPrimary: string; ctaSecondary: string; ctaTertiary: string;
+  marketoId: string; ctaPrimary: string; ctaSecondary: string; ctaTertiary: string;
 }
 interface Answer {
   commId: string; verdict: string; question?: string; notes?: string;
-  ctaPrimary?: string; ctaSecondary?: string; ctaTertiary?: string;
-  reviewer?: string; updatedAt: string;
+  marketoId?: string; ctaPrimary?: string; ctaSecondary?: string; ctaTertiary?: string;
+  updatedAt: string;
 }
 
 // Swapped out wholesale if the live dataset loads — hence `let`, not `const`.
@@ -41,7 +41,6 @@ const OTHER = "__other__";   // something not on the map yet — free text
 const UNSURE = "__unsure__"; // reviewer isn't sure yet
 
 const answers = new Map<string, Answer>();
-let reviewer = localStorage.getItem("edm-review-reviewer") ?? "";
 let filter: "all" | "todo" | "done" = "all";
 // Rendered as part of the page (not poked into the DOM) so it survives the
 // re-render that follows every answer.
@@ -127,6 +126,12 @@ function row(r: Row): string {
         <span class="text-sm font-semibold text-grey-90">${esc(r.title)}</span>
         <span class="mt-0.5 block text-xs text-grey-70">${esc(r.audience)}</span>
       </td>
+      <td class="${TD} w-44 min-w-40">
+        <input type="text" data-field="marketoId" aria-label="Marketo ID for ${esc(r.title)}"
+          value="${esc(a?.marketoId ?? r.marketoId)}" placeholder="Enter Marketo ID"
+          autocomplete="off" spellcheck="false" class="${CTRL} font-mono">
+        ${r.marketoId ? `<p class="mt-1 text-xs text-grey-60">Confirm or correct</p>` : ""}
+      </td>
       <td class="${TD} whitespace-nowrap">
         <span class="rounded-full bg-grey-20 px-2 py-0.5 text-xs text-grey-70">${esc(r.campaign)}</span>
         <span class="mt-1 block rounded-full bg-tint-blue px-2 py-0.5 text-center text-xs text-rmit-blue">${esc(r.stage)}</span>
@@ -172,6 +177,7 @@ function render() {
           <li>The question we picked is already selected. If it looks right, tick the box.</li>
           <li>If it looks wrong, choose a different one. The list is grouped by journey stage.</li>
           <li>You can also choose &lsquo;Doesn&rsquo;t answer a student question&rsquo; or &lsquo;Other&rsquo;.</li>
+          <li>Check the Marketo ID for each send, or enter it if it&rsquo;s blank. It&rsquo;s how metrics get matched to the send later.</li>
           <li>Skip anything you&rsquo;re not sure about. Answers save as you go.</li>
         </ul>
       </div>
@@ -187,10 +193,6 @@ function render() {
             </div>
           </div>
           <div class="flex flex-wrap items-center gap-3">
-            <label class="flex items-center gap-2 text-sm text-grey-70">Reviewed by
-              <input id="reviewer" type="text" value="${esc(reviewer)}" placeholder="Your name (optional)"
-                autocomplete="off" class="${CTRL} w-44">
-            </label>
             <span id="status" class="text-xs text-grey-60">All changes saved</span>
             <div class="flex gap-1 rounded-full border border-grey-30 bg-grey-20 p-1" role="group" aria-label="Filter sends">
               ${(["all", "todo", "done"] as const)
@@ -211,6 +213,7 @@ function render() {
               <th class="${TH} w-10 text-center">✓</th>
               <th class="${TH}">Send</th>
               <th class="${TH}">eDM</th>
+              <th class="${TH}">Marketo ID</th>
               <th class="${TH}">Campaign / stage</th>
               <th class="${TH}">Question it answers</th>
               <th class="${TH}">CTAs (1st / 2nd / 3rd)</th>
@@ -263,7 +266,7 @@ async function save(commId: string) {
     const res = await fetch("/api/edm-review", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...a, reviewer }),
+      body: JSON.stringify(a),
     });
     if (!res.ok) {
       const body = (await res.json().catch(() => null)) as { error?: string } | null;
@@ -318,15 +321,11 @@ document.addEventListener("change", (ev) => {
 
 document.addEventListener("input", (ev) => {
   const el = ev.target as HTMLInputElement;
-  if (el.id === "reviewer") {
-    reviewer = el.value;
-    localStorage.setItem("edm-review-reviewer", reviewer);
-    return;
-  }
   const tr = el.closest<HTMLTableRowElement>("tr[data-id]");
   if (!tr) return;
   if (el.dataset.field === "notes") update(tr.dataset.id!, { notes: el.value }, 1200);
   if (el.dataset.field === "other") update(tr.dataset.id!, { verdict: "wrong", question: el.value }, 1200);
+  if (el.dataset.field === "marketoId") update(tr.dataset.id!, { marketoId: el.value.trim() }, 1200);
   if (el.dataset.field === "ctaPrimary") update(tr.dataset.id!, { ctaPrimary: el.value }, 1200);
   if (el.dataset.field === "ctaSecondary") update(tr.dataset.id!, { ctaSecondary: el.value }, 1200);
   if (el.dataset.field === "ctaTertiary") update(tr.dataset.id!, { ctaTertiary: el.value }, 1200);

@@ -4,9 +4,9 @@
 //   1. src/data/studentExperience.ts  — QUESTION_LINKS (which comm answers
 //      which student question). Baseline = the current links; the review
 //      supplies the diffs.
-//   2. data/comms/marketing.csv — each reviewed send's cta /
-//      secondary_cta / tertiary_cta columns (Primary / Secondary /
-//      Tertiary CTA from the review).
+//   2. data/comms/marketing.csv — each reviewed send's marketo_id and
+//      primary_cta / secondary_cta / tertiary_cta columns (the Marketo ID
+//      and Primary / Secondary / Tertiary CTA from the review).
 //
 // It never writes silently: it prints exactly what changed, and it leaves
 // three things for a human — "Not sure" answers, "Other" free-text questions
@@ -223,7 +223,8 @@ writeFileSync(resolve(root, "src/data/studentExperience.ts"), se.slice(0, linkSt
 // ── write CTAs into comms.csv ─────────────────────────────────────────────
 let ctaWrites = 0;
 const CTA_COLS = {
-  ctaPrimary: ci("cta"),
+  marketoId: ci("marketo_id"),
+  ctaPrimary: ci("primary_cta"),
   ctaSecondary: ci("secondary_cta"),
   ctaTertiary: ci("tertiary_cta"),
 };
@@ -250,7 +251,7 @@ if (ctaWrites) {
 const total = Object.keys(answers).length;
 console.log(`\nApplied ${total} answers:`);
 console.log(`  ${confirmed} confirmed as-is | ${reassigned} reassigned | ${unassigned} unassigned`);
-console.log(`  ${ctaWrites} sends had CTA text written to comms.csv`);
+console.log(`  ${ctaWrites} sends had Marketo ID / CTA text written to marketing.csv`);
 console.log(`  QUESTION_LINKS rebuilt: ${ordered.length} question groups`);
 if (flags.unsure.length)
   console.log(`\n  ${WARN} ${flags.unsure.length} "Not sure" left unchanged for you to decide:\n     ${flags.unsure.join(", ")}`);
