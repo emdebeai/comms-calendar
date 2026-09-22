@@ -1,5 +1,15 @@
 # Quick Facts — Project Context
 
+# Data handling — no real data through AI (hard rule)
+
+**No real business data is ever to be processed by AI.** That includes metrics, benchmarks, performance figures, campaign results, enquiry volumes, CSAT, preference data, and anything else business-sensitive — from any team or system (CJA, MCAP, Marketo, DAP/Salesforce, Genesys, Qualtrics, exports, spreadsheets).
+
+- Teams fill in their own **local spreadsheets/files**. Those files are never read, summarised, pasted into a prompt, or committed by Claude.
+- Claude works only with **structure and dummy data**: column definitions, schemas, metric *names and definitions*, placeholder values that are obviously fake.
+- If a file or message contains real figures, **stop and say so** rather than processing it. Do not "just this once".
+- The map's committed data (`data/`) may hold structure and published/agreed placeholder content only. Real metrics are loaded by the team, locally, at their end.
+- This also applies to personal information — no names, emails or identifiers of staff or students (see git history: all identity capture was removed on purpose).
+
 # Design system — RMIT Design System (consult before designing UI)
 
 The canonical design system lives at **https://rmit-design-system-styleguide.vercel.app**.
