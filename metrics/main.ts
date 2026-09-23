@@ -355,7 +355,13 @@ fetch("/api/collection/metrics-catalogue")
     return res.json() as Promise<Record<string, Metric>>;
   })
   .then((saved) => {
-    for (const [id, m] of Object.entries(saved)) edits.set(id, { ...m, metricId: id });
+    // Overrides for rows the CSV no longer has (renamed, removed) are stale —
+    // only rows added on this page ("new.…") stand on their own.
+    const base = new Set(BASE.map((m) => m.metricId));
+    for (const [id, m] of Object.entries(saved)) {
+      if (!base.has(id) && !id.startsWith("new.")) continue;
+      edits.set(id, { ...m, metricId: id });
+    }
     render();
   })
   .catch((err: Error) => {
