@@ -340,31 +340,47 @@ export function CommDetailPanel({ comm, allComms, entries, onClose, onAdd, onDel
         {campaign && (
           <>
             <h3 className={`mt-6 border-t border-grey-30 pt-6 text-grey-70 ${EYEBROW}`}>Performance</h3>
-            {values.length ? (
-              <ul className="mt-2 divide-y divide-grey-30">
-                {values.map((v) => {
-                  const cmp = compare(v);
-                  const Arrow = cmp === "above" ? ArrowUpRight : cmp === "below" ? ArrowDownRight : Minus;
-                  const tone = cmp === "above" ? "text-success" : cmp === "below" ? "text-danger" : "text-grey-60";
-                  return (
-                    <li key={v.metric} className="flex items-baseline justify-between gap-3 py-1.5">
-                      <span className="text-sm text-grey-80">{v.metric}</span>
-                      <span className="flex items-baseline gap-2">
-                        <span className="text-base font-semibold text-grey-90">{v.value}</span>
-                        {v.benchmark ? (
-                          <span className={`flex items-center gap-0.5 text-xs ${tone}`}>
-                            <Arrow size={12} strokeWidth={2} aria-hidden />
-                            {v.benchmark}
-                          </span>
-                        ) : (
-                          <span className="text-xs text-grey-60 italic">no benchmark</span>
-                        )}
-                      </span>
-                    </li>
-                  );
-                })}
-              </ul>
-            ) : (
+            {values.length ? (() => {
+              const row = (v: (typeof values)[number]) => {
+                const cmp = compare(v);
+                const Arrow = cmp === "above" ? ArrowUpRight : cmp === "below" ? ArrowDownRight : Minus;
+                const tone = cmp === "above" ? "text-success" : cmp === "below" ? "text-danger" : "text-grey-60";
+                return (
+                  <li key={(v.cta ?? "") + v.metric} className="flex items-baseline justify-between gap-3 py-1.5">
+                    <span className="text-sm text-grey-80">{v.metric.replace(/^Link — /, "")}</span>
+                    <span className="flex items-baseline gap-2">
+                      <span className="text-base font-semibold text-grey-90">{v.value}</span>
+                      {v.benchmark ? (
+                        <span className={`flex items-center gap-0.5 text-xs ${tone}`}>
+                          <Arrow size={12} strokeWidth={2} aria-hidden />
+                          {v.benchmark}
+                        </span>
+                      ) : (
+                        <span className="text-xs text-grey-60 italic">no benchmark</span>
+                      )}
+                    </span>
+                  </li>
+                );
+              };
+              const sendLevel = values.filter((v) => !v.cta);
+              // Link metrics belong to ONE CTA of THIS send — nested under it.
+              const links = (["primary", "secondary", "tertiary"] as const)
+                .map((k) => ({ k, label: k === "primary" ? comm.cta : k === "secondary" ? comm.secondaryCta : comm.tertiaryCta, vals: values.filter((v) => v.cta === k) }))
+                .filter((l) => l.vals.length);
+              return (
+                <>
+                  <ul className="mt-2 divide-y divide-grey-30">{sendLevel.map(row)}</ul>
+                  {links.map((l) => (
+                    <div key={l.k} className="mt-3 border-l-2 border-grey-30 pl-3">
+                      <p className="text-xs text-grey-70">
+                        {l.k.charAt(0).toUpperCase() + l.k.slice(1)} CTA{l.label ? <> · <span className="text-grey-90">{l.label}</span></> : null}
+                      </p>
+                      <ul className="divide-y divide-grey-30">{l.vals.map(row)}</ul>
+                    </div>
+                  ))}
+                </>
+              );
+            })() : (
               <p className="mt-2 text-sm text-grey-70 italic">Not measured — no metrics loaded.</p>
             )}
             {VALUES_ARE_DUMMY && values.length > 0 && (

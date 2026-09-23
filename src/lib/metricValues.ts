@@ -6,6 +6,8 @@ import raw from "../../data/dummy/metric-values.csv?raw";
 import { parseCsvRows } from "./csv";
 
 export interface MetricValue {
+  /** which link in the send this belongs to; blank = the send as a whole */
+  cta?: "primary" | "secondary" | "tertiary";
   metric: string;
   value: string;
   benchmark?: string;
@@ -19,7 +21,9 @@ for (const r of parseCsvRows(raw)) {
   const id = r.comm_id?.trim();
   if (!id) continue;
   const list = byComm.get(id) ?? [];
+  const cta = r.cta?.trim().toLowerCase();
   list.push({
+    cta: cta === "primary" || cta === "secondary" || cta === "tertiary" ? cta : undefined,
     metric: r.metric?.trim() ?? "",
     value: r.value?.trim() ?? "",
     benchmark: r.benchmark?.trim() || undefined,

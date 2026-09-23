@@ -1,33 +1,40 @@
-comm_id,metric,value,benchmark,period
-explore-a-future-with-rmit,Open rate,42%,38%,COP 2025
-explore-a-future-with-rmit,Click-to-open rate,11%,14%,COP 2025
-explore-a-future-with-rmit,People (clicked link),120,,COP 2025
-preference-rmit-first-guaranteed-pathway,Open rate,47%,38%,COP 2025
-preference-rmit-first-guaranteed-pathway,Click-to-open rate,16%,14%,COP 2025
-cop-explained,Open rate,35%,38%,COP 2025
-cop-explained,Click-to-open rate,9%,14%,COP 2025
-thanks-for-preferencing-rmit,Open rate,55%,38%,COP 2025
-change-of-preference-closes-today,Open rate,31%,38%,COP 2025
-change-of-preference-page,Page views,10000,,COP 2025
-change-of-preference-page,Sessions,7000,,COP 2025
-change-of-preference-page,People,5000,,COP 2025
-change-of-preference-page,Time spent per session,1:30,,COP 2025
-change-of-preference-page,Bounce rate,45%,40%,COP 2025
-change-of-preference-q-a,Registrations,200,,COP 2025
-change-of-preference-page,Traffic rank,#2 of 10,,COP 2025 · school leaver
-your-guide-to-vtac-and-rmit-terms,Traffic rank,#6 of 10,,COP 2025 · school leaver
-your-guide-to-vtac-and-rmit-terms,Page views,3000,,COP 2025
-your-guide-to-vtac-and-rmit-terms,Bounce rate,60%,40%,COP 2025
-pathways-into-rmit,Traffic rank,#4 of 10,,COP 2025 · school leaver
-pathways-into-rmit,Page views,5000,,COP 2025
-pathways-into-rmit,Bounce rate,38%,40%,COP 2025
-find-a-course-by-atar,Traffic rank,#1 of 10,,COP 2025 · school leaver
-find-a-course-by-atar,Page views,20000,,COP 2025
-find-a-course-by-atar,Sessions,12000,,COP 2025
-find-a-course-by-atar,Bounce rate,30%,40%,COP 2025
-equity-access-schemes,Traffic rank,#9 of 10,,COP 2025 · school leaver
-equity-access-schemes,Page views,1000,,COP 2025
-contact-study-rmit,Traffic rank,#7 of 10,,COP 2025 · school leaver
-contact-study-rmit,Page views,2000,,COP 2025
-contact-study-rmit,Form starts,300,,COP 2025
-contact-study-rmit,Form submits,150,,COP 2025
+comm_id,cta,metric,value,benchmark,period
+explore-a-future-with-rmit,,Open rate,42%,38%,COP 2025
+explore-a-future-with-rmit,,Click-to-open rate,11%,14%,COP 2025
+explore-a-future-with-rmit,primary,Link — people,120,,COP 2025
+preference-rmit-first-guaranteed-pathway,,Open rate,47%,38%,COP 2025
+preference-rmit-first-guaranteed-pathway,,Click-to-open rate,16%,14%,COP 2025
+cop-explained,,Open rate,35%,38%,COP 2025
+cop-explained,,Click-to-open rate,9%,14%,COP 2025
+thanks-for-preferencing-rmit,,Open rate,55%,38%,COP 2025
+change-of-preference-closes-today,,Open rate,31%,38%,COP 2025
+change-of-preference-page,,Page views,10000,,COP 2025
+change-of-preference-page,,Sessions,7000,,COP 2025
+change-of-preference-page,,People,5000,,COP 2025
+change-of-preference-page,,Time spent per session,1:30,,COP 2025
+change-of-preference-page,,Bounce rate,45%,40%,COP 2025
+change-of-preference-q-a,,Registrations,200,,COP 2025
+change-of-preference-page,,Traffic rank,#2 of 10,,COP 2025 · school leaver
+your-guide-to-vtac-and-rmit-terms,,Traffic rank,#6 of 10,,COP 2025 · school leaver
+your-guide-to-vtac-and-rmit-terms,,Page views,3000,,COP 2025
+your-guide-to-vtac-and-rmit-terms,,Bounce rate,60%,40%,COP 2025
+pathways-into-rmit,,Traffic rank,#4 of 10,,COP 2025 · school leaver
+pathways-into-rmit,,Page views,5000,,COP 2025
+pathways-into-rmit,,Bounce rate,38%,40%,COP 2025
+find-a-course-by-atar,,Traffic rank,#1 of 10,,COP 2025 · school leaver
+find-a-course-by-atar,,Page views,20000,,COP 2025
+find-a-course-by-atar,,Sessions,12000,,COP 2025
+find-a-course-by-atar,,Bounce rate,30%,40%,COP 2025
+equity-access-schemes,,Traffic rank,#9 of 10,,COP 2025 · school leaver
+equity-access-schemes,,Page views,1000,,COP 2025
+contact-study-rmit,,Traffic rank,#7 of 10,,COP 2025 · school leaver
+contact-study-rmit,,Page views,2000,,COP 2025
+contact-study-rmit,,Form starts,300,,COP 2025
+contact-study-rmit,,Form submits,150,,COP 2025
+explore-a-future-with-rmit,primary,Link — % of people,8%,,COP 2025
+explore-a-future-with-rmit,secondary,Link — people,40,,COP 2025
+explore-a-future-with-rmit,secondary,Link — % of people,3%,,COP 2025
+preference-rmit-first-guaranteed-pathway,primary,Link — people,160,,COP 2025
+preference-rmit-first-guaranteed-pathway,primary,Link — % of people,11%,,COP 2025
+cop-explained,primary,Link — people,60,,COP 2025
+cop-explained,primary,Link — % of people,4%,,COP 2025
