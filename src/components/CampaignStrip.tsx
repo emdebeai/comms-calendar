@@ -4,6 +4,7 @@ import type { Campaign } from "../data/campaigns";
 import type { CampaignSummary } from "../lib/campaignLens";
 import { VALUES_ARE_DUMMY } from "../lib/metricValues";
 import { FOCUS_RING } from "../lib/styles";
+import { LABEL_W, MONTH_H, YEAR_H } from "../lib/scale";
 
 interface Props {
   campaign: Campaign;
@@ -29,8 +30,10 @@ export function CampaignStrip({ campaign, summary: s, onOpenGaps, onExit }: Prop
   return (
     <section
       aria-label={`${campaign.name} summary`}
-      className="fixed right-4 z-50 rounded-lg border border-grey-30 bg-card/85 shadow-lg backdrop-blur-md"
-      style={{ top: 8, width: open ? 320 : undefined }}
+      // Lives in the gutter's "Moments that matter" row — empty space on the
+      // left, never over the canvas unless expanded.
+      className="fixed left-2 z-50 rounded-lg border border-grey-30 bg-card/90 shadow-md backdrop-blur-md"
+      style={{ top: YEAR_H + MONTH_H + 6, width: open ? 340 : LABEL_W - 16 }}
     >
       <div className="flex items-center gap-2 px-3 py-2">
         <button
@@ -39,12 +42,14 @@ export function CampaignStrip({ campaign, summary: s, onOpenGaps, onExit }: Prop
           aria-expanded={open}
           className={`flex min-w-0 flex-1 items-center gap-2 rounded-md text-left ${FOCUS_RING}`}
         >
-          <span className="truncate text-sm font-semibold text-grey-90">{campaign.name}</span>
-          {!open && (
-            <span className="shrink-0 text-xs text-grey-70">
-              {s.total} touchpoints · {s.measured} measured · {gapTotal} gaps
-            </span>
-          )}
+          <span className="min-w-0 flex-1">
+            <span className="block truncate text-sm font-semibold text-grey-90">{campaign.name}</span>
+            {!open && (
+              <span className="block text-xs text-grey-70">
+                {s.total} touchpoints · {s.measured} measured · {gapTotal} gaps
+              </span>
+            )}
+          </span>
           {open ? <ChevronUp size={14} strokeWidth={2} aria-hidden className="shrink-0 text-grey-70" /> : <ChevronDown size={14} strokeWidth={2} aria-hidden className="shrink-0 text-grey-70" />}
         </button>
         <button type="button" onClick={onExit} aria-label="Exit campaign view" className={`shrink-0 rounded-md p-1 text-grey-70 hover:bg-grey-10 ${FOCUS_RING}`}>

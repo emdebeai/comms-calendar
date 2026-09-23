@@ -227,6 +227,9 @@ export function campaignRowY(i: number): number {
 }
 
 export const INBOUND_H = 96;
+/** Webpages are live across a window, not sent on a day — the Digital team's
+ *  pages lane draws each as a full-width bar row, no date dot, no stem. */
+export const PAGE_ROW_H = 40;
 /** Taller variant for multi-line (per-channel) inbound lanes — the legend row
  *  plus six lines need the extra headroom. */
 export const INBOUND_CHANNELS_H = 150;
@@ -246,12 +249,12 @@ const OUTBOUND_TEAMS: Team[] = ["recruitment", "marketing-events", "marketing", 
 // the layout — set by layoutTimeline.
 
 export interface LaneDef {
-  id: Team | "campaigns" | "digital" | "study" | "divider-vtac" | "divider-inbound";
+  id: Team | "campaigns" | "pages" | "digital" | "study" | "divider-vtac" | "divider-inbound";
   label: string;
   sub?: string;
   top: number;
   height: number;
-  kind: "outbound" | "inbound" | "divider";
+  kind: "outbound" | "inbound" | "divider" | "pages";
   /** whether this lane reserves a strip for "+N more" chips */
   chipStrip: boolean;
 }
@@ -297,6 +300,7 @@ function buildLanes(
   cardAreaPerTeam: Record<Team, number>,
   chipTeams: Set<Team>,
   collapsed: Set<string>,
+  hidden: Set<string> = new Set(),
 ): LaneDef[] {
   const outbound = (id: Team, label: string, sub: string): Omit<LaneDef, "top"> => ({
     id,
@@ -320,14 +324,9 @@ function buildLanes(
       ? // Collapsed inbound keeps a compact GRAPH (the curve IS the lane's
         // summary — a bare label strip would hide the data entirely).
         INBOUND_COLLAPSED_H
-      : Math.max(
-          inboundData.find((d) => d.id === id)?.channels?.length ? INBOUND_CHANNELS_H : INBOUND_H,
-          // The Digital lane also holds webpage touchpoints (cards over the
-          // traffic curve) — grow to fit however many pack at one date.
-          id === "digital" && cardAreaPerTeam.digital > DEFAULT_CARD_H
-            ? DOT_STRIP_H + LANE_PAD + cardAreaPerTeam.digital + LANE_PAD
-            : 0,
-        ),
+      : inboundData.find((d) => d.id === id)?.channels?.length
+        ? INBOUND_CHANNELS_H
+        : INBOUND_H,
   });
 
   const defs: Array<Omit<LaneDef, "top">> = [
@@ -336,6 +335,16 @@ function buildLanes(
     outbound("marketing", "Marketing — eDMs", "Outbound eDMs"),
     outbound("admissions", "Admissions", "Outbound"),
     outbound("conversion", "Conversion", "Outbound"),
+    // Digital's webpages — one bar row per page; the lane vanishes when the
+    // active lens has no pages in it.
+    {
+      id: "pages",
+      label: "Digital — pages",
+      sub: "Webpages",
+      kind: "pages",
+      chipStrip: false,
+      height: cardAreaPerTeam.digital > 0 ? LANE_PAD + cardAreaPerTeam.digital + LANE_PAD : 0,
+    },
     // Paid media + always-on — RMIT's own programme, so it sits with the RMIT
     // lanes (above the external-sender divider), not below it.
     {
@@ -358,6 +367,9 @@ function buildLanes(
   ];
   let top = HEADER_H;
   return defs.map((d) => {
+    // Hidden lanes take no space at all — including in a campaign lens,
+    // where teams outside the campaign simply aren't on the map.
+    if (hidden.has(d.id)) d = { ...d, height: 0 };
     const lane = { ...d, top };
     top += d.height;
     return lane;
@@ -379,7 +391,7 @@ let cardAreaByTeam: Record<Team, number> = {
   admissions: DEFAULT_CARD_H,
   conversion: DEFAULT_CARD_H,
   vtac: DEFAULT_CARD_H,
-  digital: DEFAULT_CARD_H,
+  digital: 0,
 };
 // Placed-card rectangles per team (card-area-relative bottoms), so a "+N more"
 // chip can sit below the deepest card that actually overlaps its x — hugging
@@ -428,6 +440,11 @@ export function laneById(id: string): LaneDef {
 }
 
 export function commPos(comm: Pick<Comm, "id" | "team" | "month">) {
+  if (comm.team === "digital") {
+    // Pages: bar rows in the pages lane, no dot strip.
+    const lane = laneById("pages");
+    return { x: scaleX(comm.month), y: lane.top + LANE_PAD + (yOffsetById.get(comm.id) ?? 0) };
+  }
   const lane = laneById(comm.team);
   const x = Math.min(scaleX(comm.month), TOTAL_W - CARD_W - 4);
   const y = lane.top + DOT_STRIP_H + LANE_PAD + (yOffsetById.get(comm.id) ?? 0);
@@ -561,10 +578,16 @@ export function layoutTimeline(
       nextPlaced[team] = [];
       continue;
     }
+    if (team === "digital") {
+      // Pages: one bar row each, in file order — no skyline, no fold.
+      const pages = raw.filter((c) => c.team === "digital" && !filteredIds.has(c.id));
+      pages.forEach((c, i) => nextY.set(c.id, i * PAGE_ROW_H));
+      nextCardArea.digital = pages.length * PAGE_ROW_H;
+      nextPlaced.digital = [];
+      continue;
+    }
     const collapsed = collapsedLanes.has(team);
-    // Webpages have no send date, so they all share one column — they must
-    // stack in full rather than fold into a "+N more" chip.
-    const capPx = team === "digital" ? Infinity : PACK_CAP_PX;
+    const capPx = PACK_CAP_PX;
     const footW = collapsed ? MARKER_W : CARD_W;
     const gapY = collapsed ? MARKER_GAP : ROW_GAP;
     const list = raw.filter((c) => c.team === team).sort((a, b) => a.month - b.month);
@@ -610,7 +633,7 @@ export function layoutTimeline(
     const [team, mi] = key.split(":");
     return { team: team as Team, monthIndex: Number(mi), count };
   });
-  LANES = buildLanes(nextCardArea, new Set(chips.map((c) => c.team)), collapsedLanes);
+  LANES = buildLanes(nextCardArea, new Set(chips.map((c) => c.team)), collapsedLanes, hiddenLanes);
   TOTAL_H = LANES[LANES.length - 1].top + LANES[LANES.length - 1].height;
 
   return {

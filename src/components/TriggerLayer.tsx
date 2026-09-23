@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import type { Comm } from "../data/types";
-import { CARD_W, MARKER_SIZE, TOTAL_H, TOTAL_W, commHeight, commPos, markerPos } from "../lib/scale";
+import { CARD_W, MARKER_SIZE, PAGE_ROW_H, TOTAL_H, TOTAL_W, commHeight, commPos, markerPos } from "../lib/scale";
 import { isLaneRef, type Chain } from "../lib/chains";
 
 interface Link {
@@ -25,6 +25,11 @@ interface Route {
 /** Where a connector attaches to a comm: its card box, or its icon marker
  *  when the comm sits in a collapsed lane (markerPos centres on the date). */
 function anchorOf(comm: Comm, collapsed: Set<string>) {
+  if (comm.team === "digital") {
+    // A page bar: attach at its left end, mid-height.
+    const p = commPos(comm);
+    return { left: p.x, right: p.x + CARD_W, midY: p.y + (PAGE_ROW_H - 8) / 2 };
+  }
   if (collapsed.has(comm.team)) {
     const p = markerPos(comm);
     const left = p.x - MARKER_SIZE / 2;
@@ -113,8 +118,9 @@ export function TriggerLayer({ comms, hiddenIds, collapsedLanes, activeId, showA
     return buildLinks(comms).filter((l) => !hiddenIds.has(l.from) && !hiddenIds.has(l.to));
   }, [comms, hiddenIds, chains]);
 
-  // Campaign chains are the story — always drawn, never hover-gated.
-  const visible = showAll || chains
+  // Chains draw on hover (both ends are scrolled into view by App), or all
+  // at once under the lines toggle / print.
+  const visible = showAll
     ? links
     : links.filter((l) => l.from === activeId || l.to === activeId);
   if (visible.length === 0) return null;

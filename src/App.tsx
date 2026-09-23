@@ -16,6 +16,7 @@ import { CampaignStrip } from "./components/CampaignStrip";
 import { GapsPanel } from "./components/GapsPanel";
 import { CAMPAIGNS, campaignById } from "./data/campaigns";
 import { gapsFor, inScope, summarise, type Gap } from "./lib/campaignLens";
+import { CHAINS } from "./lib/chains";
 import { StudentQuestionPanel, questionFeedbackId } from "./components/StudentQuestionPanel";
 import { OffscreenAnswers } from "./components/OffscreenAnswers";
 import { CampaignDetailPanel } from "./components/CampaignDetailPanel";
@@ -121,6 +122,7 @@ export default function App() {
     const c = campaignById(id);
     if (!c) return;
     setCampaignId(c.id);
+    setShowLines(false); // chains draw on hover; the toggle turns them all on
     setExpandedMonths(new Map(
       Array.from({ length: Math.floor(c.to) - Math.floor(c.from) + 1 }, (_, i) => [Math.floor(c.from) + i, 1 as const]),
     ));
@@ -130,6 +132,7 @@ export default function App() {
   }, []);
   const exitCampaign = useCallback(() => {
     setCampaignId(null);
+    setShowLines(true);
     setGapsOpen(false);
     setExpandedMonths(new Map());
   }, []);
@@ -261,8 +264,10 @@ export default function App() {
   const hiddenLanes = useMemo(() => {
     if (!campaign || !comms) return hiddenLanesUser;
     const teams = new Set<string>(comms.map((c) => c.team));
-    const auto = ["campaigns", "recruitment", "marketing-events", "marketing", "admissions", "conversion", "vtac", "digital"].filter(
-      (t) => t === "campaigns" || !teams.has(t),
+    // Paid media and VTAC are context in a campaign, not lanes: VTAC's dates
+    // are already in the moments band. Empty team lanes go too.
+    const auto = ["campaigns", "vtac", "divider-vtac", "recruitment", "marketing-events", "marketing", "admissions", "conversion", "digital"].filter(
+      (t) => t === "campaigns" || t === "vtac" || t === "divider-vtac" || !teams.has(t),
     );
     return new Set([...hiddenLanesUser, ...auto]);
   }, [hiddenLanesUser, campaign, comms]);
@@ -683,12 +688,39 @@ export default function App() {
   useEffect(() => {
     if (!campaign || !layout || campaignJumped.current || !entered) return;
     campaignJumped.current = true;
+    setShowLines(false);
     setExpandedMonths(new Map(
       Array.from({ length: Math.floor(campaign.to) - Math.floor(campaign.from) + 1 }, (_, i) => [Math.floor(campaign.from) + i, 1 as const]),
     ));
     jumpToStage(campaign.from - 0.05);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [campaign, layout, entered]);
+  // Campaign lens: hovering one end of a chain scrolls its other end into
+  // view, so a chain is never a line to nowhere. The scroll moves the map
+  // under the pointer, so the chain stays anchored to the item first hovered
+  // until the pointer leaves the cards altogether.
+  const [chainAnchor, setChainAnchor] = useState<string | null>(null);
+  useEffect(() => {
+    if (hovered === null) setChainAnchor(null);
+  }, [hovered]);
+  useEffect(() => {
+    if (!campaign || !hovered || !layout || !scrollerRef.current || chainAnchor) return;
+    const el = scrollerRef.current;
+    const partners = CHAINS.filter((ch) => ch.from === hovered || ch.to === hovered)
+      .map((ch) => (ch.from === hovered ? ch.to : ch.from))
+      .map((id) => layout.comms.find((c) => c.id === id))
+      .filter((c): c is Comm => Boolean(c) && !layout.hiddenIds.has(c!.id));
+    if (!partners.length) return;
+    const me = layout.comms.find((c) => c.id === hovered);
+    if (!me) return;
+    const ys = [me, ...partners].map((c) => commPos(c).y);
+    const top = Math.min(...ys), bottom = Math.max(...ys) + 60;
+    const viewTop = el.scrollTop, viewBottom = el.scrollTop + el.clientHeight;
+    if (top >= viewTop && bottom <= viewBottom) return;
+    setChainAnchor(hovered);
+    el.scrollTo({ top: Math.max(0, (top + bottom) / 2 - el.clientHeight / 2), behavior: scrollBehavior() });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hovered, campaign]);
   const jumpToStage = (from: number) =>
     scrollerRef.current?.scrollTo({ left: Math.max(0, scaleX(from) - 40), behavior: scrollBehavior() });
 
@@ -933,7 +965,7 @@ export default function App() {
               focusSet={focusSet}
               dimBackground={dimBackground}
               dimChips={dimChips}
-              activeId={activeId}
+              activeId={chainAnchor ?? activeId}
               showLines={showLines}
               activeMomentId={activeMomentId}
               campaign={campaign}

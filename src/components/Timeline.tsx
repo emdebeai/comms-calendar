@@ -35,6 +35,7 @@ import { EYEBROW, FOCUS_RING } from "../lib/styles";
 import { COMM_COLORS, COMM_ICONS, COMM_LABELS } from "./icons";
 import { CampaignGantt } from "./CampaignGantt";
 import { CommCard } from "./CommCard";
+import { PageBar } from "./PageBar";
 import { MomentsBand, MonthBand, StageBand, YearBand } from "./HeaderBands";
 import { InboundLane } from "./InboundLane";
 import { StudentJourneyLane, type QuestionRef } from "./StudentJourneyLane";
@@ -339,7 +340,7 @@ export function Timeline({
       <div className="absolute top-0" style={{ left: LABEL_W, width: TOTAL_W, height: TOTAL_H }}>
         {/* Lane backgrounds — alternate shade per lane so rows are easy to
             track across the full width, skipping the divider lane. */}
-        {LANES.map((lane) => (
+        {LANES.filter((lane) => lane.height > 0).map((lane) => (
           <div
             key={lane.id}
             className={`absolute left-0 w-full border-b border-grey-30 ${laneBg[lane.id]}`}
@@ -468,7 +469,7 @@ export function Timeline({
             bars, in their own campaigns lane (so both hide when it's
             collapsed). Row indices run FLAT across both schedules, matching the
             row-height list campaignY walks. */}
-        {!collapsedLanes.has("campaigns") && (
+        {!collapsedLanes.has("campaigns") && !hiddenLanes.has("campaigns") && (
           <CampaignGantt
             expanded={expandedCampaigns}
             dimmed={dimBackground}
@@ -494,8 +495,8 @@ export function Timeline({
             (the type icon carries what the card would say), so you can still
             read the cadence in the compact "all lanes" overview. */}
         {comms.map((c) => {
-          // Hidden lanes render nothing but their gutter label.
-          if (hiddenLanes.has(c.team)) return null;
+          // Hidden lanes render nothing; pages are bars with no date dot.
+          if (hiddenLanes.has(c.team) || c.team === "digital") return null;
           const filteredOut =
             !activeTypes.has(c.type) ||
             !matchesSegment(c, segments) ||
@@ -614,7 +615,7 @@ export function Timeline({
 
         {/* Thin stems tying each visible chip back to its date dot */}
         {comms
-          .filter((c) => !hiddenIds.has(c.id) && !collapsedLanes.has(c.team))
+          .filter((c) => !hiddenIds.has(c.id) && !collapsedLanes.has(c.team) && !hiddenLanes.has(c.team) && c.team !== "digital")
           .map((c) => {
             const filteredOut =
             !activeTypes.has(c.type) ||
@@ -643,7 +644,7 @@ export function Timeline({
 
         {/* Comms (collapsed-month overflow is folded into the chips below) */}
         {comms
-          .filter((c) => !hiddenIds.has(c.id) && !collapsedLanes.has(c.team))
+          .filter((c) => !hiddenIds.has(c.id) && !collapsedLanes.has(c.team) && !hiddenLanes.has(c.team))
           .map((c) => {
             const filteredOut =
             !activeTypes.has(c.type) ||
@@ -652,6 +653,19 @@ export function Timeline({
             if (filteredOut) return null; // ghost dot only — see the dot strip
             const inFocus = focusSet ? focusSet.has(c.id) : false;
             const dimmed = focusSet !== null && !inFocus;
+            if (c.team === "digital")
+              return (
+                <PageBar
+                  key={c.id}
+                  comm={c}
+                  toMonth={campaign ? campaign.to : c.month + 1}
+                  dimmed={dimmed}
+                  active={inFocus}
+                  onHover={onHover}
+                  onOpenDetail={onOpenDetail}
+                  gaps={gapMap?.get(c.id)}
+                />
+              );
             return (
               <CommCard
                 key={c.id}
@@ -726,11 +740,12 @@ export function Timeline({
         style={{ width: LABEL_W, height: TOTAL_H - HEADER_H }}
       >
         {LANES.map((lane) => {
+          if (lane.height === 0) return null;
           const collapsible = lane.kind === "outbound" || lane.kind === "inbound";
           const collapsed = collapsedLanes.has(lane.id);
           const hidden = hiddenLanes.has(lane.id);
           const isEmpty = lane.kind === "outbound" && !teamsWithComms.has(lane.id as Team);
-          const count = commCountByTeam[lane.id] ?? 0;
+          const count = commCountByTeam[lane.kind === "pages" ? "digital" : lane.id] ?? 0;
 
           const body = (
             <>
@@ -748,7 +763,7 @@ export function Timeline({
                 </span>
                 {/* comm count — the "how much does each team send" number,
                     visible while the lane is open (collapsed shows "N hidden") */}
-                {!collapsed && lane.kind === "outbound" && count > 0 && (
+                {!collapsed && (lane.kind === "outbound" || lane.kind === "pages") && count > 0 && (
                   <span className="text-xs font-normal text-grey-70">· {count}</span>
                 )}
               </span>
@@ -907,7 +922,7 @@ export function Timeline({
             on a blind click-cycle: chevron/label = expand-collapse, eye =
             hide. Sits as a sibling ABOVE the lane buttons (a button can't
             nest a button). */}
-        {LANES.filter((l) => l.kind === "outbound" || l.kind === "inbound").map((lane) => {
+        {LANES.filter((l) => (l.kind === "outbound" || l.kind === "inbound") && l.height > 0).map((lane) => {
           const hidden = hiddenLanes.has(lane.id);
           return (
             <button
