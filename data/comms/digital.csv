@@ -1,3 +1,8 @@
-id,title,primary_cta,type,school_year,month,day,moment,triggers,secondary_cta,tertiary_cta,marketo_id,open_rate,click_rate,platform,time,audience,recipient,campaign,theme,preference,college,campus,event_state,cvp,variants,variant_basis,new_2026,utm,personas
-campus-tours-webpage,Campus tours webpage,Register for an April campus tour,webpage,10,Apr,7,,glimpse-2026-yr10,,,,,,,,Yr 10 prospective students & parents,,Campus tour,,,,,,,,,,,domsl
-,Change of preference webpage,Explore courses by ATAR,webpage,12,Nov,19,cop,,Talk to Study@RMIT,,,,,,,,,COP,,,,,,"Everything COP in one place — what it is, how, by when",2,personalisation,,,domsl
+id,title,primary_cta,type,school_year,month,day,moment,triggers,secondary_cta,tertiary_cta,marketo_id,open_rate,click_rate,platform,time,audience,recipient,campaign,theme,preference,college,campus,event_state,cvp,variants,variant_basis,new_2026,utm,url,personas
+campus-tours-webpage,Campus tours webpage,Register for an April campus tour,webpage,10,Apr,7,,glimpse-2026-yr10,,,,,,,,Yr 10 prospective students & parents,,Campus tour,,,,,,,,,,,,domsl
+,Change of Preference page,Explore courses by ATAR,webpage,12,Nov,19,cop,,Talk to Study@RMIT,,,,,,,,,COP,,,,,,"Everything COP in one place — what it is, how, by when",2,personalisation,,,https://www.rmit.edu.au/change-of-preference,domsl
+,Your guide to VTAC and RMIT terms,,webpage,12,Nov,19,cop,,,,,,,,,,,COP,,,,,,Know what the jargon means before you preference,,,,,https://www.rmit.edu.au/school-leaver/discover-articles-for-high-school-students/jargon,domsl
+,Pathways into RMIT,Explore pathways,webpage,12,Nov,19,cop,,,,,,,,,,,COP,,,,,,There's a way in even if your ATAR falls short,,,,,https://www.rmit.edu.au/study-with-us/pathways,domsl
+,Find a course by ATAR,Search by ATAR,webpage,12,Nov,19,cop,,,,,,,,,,,COP,,,,,,See every course your ATAR gets you into,,,,,https://www.rmit.edu.au/study-with-us/find-a-course-by-atar,domsl
+,Equity access schemes,Check your eligibility,webpage,12,Nov,19,cop,,,,,,,,,,,COP,,,,,,,,,,,https://www.rmit.edu.au/study-with-us/applying-to-rmit/local-student-applications/equity-access-schemes,domsl
+,Contact Study@RMIT,"Call, chat or visit",webpage,12,Nov,19,cop,,,,,,,,,,,COP,,,,,,Talk to a person before preferences close,,,,,https://www.rmit.edu.au/contact/contact-us,domsl

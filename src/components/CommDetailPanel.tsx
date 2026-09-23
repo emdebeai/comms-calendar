@@ -250,6 +250,16 @@ export function CommDetailPanel({ comm, allComms, entries, onClose, onAdd, onDel
             }
           />
           <AttributeRow label="Notes" value={commNote(comm.id)} />
+          {comm.url && (
+            <div className="flex gap-3 py-1">
+              <dt className="w-32 shrink-0 text-sm text-grey-70">Page</dt>
+              <dd className="min-w-0 truncate text-sm">
+                <a href={comm.url} target="_blank" rel="noreferrer" className={`text-rmit-blue-interactive underline-offset-2 hover:underline ${FOCUS_RING}`}>
+                  {comm.url.replace(/^https?:\/\/(www\.)?/, "")}
+                </a>
+              </dd>
+            </div>
+          )}
           <AttributeRow label="Sent from" value={comm.platform ? PLATFORM_LABELS[comm.platform] : undefined} />
           {comm.platform === "marketo" && <AttributeRow label="Marketo ID" value={comm.marketoId} />}
         </dl>

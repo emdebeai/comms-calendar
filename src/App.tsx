@@ -683,6 +683,9 @@ export default function App() {
   useEffect(() => {
     if (!campaign || !layout || campaignJumped.current || !entered) return;
     campaignJumped.current = true;
+    setExpandedMonths(new Map(
+      Array.from({ length: Math.floor(campaign.to) - Math.floor(campaign.from) + 1 }, (_, i) => [Math.floor(campaign.from) + i, 1 as const]),
+    ));
     jumpToStage(campaign.from - 0.05);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [campaign, layout, entered]);

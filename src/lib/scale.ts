@@ -236,7 +236,8 @@ export const DIVIDER_H = 32;
 
 // VTAC is included so its comms pack + lay out like the RMIT lanes, but it's
 // kept last and rendered in its own "External sender" section (see buildLanes).
-const OUTBOUND_TEAMS: Team[] = ["recruitment", "marketing-events", "marketing", "admissions", "conversion", "vtac"];
+// Digital packs too — its webpage touchpoints stack over the traffic curve.
+const OUTBOUND_TEAMS: Team[] = ["recruitment", "marketing-events", "marketing", "admissions", "conversion", "vtac", "digital"];
 
 // Campaign bars shown in the Marketing lane, in draw order: every media
 // schedule contributes a (taller) summary bar, plus one bar per placement
@@ -319,9 +320,14 @@ function buildLanes(
       ? // Collapsed inbound keeps a compact GRAPH (the curve IS the lane's
         // summary — a bare label strip would hide the data entirely).
         INBOUND_COLLAPSED_H
-      : inboundData.find((d) => d.id === id)?.channels?.length
-        ? INBOUND_CHANNELS_H
-        : INBOUND_H,
+      : Math.max(
+          inboundData.find((d) => d.id === id)?.channels?.length ? INBOUND_CHANNELS_H : INBOUND_H,
+          // The Digital lane also holds webpage touchpoints (cards over the
+          // traffic curve) — grow to fit however many pack at one date.
+          id === "digital" && cardAreaPerTeam.digital > DEFAULT_CARD_H
+            ? DOT_STRIP_H + LANE_PAD + cardAreaPerTeam.digital + LANE_PAD
+            : 0,
+        ),
   });
 
   const defs: Array<Omit<LaneDef, "top">> = [
@@ -556,6 +562,9 @@ export function layoutTimeline(
       continue;
     }
     const collapsed = collapsedLanes.has(team);
+    // Webpages have no send date, so they all share one column — they must
+    // stack in full rather than fold into a "+N more" chip.
+    const capPx = team === "digital" ? Infinity : PACK_CAP_PX;
     const footW = collapsed ? MARKER_W : CARD_W;
     const gapY = collapsed ? MARKER_GAP : ROW_GAP;
     const list = raw.filter((c) => c.team === team).sort((a, b) => a.month - b.month);
@@ -580,7 +589,7 @@ export function layoutTimeline(
 
       const monthIndex = Math.floor(c.month);
       const inExpanded = expandedMonthsState.has(monthIndex);
-      if (!collapsed && y + h > PACK_CAP_PX && !inExpanded) {
+      if (!collapsed && y + h > capPx && !inExpanded) {
         hiddenIds.add(c.id);
         const key = `${team}:${monthIndex}`;
         chipCounts.set(key, (chipCounts.get(key) ?? 0) + 1);

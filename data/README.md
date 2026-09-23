@@ -16,7 +16,9 @@ copies, never source of truth.
 | `metrics-catalogue.csv` | Metric names, definitions, benchmark *level*, source system and owner per touchpoint type — never values. Edited on `/metrics`; `scripts/apply-metrics-catalogue.mjs` folds edits back. |
 | `dummy/metric-values.csv` | **Proxy figures only.** Obviously fake round numbers so the campaign lens can be seen working. Real values never enter the repo — a team loads its own export locally with the same columns (`comm_id,metric,value,benchmark,period`). |
 
-Campaign-lens columns on the per-team files: `cvp` (the value proposition, terse), `variants`, `variant_basis` (`segmentation` / `personalisation`), `new_2026`, `utm` (`yes` / `no`, blank = unknown).
+**Digital pages for COP.** `comms/digital.csv` always carries the six named COP pages (Change of Preference, VTAC and RMIT terms, Pathways, Find a course by ATAR, Equity access schemes, Contact Study@RMIT), each with its `url`. The CJA export's 10 highest-traffic pages for the school-leaver segment over the period are matched on `url`; any top-10 page not already listed is added as a row by the Digital team.
+
+Campaign-lens columns on the per-team files: `cvp` (the value proposition, terse), `variants`, `variant_basis` (`segmentation` / `personalisation`), `new_2026`, `utm` (`yes` / `no`, blank = unknown), `url` (webpages — the CJA join key).
 
 Two rules for the CSVs:
 

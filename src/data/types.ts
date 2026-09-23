@@ -70,6 +70,8 @@ export interface Comm {
   new2026?: boolean;
   /** whether its CTAs carry trackable UTMs; undefined = unknown */
   utm?: "yes" | "no";
+  /** webpage touchpoints — the page address, the join key for CJA metrics */
+  url?: string;
 }
 
 export type CampaignChannel =

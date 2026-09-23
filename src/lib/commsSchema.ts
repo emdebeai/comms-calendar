@@ -95,6 +95,8 @@ export const COMMS_COLUMNS = [
   "variant_basis",
   "new_2026",
   "utm",
+  // url — a webpage touchpoint's address: the join key CJA metrics come in on.
+  "url",
 ] as const;
 
 // Column set for the per-team files in data/comms/ — the filename IS the
@@ -289,6 +291,7 @@ export function normalizeCommRow(
     variants: row.variants && Number.isFinite(Number(row.variants)) ? Number(row.variants) : undefined,
     variantBasis: /^pers/i.test(row.variant_basis || "") ? "personalisation" : /^seg/i.test(row.variant_basis || "") ? "segmentation" : undefined,
     new2026: /^(y|yes|true|1)$/i.test(row.new_2026 || ""),
+    url: row.url || undefined,
     utm: /^(y|yes|true|1)$/i.test(row.utm || "") ? "yes" : /^(n|no|false|0)$/i.test(row.utm || "") ? "no" : undefined,
     // Personas this row belongs to — a LENS, not a file split: shared
     // touchpoints (Open Day, VTAC sends) tag several personas rather than

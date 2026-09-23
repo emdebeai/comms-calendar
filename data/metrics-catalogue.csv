@@ -16,6 +16,8 @@ Marketing,Webpage,Form submits,Completed submissions,#,,,CJA,Analytics lead,Requ
 Marketing,Webpage,Top referrers,Top 5 sources of traffic into the page,list,,n/a,CJA,Analytics lead,Requested,Page URL,Funnel-in for chains,
 Marketing,Webpage,Most common next step,Top 5 pages/actions after this page,list,,n/a,CJA,Analytics lead,Requested,Page URL,If not a form — what are users doing?,
 Marketing,Webpage,Traffic share from eDM,Share of page traffic attributed to a given eDM CTA,%,,,CJA,Analytics lead,Requested,Page URL + marketo_id,Depends on UTMs — 40% already captured for campus tours page,
+Marketing,Webpage,Time spent per session,Average session length on the page,min,,,CJA,Analytics lead,Requested,Page URL,,
+Marketing,Webpage,Traffic rank,Position in the 10 highest-traffic pages for the school-leaver segment over the period,rank,,n/a,CJA,Analytics lead,Requested,Page URL,"Six pages are always on the map (COP, VTAC terms, Pathways, Find a course by ATAR, Equity access, Contact Study@); any other page in the top 10 is added from the export",
 Marketing,Paid social,,Core metrics per channel not yet defined,,,,,Marketing (paid media),No,Campaign / landing URL,Brief: 'define core metrics used for each channel' — and where they funnel to on the site,
 Marketing,Tool (e.g. Find a course by ATAR),,Are tools measured differently to webpages?,,,,CJA?,Analytics lead,Requested,Page URL,Open question from the CJA brief,
 Digital,Personalised content,% of total audience,Share of page audience who saw this personalisation,%,,,DAP (Salesforce) → MCAP,Personalisation manager,No,Page URL + variant id,,
