@@ -18,6 +18,10 @@ export interface Gap {
   detail: string;
 }
 
+/** Consequence order — what stops the story first. */
+export const GAP_ORDER: GapKind[] = ["chain-broken", "no-utm", "not-measured", "no-benchmark", "no-cvp"];
+export const rankGaps = (gaps: Gap[]) => [...gaps].sort((a, b) => GAP_ORDER.indexOf(a.kind) - GAP_ORDER.indexOf(b.kind));
+
 export const GAP_LABELS: Record<GapKind, string> = {
   "not-measured": "Not measured",
   "no-utm": "Can't be traced",
@@ -44,11 +48,11 @@ export function gapsFor(c: Comm): Gap[] {
     gaps.push({ kind: "no-benchmark", label: "No benchmark", detail: `${n} of ${values.length} metrics have nothing to compare against.` });
   }
   if ((c.type === "email" || c.type === "sms") && c.utm === "no") {
-    gaps.push({ kind: "no-utm", label: "No UTM", detail: "Its CTAs aren't tagged, so web traffic can't be traced back to this send." });
+    gaps.push({ kind: "no-utm", label: "Can't be traced", detail: "Its CTAs aren't tagged, so web traffic can't be traced back to this send." });
   }
   const broken = CHAINS.filter((ch) => (ch.from === c.id || ch.to === c.id) && !ch.measured);
   if (broken.length) {
-    gaps.push({ kind: "chain-broken", label: "Chain breaks", detail: `${broken.length} link${broken.length > 1 ? "s" : ""} to the next step can't be measured.` });
+    gaps.push({ kind: "chain-broken", label: "Next step not measured", detail: `${broken.length} link${broken.length > 1 ? "s" : ""} to the next step can't be measured.` });
   }
   const channelOnly = CHAINS.some((ch) => isLaneRef(ch.from) && ch.to === c.id);
   if (channelOnly && !CHAINS.some((ch) => !isLaneRef(ch.from) && ch.to === c.id)) {
@@ -68,6 +72,9 @@ export interface CampaignSummary {
   withCvp: number;
   questions: number;
   questionsAnswered: number;
+  teams: number;
+  /** the campaign in one breath, from the numbers */
+  story: string;
   /** questions in the window's stages with no in-scope touchpoint */
   unanswered: { stage: string; question: string }[];
   byKind: Record<GapKind, number>;
@@ -83,14 +90,26 @@ export function summarise(comms: Comm[], campaign: Campaign, gapMap: Map<string,
   const stages = STAGES.filter((s) => s.to > campaign.from && s.from < campaign.to).map((s) => s.label);
   const qs = stages.flatMap((stage) => stageQuestions(stage).map((question) => ({ stage, question })));
   const unanswered = qs.filter((q) => !linkedCommIds(q.stage, q.question).some((id) => ids.has(id)));
+  const measured = scoped.filter((c) => !(gapMap.get(c.id) ?? []).some((g) => g.kind === "not-measured")).length;
+  const chainsBroken = chains.filter((ch) => !ch.measured).length;
+  const teams = new Set(scoped.map((c) => c.team)).size;
+  const story = [
+    `${scoped.length} touchpoints across ${teams} teams; ${measured} are measured.`,
+    chains.length
+      ? `${chains.length - chainsBroken} of ${chains.length} chains can be followed to the next step${chainsBroken ? `; ${chainsBroken} break` : ""}.`
+      : "No chains are recorded.",
+    `${unanswered.length} of ${qs.length} student questions in the window have no touchpoint.`,
+  ].join(" ");
   return {
     total: scoped.length,
-    measured: scoped.filter((c) => !(gapMap.get(c.id) ?? []).some((g) => g.kind === "not-measured")).length,
+    measured,
     chains: chains.length,
-    chainsBroken: chains.filter((ch) => !ch.measured).length,
+    chainsBroken,
     withCvp: scoped.filter((c) => c.cvp).length,
     questions: qs.length,
     questionsAnswered: qs.length - unanswered.length,
+    teams,
+    story,
     unanswered,
     byKind,
   };

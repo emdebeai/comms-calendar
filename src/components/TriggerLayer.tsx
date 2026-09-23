@@ -118,14 +118,18 @@ export function TriggerLayer({ comms, hiddenIds, collapsedLanes, activeId, showA
     return buildLinks(comms).filter((l) => !hiddenIds.has(l.from) && !hiddenIds.has(l.to));
   }, [comms, hiddenIds, chains, scopeIds, byId]);
 
-  const visible = showAll
+  // Campaign chains are the story — always drawn, never hover-gated.
+  const visible = showAll || chains
     ? links
     : links.filter((l) => l.from === activeId || l.to === activeId);
   if (visible.length === 0) return null;
 
   return (
     <svg
-      className="pointer-events-none absolute top-0 left-0 z-20 overflow-visible"
+      // Campaign chains sit BEHIND the cards (z-0): in a three-week window the
+      // cards stack in one column and every line has to cross them, so the
+      // cards keep their text and the lines read in the gaps between.
+      className={`pointer-events-none absolute top-0 left-0 overflow-visible ${chains ? "z-0" : "z-20"}`}
       width={TOTAL_W}
       height={TOTAL_H}
       aria-hidden="true"
@@ -141,7 +145,8 @@ export function TriggerLayer({ comms, hiddenIds, collapsedLanes, activeId, showA
         const route = routePath(byId, l.from, l.to, collapsedLanes);
         if (!route) return null;
         const ch = l.chain;
-        const emphasised = !showAll || l.from === activeId || l.to === activeId;
+        const hot = l.from === activeId || l.to === activeId;
+        const emphasised = ch ? activeId === null || hot : !showAll || hot;
         const drawIn = emphasised && !showAll && !ch; // hover reveal only
         // Under a question/moment spotlight the whole map dims — the show-all
         // web recedes with it rather than sitting bright over the dimmed cards.
@@ -163,12 +168,38 @@ export function TriggerLayer({ comms, hiddenIds, collapsedLanes, activeId, showA
               d={route.d}
               fill="none"
               stroke={stroke}
-              strokeWidth={emphasised ? 1.75 : 1.25}
+              strokeWidth={ch ? 2 : emphasised ? 1.75 : 1.25}
               strokeLinecap="round"
               strokeDasharray={dash}
               pathLength={drawIn ? 1 : undefined}
               className={drawIn ? "animate-draw-line" : undefined}
             />
+            {/* chain label — the CTA that carries it, or why it breaks */}
+            {ch && (() => {
+              const [x2, y2] = route.end;
+              const label = !ch.measured ? "not measured" : ch.resolution === "channel" ? "channel only" : ch.via ?? "";
+              if (!label) return null;
+              // At the arrival end, outside whichever card edge the line lands
+              // on, stacked per target so labels don't pile up.
+              const n = visible.slice(0, i).filter((o) => o.to === l.to).length;
+              const tgt = byId.get(l.to);
+              const onRight = tgt ? x2 > commPos(tgt).x + CARD_W / 2 : false;
+              return (
+                <text
+                  x={onRight ? x2 + 8 : x2 - 8}
+                  y={y2 + 4 - n * 12}
+                  textAnchor={onRight ? "start" : "end"}
+                  fontSize={10}
+                  fontWeight={600}
+                  fill={stroke}
+                  stroke="var(--color-card)"
+                  strokeWidth={3}
+                  paintOrder="stroke"
+                >
+                  {label}
+                </text>
+              );
+            })()}
             {/* endpoint anchors */}
             <circle cx={route.start[0]} cy={route.start[1]} r={2.5} fill={stroke} />
             <circle

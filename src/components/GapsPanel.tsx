@@ -1,7 +1,7 @@
 import { AlertTriangle } from "lucide-react";
 import type { Comm } from "../data/types";
 import type { Campaign } from "../data/campaigns";
-import { GAP_LABELS, type CampaignSummary, type Gap, type GapKind } from "../lib/campaignLens";
+import { GAP_LABELS, GAP_ORDER, type CampaignSummary, type Gap, type GapKind } from "../lib/campaignLens";
 import { EYEBROW, FOCUS_RING } from "../lib/styles";
 import { DetailPanelShell } from "./DetailPanelShell";
 import { COMM_COLORS, COMM_ICONS, COMM_LABELS } from "./icons";
@@ -17,7 +17,6 @@ interface Props {
   onOpenComm: (id: string) => void;
 }
 
-const ORDER: GapKind[] = ["not-measured", "no-utm", "chain-broken", "no-benchmark", "no-cvp"];
 
 const WHY: Record<GapKind, string> = {
   "not-measured": "No metrics exist or none are loaded — we can't say whether it worked.",
@@ -31,7 +30,7 @@ const WHY: Record<GapKind, string> = {
  *  touchpoint. The working list for the stakeholder sessions. */
 export function GapsPanel({ campaign, comms, gapMap, summary, onClose, onOpenComm }: Props) {
   const byId = new Map(comms.map((c) => [c.id, c]));
-  const groups = ORDER.map((kind) => ({
+  const groups = GAP_ORDER.map((kind) => ({
     kind,
     items: [...gapMap.entries()]
       .flatMap(([id, gaps]) => gaps.filter((g) => g.kind === kind).map((g) => ({ id, g })))

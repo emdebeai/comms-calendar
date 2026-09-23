@@ -29,7 +29,7 @@ export function CampaignStrip({ campaign, summary: s, onOpenGaps, onExit }: Prop
   return (
     <section
       aria-label={`${campaign.name} summary`}
-      className="fixed right-4 z-30 rounded-lg border border-grey-30 bg-card/85 shadow-lg backdrop-blur-md"
+      className="fixed right-4 z-50 rounded-lg border border-grey-30 bg-card/85 shadow-lg backdrop-blur-md"
       style={{ top: 8, width: open ? 320 : undefined }}
     >
       <div className="flex items-center gap-2 px-3 py-2">
@@ -54,6 +54,7 @@ export function CampaignStrip({ campaign, summary: s, onOpenGaps, onExit }: Prop
       {open && (
         <div className="border-t border-grey-30 px-4 pt-3 pb-4">
           <p className="text-xs text-grey-70">{campaign.dates} · stage gate 12 Dec</p>
+          <p className="mt-2 text-sm leading-relaxed text-grey-90">{s.story}</p>
           <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2.5">
             <Stat n={s.total} label="touchpoints in scope" />
             <Stat n={s.measured} of={s.total} label="measured" />

@@ -1,6 +1,7 @@
 import { useLayoutEffect, useRef, useState } from "react";
 import { Link2, MessageCircle, MousePointerClick, TrendingUp, Users } from "lucide-react";
-import type { Gap } from "../lib/campaignLens";
+import { rankGaps, type Gap } from "../lib/campaignLens";
+import { compare, valuesFor } from "../lib/metricValues";
 import type { Comm } from "../data/types";
 import { leadGenFor } from "../data/leadGen";
 import { CARD_W, PILL_H, commPos, monthLabel } from "../lib/scale";
@@ -192,17 +193,39 @@ export function CommCard({
         {/* Top lead-gen rank — a solid pill so the five biggest recruiters
             jump out of the events sea. Programme-level figure; the basis
             year/scope lives in the detail panel. */}
-        {/* Campaign lens — one quiet count; the gaps themselves are named in
-            the panel and the gaps list. */}
-        {gaps && gaps.length > 0 && (
-          <span
-            title={gaps.map((g) => `${g.label} — ${g.detail}`).join("\n")}
-            aria-label={`${gaps.length} gaps: ${gaps.map((g) => g.label).join(", ")}`}
-            className="mt-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-tint-amber px-1 text-[10px] font-semibold leading-none text-grey-90"
-          >
-            {gaps.length}
-          </span>
-        )}
+        {/* Campaign lens — the headline number on the card, and the one gap
+            that matters most, in words. Performance on the map, not in a
+            panel. */}
+        {gaps && (() => {
+          const vals = valuesFor(comm.id);
+          const head = vals.find((v) => v.benchmark) ?? vals[0];
+          const cmp = head ? compare(head) : null;
+          const top = rankGaps(gaps)[0];
+          return (
+            <>
+              {head && (
+                <span className="mt-1 flex items-baseline gap-1 text-xs leading-tight">
+                  <span className="font-semibold text-grey-90">{head.value}</span>
+                  <span className="text-grey-70">{head.metric.toLowerCase()}</span>
+                  {head.benchmark && (
+                    <span className={cmp === "above" ? "text-success" : cmp === "below" ? "text-danger" : "text-grey-60"}>
+                      {cmp === "above" ? "↑" : cmp === "below" ? "↓" : "·"} {head.benchmark}
+                    </span>
+                  )}
+                </span>
+              )}
+              {top && (
+                <span
+                  title={gaps.map((g) => `${g.label} — ${g.detail}`).join("\n")}
+                  className="mt-1 inline-flex w-fit items-center gap-1 rounded bg-tint-amber px-1.5 py-0.5 text-[11px] leading-none text-grey-90"
+                >
+                  {top.label}
+                  {gaps.length > 1 && <span className="text-grey-70">+{gaps.length - 1}</span>}
+                </span>
+              )}
+            </>
+          );
+        })()}
         {leadGen && (
           <span
             className="mt-1 inline-flex w-fit items-center gap-1 rounded-full bg-pink px-1.5 py-0.5 text-[11px] font-semibold leading-none text-on-accent"
