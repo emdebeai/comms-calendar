@@ -118,7 +118,7 @@ export function TriggerLayer({ comms, hiddenIds, collapsedLanes, activeId, showA
     return buildLinks(comms).filter((l) => !hiddenIds.has(l.from) && !hiddenIds.has(l.to));
   }, [comms, hiddenIds, chains, scopeIds, byId]);
 
-  const visible = showAll || chains
+  const visible = showAll
     ? links
     : links.filter((l) => l.from === activeId || l.to === activeId);
   if (visible.length === 0) return null;
@@ -141,7 +141,7 @@ export function TriggerLayer({ comms, hiddenIds, collapsedLanes, activeId, showA
         const route = routePath(byId, l.from, l.to, collapsedLanes);
         if (!route) return null;
         const ch = l.chain;
-        const emphasised = ch ? l.from === activeId || l.to === activeId || activeId === null : !showAll || l.from === activeId || l.to === activeId;
+        const emphasised = !showAll || l.from === activeId || l.to === activeId;
         const drawIn = emphasised && !showAll && !ch; // hover reveal only
         // Under a question/moment spotlight the whole map dims — the show-all
         // web recedes with it rather than sitting bright over the dimmed cards.

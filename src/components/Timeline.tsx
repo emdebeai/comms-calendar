@@ -378,7 +378,7 @@ export function Timeline({
         {/* Moments that matter — a quiet shaded window (no heavy rules), with
             a faint dashed left edge marking its start. Lights up red while
             focused via hover/click on its label. */}
-        {MOMENTS.map((mo) => {
+        {MOMENTS.filter(() => !campaign).map((mo) => {
           const left = scaleX(mo.from);
           const width = scaleX(mo.to) - scaleX(mo.from);
           const active = mo.id === activeMomentId;
@@ -398,34 +398,15 @@ export function Timeline({
             (dashed outlines after the gate) and the calendar markers that
             drive it. Sits with the moment bands, above the embargo hatch. */}
         {campaign && (() => {
-          const stickyTop = YEAR_H + MONTH_H + MOMENT_H + 8;
           const band = (from: number, to: number) => ({ left: scaleX(from), width: scaleX(to) - scaleX(from) });
-          // Washes span the student lane too (the window is the student's
-          // window); labels start at the comm lanes so they never sit on
-          // top of the questions.
-          const labelBox = { top: HEADER_H, height: TOTAL_H - HEADER_H };
           return (
             <Fragment>
-              <div aria-hidden className="pointer-events-none absolute z-10 bg-rmit-blue-interactive/6" style={{ ...band(campaign.from, campaign.to), top: contextTop, height: TOTAL_H - contextTop }} />
+              <div aria-hidden className="pointer-events-none absolute z-10 bg-rmit-blue-interactive/5" style={{ ...band(campaign.from, campaign.to), top: contextTop, height: TOTAL_H - contextTop }} />
               <div aria-hidden className="pointer-events-none absolute z-10 bg-rmit-blue-interactive/10" style={{ ...band(campaign.coreFrom, campaign.coreTo), top: contextTop, height: TOTAL_H - contextTop }} />
-              {campaign.extensions.map((e) => (
-                <div key={e.label} className="pointer-events-none absolute z-10 flex justify-center border border-dashed border-grey-60" style={{ ...band(e.from, e.to), ...labelBox }}>
-                  <span className="pointer-events-auto sticky h-fit rounded-md border border-grey-40 bg-card px-2 py-0.5 text-xs whitespace-nowrap text-grey-80 shadow-sm" style={{ top: stickyTop + 34 }}>
-                    If extended · {e.label}
-                  </span>
-                </div>
-              ))}
-              {campaign.markers.map((m, i) => (
-                <div key={m.label} className="pointer-events-none absolute z-10 border-l border-dashed border-rmit-blue-interactive" style={{ left: scaleX(m.at), ...labelBox }}>
-                  <span className="pointer-events-auto sticky ml-1 block w-fit rounded-md bg-card px-1.5 py-0.5 text-xs whitespace-nowrap text-rmit-blue-interactive shadow-sm" style={{ top: stickyTop + 34 + (i % 2) * 24 }}>
-                    {m.label} · {m.date}
-                  </span>
-                </div>
-              ))}
-              <div className="pointer-events-none absolute z-20 border-l-2 border-rmit-blue" style={{ left: scaleX(campaign.stageGate), ...labelBox }}>
-                <span className="pointer-events-auto sticky ml-1 flex w-fit items-center gap-1 rounded-md bg-rmit-blue px-2 py-0.5 text-xs font-semibold whitespace-nowrap text-on-accent shadow-sm" style={{ top: stickyTop }}>
+              <div className="pointer-events-none absolute z-20 border-l-2 border-rmit-blue" style={{ left: scaleX(campaign.stageGate), top: HEADER_H, height: TOTAL_H - HEADER_H }}>
+                <span className="pointer-events-auto sticky ml-1 flex w-fit items-center gap-1 rounded-md bg-rmit-blue px-2 py-0.5 text-xs font-semibold whitespace-nowrap text-on-accent shadow-sm" style={{ top: YEAR_H + MONTH_H + MOMENT_H + 8 }}>
                   <Flag size={11} strokeWidth={2} aria-hidden />
-                  Stage gate · extend or stop
+                  Stage gate
                 </span>
               </div>
             </Fragment>
@@ -435,7 +416,7 @@ export function Timeline({
         {/* Send embargoes — a diagonal-hatched band (reads as "no-go", unlike
             the moment windows) marking periods when outbound comms hold. The
             label sticks under the header so it stays legible down a tall map. */}
-        {EMBARGOES.map((e) => {
+        {EMBARGOES.filter(() => !campaign).map((e) => {
           const left = scaleX(e.from);
           const width = scaleX(e.to) - left;
           return (
@@ -731,7 +712,6 @@ export function Timeline({
           showAll={showLines}
           recede={focusSet !== null && activeId === null && !campaign}
           chains={campaign ? CHAINS : undefined}
-          scopeIds={campaign ? focusSet ?? undefined : undefined}
         />
       </div>
 

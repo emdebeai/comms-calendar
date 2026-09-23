@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { ArrowRight, Layers, Moon, Route, Sun, Target, UserRound, Users } from "lucide-react";
 import { FOCUS_RING } from "../lib/styles";
+import { CAMPAIGNS } from "../data/campaigns";
 import {
   ABOUT_PAGES,
   CONSULTED,
@@ -89,6 +90,8 @@ type Page = "home" | AboutPage["slug"];
 
 interface LandingProps {
   onEnter: () => void;
+  /** open the map scoped to one campaign (its own section below the personas) */
+  onEnterCampaign: (campaignId: string) => void;
   theme: "light" | "dark";
   onToggleTheme: () => void;
 }
@@ -101,7 +104,7 @@ function pageFromHash(): Page {
   return (PAGE_SLUGS as readonly string[]).includes(h) ? (h as Page) : "home";
 }
 
-export function Landing({ onEnter, theme, onToggleTheme }: LandingProps) {
+export function Landing({ onEnter, onEnterCampaign, theme, onToggleTheme }: LandingProps) {
   // Reference pages live in the URL hash (#/glossary, ...) so the browser's
   // Back button steps back through them and they can be linked directly.
   const [page, setPageState] = useState<Page>(pageFromHash);
@@ -128,7 +131,7 @@ export function Landing({ onEnter, theme, onToggleTheme }: LandingProps) {
       {page === "home" && <HeroBand />}
       <main className="mx-auto max-w-[952px] px-6 pt-10 pb-20">
         {page === "home" ? (
-          <Home onEnter={onEnter} setPage={setPage} />
+          <Home onEnter={onEnter} onEnterCampaign={onEnterCampaign} setPage={setPage} />
         ) : (
           <Reference slug={page} onBack={() => setPage("home")} />
         )}
@@ -209,7 +212,7 @@ function HeroBand() {
 }
 
 // ── Home ─────────────────────────────────────────────────────────────────
-function Home({ onEnter, setPage }: { onEnter: () => void; setPage: (p: Page) => void }) {
+function Home({ onEnter, onEnterCampaign, setPage }: { onEnter: () => void; onEnterCampaign: (id: string) => void; setPage: (p: Page) => void }) {
   return (
     <div className="flex flex-col gap-10">
       {/* Mechanism — the hero band above carries the statement */}
@@ -276,6 +279,31 @@ function Home({ onEnter, setPage }: { onEnter: () => void; setPage: (p: Page) =>
               </div>
             ),
           )}
+        </div>
+      </section>
+
+      {/* Campaigns — the map scoped to one moment's window, with performance */}
+      <section>
+        <h2 className="text-xl font-semibold text-grey-90">Campaigns</h2>
+        <div className="mt-5 grid gap-4 sm:grid-cols-3">
+          {CAMPAIGNS.map((c) => (
+            <button
+              key={c.id}
+              type="button"
+              onClick={() => onEnterCampaign(c.id)}
+              className={`group ${CARD} text-left transition-colors hover:border-rmit-blue-interactive ${FOCUS_RING}`}
+            >
+              <span className="inline-block rounded-md bg-tint-amber px-2 py-0.5 text-xs font-semibold uppercase tracking-widest text-grey-90">
+                Pilot
+              </span>
+              <p className="mt-3 text-base font-semibold text-grey-90">{c.name}</p>
+              <p className="mt-1 text-sm text-grey-70">{c.dates} · proxy data</p>
+              <span className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-rmit-blue-interactive">
+                View the campaign
+                <ArrowRight size={15} strokeWidth={2} className="transition-transform group-hover:translate-x-0.5" aria-hidden />
+              </span>
+            </button>
+          ))}
         </div>
       </section>
 

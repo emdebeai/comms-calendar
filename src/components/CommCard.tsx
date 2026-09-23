@@ -1,5 +1,5 @@
 import { useLayoutEffect, useRef, useState } from "react";
-import { Gauge, Link2, MessageCircle, MousePointerClick, Tag, TrendingUp, Unlink, Users } from "lucide-react";
+import { Link2, MessageCircle, MousePointerClick, TrendingUp, Users } from "lucide-react";
 import type { Gap } from "../lib/campaignLens";
 import type { Comm } from "../data/types";
 import { leadGenFor } from "../data/leadGen";
@@ -28,7 +28,6 @@ interface Props {
   gaps?: Gap[];
 }
 
-const GAP_ICON = { "not-measured": Gauge, "no-utm": Unlink, "chain-broken": Unlink, "no-benchmark": Gauge, "no-cvp": Tag } as const;
 
 /** Chip for a comm. The exact send date is marked by the type-coloured dot
  *  on the lane's baseline (drawn by Timeline); the chip hangs beneath it and
@@ -193,18 +192,15 @@ export function CommCard({
         {/* Top lead-gen rank — a solid pill so the five biggest recruiters
             jump out of the events sea. Programme-level figure; the basis
             year/scope lives in the detail panel. */}
-        {/* Campaign lens — one small marker per gap, in the gap's own words
-            on hover. Amber, not red: these are findings, not failures. */}
+        {/* Campaign lens — one quiet count; the gaps themselves are named in
+            the panel and the gaps list. */}
         {gaps && gaps.length > 0 && (
-          <span className="mt-1 flex items-center gap-1" aria-label={`Gaps: ${gaps.map((g) => g.label).join(", ")}`}>
-            {gaps.map((g) => {
-              const GIcon = GAP_ICON[g.kind];
-              return (
-                <span key={g.kind + g.label} title={`${g.label} — ${g.detail}`} className="inline-flex size-4 items-center justify-center rounded-full bg-tint-amber text-grey-90">
-                  <GIcon size={10} strokeWidth={2.25} aria-hidden />
-                </span>
-              );
-            })}
+          <span
+            title={gaps.map((g) => `${g.label} — ${g.detail}`).join("\n")}
+            aria-label={`${gaps.length} gaps: ${gaps.map((g) => g.label).join(", ")}`}
+            className="mt-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-tint-amber px-1 text-[10px] font-semibold leading-none text-grey-90"
+          >
+            {gaps.length}
           </span>
         )}
         {leadGen && (

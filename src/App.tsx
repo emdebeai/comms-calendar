@@ -116,6 +116,23 @@ export default function App() {
     window.location.hash = "/map"; // pushes a history entry
     setEntered(true);
   }, []);
+  // Enter a campaign: scope the map, zoom its months to week view, land on it.
+  const enterCampaign = useCallback((id: string) => {
+    const c = campaignById(id);
+    if (!c) return;
+    setCampaignId(c.id);
+    setExpandedMonths(new Map(
+      Array.from({ length: Math.floor(c.to) - Math.floor(c.from) + 1 }, (_, i) => [Math.floor(c.from) + i, 1 as const]),
+    ));
+    campaignJumped.current = false;
+    window.location.hash = "/map";
+    setEntered(true);
+  }, []);
+  const exitCampaign = useCallback(() => {
+    setCampaignId(null);
+    setGapsOpen(false);
+    setExpandedMonths(new Map());
+  }, []);
   const goHome = useCallback(() => {
     window.location.hash = "/";
     setEntered(false);
@@ -143,11 +160,24 @@ export default function App() {
   // Detail-panel edits, keyed by comm id — merged onto the loaded comms below.
   const [commEdits, setCommEdits] = useState<CommEdits>({});
   // The comms the whole app renders: base data with any overrides applied.
-  const comms = useMemo<Comm[] | null>(() => {
+  const allComms = useMemo<Comm[] | null>(() => {
     if (!rawComms) return null;
     if (Object.keys(commEdits).length === 0) return rawComms;
     return rawComms.map((c) => (commEdits[c.id] ? { ...c, ...commEdits[c.id] } : c));
   }, [rawComms, commEdits]);
+  // Campaign lens — the first campaign the tool measures is Change of
+  // Preference. In campaign mode only in-scope touchpoints exist on the map:
+  // nothing outside the window is drawn, so nothing needs dimming.
+  const [campaignId, setCampaignId] = useState<string | null>(
+    campaignById(CAMPAIGN_FROM_URL)?.id ?? null,
+  );
+  const [gapsOpen, setGapsOpen] = useState(false);
+  const campaign = campaignById(campaignId);
+  const campaignJumped = useRef(false);
+  const comms = useMemo<Comm[] | null>(
+    () => (allComms && campaign ? allComms.filter((c) => inScope(c, campaign)) : allComms),
+    [allComms, campaign],
+  );
   const editComm = useCallback((commId: string, patch: CommPatch) => {
     setCommEdits((prev) => {
       const merged = { ...prev[commId], ...patch };
@@ -227,7 +257,15 @@ export default function App() {
   );
   // Fully-hidden lanes (a subset of collapsed): just the label strip, no
   // marker stack. Set from each lane's hide button; the label click restores.
-  const [hiddenLanes, setHiddenLanes] = useState<Set<string>>(new Set());
+  const [hiddenLanesUser, setHiddenLanes] = useState<Set<string>>(new Set());
+  const hiddenLanes = useMemo(() => {
+    if (!campaign || !comms) return hiddenLanesUser;
+    const teams = new Set<string>(comms.map((c) => c.team));
+    const auto = ["campaigns", "recruitment", "marketing-events", "marketing", "admissions", "conversion", "vtac", "digital"].filter(
+      (t) => t === "campaigns" || !teams.has(t),
+    );
+    return new Set([...hiddenLanesUser, ...auto]);
+  }, [hiddenLanesUser, campaign, comms]);
   const allLanesCollapsed = OVERVIEW_LANES.every((id) => collapsedLanes.has(id));
   const toggleAllLanes = () => {
     if (allLanesCollapsed) {
@@ -301,15 +339,6 @@ export default function App() {
     [adminKey],
   );
   const [openCommId, setOpenCommId] = useState<string | null>(null);
-  // Campaign lens — the first campaign the tool measures is Change of
-  // Preference. Scopes the map to the campaign's window, surfaces gaps.
-  const [campaignId, setCampaignId] = useState<string | null>(
-    campaignById(CAMPAIGN_FROM_URL)?.id ?? null,
-  );
-  const [gapsOpen, setGapsOpen] = useState(false);
-  const campaign = campaignById(campaignId);
-  // Opening straight into a campaign (?campaign=) lands on its window.
-  const campaignJumped = useRef(false);
   const [openCampaignId, setOpenCampaignId] = useState<string | null>(null);
   // Measured card heights (id → px), reported by each CommCard. Feeds back
   // into layoutTimeline so rows stack by real height instead of a fixed slot.
@@ -473,16 +502,12 @@ export default function App() {
   // it dims everything, the coverage gap made visible.)
   // Campaign scope + gaps. Computed over the laid-out comms so the summary
   // matches what's on screen.
-  const scopeIds = useMemo(
-    () => (campaign && baseLayout ? new Set(baseLayout.comms.filter((c) => inScope(c, campaign)).map((c) => c.id)) : null),
-    [campaign, baseLayout],
-  );
   const gapMap = useMemo(() => {
     if (!campaign || !baseLayout) return null;
     const m = new Map<string, Gap[]>();
-    for (const c of baseLayout.comms) if (scopeIds?.has(c.id)) m.set(c.id, gapsFor(c));
+    for (const c of baseLayout.comms) m.set(c.id, gapsFor(c));
     return m;
-  }, [campaign, baseLayout, scopeIds]);
+  }, [campaign, baseLayout]);
   const campaignSummary = useMemo(
     () => (campaign && baseLayout && gapMap ? summarise(baseLayout.comms, campaign, gapMap) : null),
     [campaign, baseLayout, gapMap],
@@ -490,8 +515,7 @@ export default function App() {
   const focusSet =
     questionCommIds ??
     momentCommIds ??
-    (triggerFocusActive ? new Set<string>([activeId as string, ...connected]) : null) ??
-    scopeIds;
+    (triggerFocusActive ? new Set<string>([activeId as string, ...connected]) : null);
 
   const filterActive =
     activeTypes.size < ALL_TYPES.length || segmentCount(segments) > 0 || equity !== null;
@@ -659,7 +683,7 @@ export default function App() {
   useEffect(() => {
     if (!campaign || !layout || campaignJumped.current || !entered) return;
     campaignJumped.current = true;
-    jumpToStage(campaign.from - 0.5);
+    jumpToStage(campaign.from - 0.05);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [campaign, layout, entered]);
   const jumpToStage = (from: number) =>
@@ -816,7 +840,7 @@ export default function App() {
     };
   }, []);
 
-  if (!entered) return <Landing onEnter={enterMap} theme={theme} onToggleTheme={toggleTheme} />;
+  if (!entered) return <Landing onEnter={enterMap} onEnterCampaign={enterCampaign} theme={theme} onToggleTheme={toggleTheme} />;
 
   return (
     <div
@@ -1098,15 +1122,7 @@ export default function App() {
         onGoHome={goHome}
         campaignActive={campaign !== null}
         campaignLabel={CAMPAIGNS[0]?.name ?? "Campaign"}
-        onToggleCampaign={() => {
-          if (campaign) {
-            setCampaignId(null);
-            setGapsOpen(false);
-          } else if (CAMPAIGNS[0]) {
-            setCampaignId(CAMPAIGNS[0].id);
-            jumpToStage(CAMPAIGNS[0].from - 0.5);
-          }
-        }}
+        onToggleCampaign={() => (campaign ? exitCampaign() : CAMPAIGNS[0] && enterCampaign(CAMPAIGNS[0].id))}
       />
       )}
 
@@ -1118,7 +1134,7 @@ export default function App() {
             setOpenCommId(null);
             setGapsOpen(true);
           }}
-          onExit={() => setCampaignId(null)}
+          onExit={exitCampaign}
         />
       )}
 
