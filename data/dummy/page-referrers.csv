@@ -1,0 +1,28 @@
+comm_id,channel,utm_source,sessions,share
+change-of-preference-page,EDM Clicked,marketo,2200,31%
+change-of-preference-page,Direct,,1900,26%
+change-of-preference-page,Natural Search,,1500,21%
+change-of-preference-page,Social Networks,meta,600,8%
+change-of-preference-page,Social Networks,No value,350,5%
+change-of-preference-page,Paid Search,google,400,6%
+change-of-preference-page,Other Referrers,,250,3%
+find-a-course-by-atar,Natural Search,,6300,45%
+find-a-course-by-atar,Direct,,3400,24%
+find-a-course-by-atar,EDM Clicked,marketo,1700,12%
+find-a-course-by-atar,Paid Search,google,1500,11%
+find-a-course-by-atar,Social Networks,pmax,700,5%
+find-a-course-by-atar,Other Referrers,,400,3%
+pathways-into-rmit,Natural Search,,1600,44%
+pathways-into-rmit,Other Referrers,,800,22%
+pathways-into-rmit,Direct,,700,19%
+pathways-into-rmit,EDM Clicked,marketo,500,14%
+your-guide-to-vtac-and-rmit-terms,Natural Search,,1500,63%
+your-guide-to-vtac-and-rmit-terms,Direct,,600,25%
+your-guide-to-vtac-and-rmit-terms,EDM Impression,marketo,300,12%
+contact-study-rmit,Other Referrers,,800,42%
+contact-study-rmit,Direct,,600,32%
+contact-study-rmit,EDM Clicked,marketo,300,16%
+contact-study-rmit,Natural Search,,200,10%
+equity-access-schemes,Natural Search,,500,56%
+equity-access-schemes,Other Referrers,,250,28%
+equity-access-schemes,Direct,,150,17%

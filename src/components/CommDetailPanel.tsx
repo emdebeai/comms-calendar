@@ -3,7 +3,7 @@ import { ArrowDownRight, ArrowUpRight, Check, Minus, Pencil } from "lucide-react
 import type { Campaign } from "../data/campaigns";
 import { type Gap } from "../lib/campaignLens";
 import { CHAINS, isLaneRef, laneOf } from "../lib/chains";
-import { compare, valuesFor, VALUES_ARE_DUMMY } from "../lib/metricValues";
+import { compare, referrersFor, valuesFor, VALUES_ARE_DUMMY } from "../lib/metricValues";
 import { MOMENTS, STAGES } from "../data/journey";
 import { linkedQuestions } from "../data/studentExperience";
 import { leadGenFor } from "../data/leadGen";
@@ -388,6 +388,28 @@ export function CommDetailPanel({ comm, allComms, entries, onClose, onAdd, onDel
             )}
 
             <h3 className={`mt-6 border-t border-grey-30 pt-6 text-grey-70 ${EYEBROW}`}>Chain</h3>
+            {/* Where the page's traffic came from — channel level, which is
+                as far as CJA can see. "EDM Clicked" is the eDM lane as a
+                whole; the send-level lines below are Marketo's side. */}
+            {comm.type === "webpage" && referrersFor(comm.id).length > 0 && (
+              <div className="mt-2">
+                <p className="text-xs text-grey-70">Arrives from</p>
+                <ul className="mt-1 divide-y divide-grey-30">
+                  {referrersFor(comm.id).map((r) => (
+                    <li key={r.channel + r.utmSource} className="flex items-baseline justify-between gap-3 py-1">
+                      <span className="text-sm text-grey-80">
+                        {r.channel}
+                        {r.utmSource && <span className="text-grey-60"> · {r.utmSource}</span>}
+                      </span>
+                      <span className="text-sm">
+                        <span className="font-semibold text-grey-90">{r.share}</span>
+                        <span className="text-xs text-grey-60"> · {r.sessions} sessions</span>
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
             {chains.length ? (
               <ul className="mt-2 flex flex-col gap-1.5">
                 {chains.map((ch) => {

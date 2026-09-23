@@ -1,11 +1,13 @@
 from,to,via,resolution,measured
-explore-a-future-with-rmit,change-of-preference-page,Explore courses by ATAR,send,yes
+explore-a-future-with-rmit,change-of-preference-page,It's not too late to make a course your #1,send,yes
 preference-rmit-first-guaranteed-pathway,change-of-preference-page,See your pathway options,send,yes
+vtac-results-are-released-today,change-of-preference-page,COP hotline until 12pm,send,yes
+cop-explained,change-of-preference-page,Key dates COP,send,no
 lane:marketing,change-of-preference-page,,channel,yes
 lane:campaigns,change-of-preference-page,,channel,yes
-change-of-preference-page,change-of-preference-q-a,Register,send,no
-cop-explained,change-of-preference-page,,send,no
 change-of-preference-page,find-a-course-by-atar,Explore courses by ATAR,send,yes
 change-of-preference-page,contact-study-rmit,Talk to Study@RMIT,send,yes
 find-a-course-by-atar,pathways-into-rmit,,send,yes
+change-of-preference-page,change-of-preference-q-a,Register,send,yes
 contact-study-rmit,results-are-out-talk-to-us,,send,no
+results-are-out-talk-to-us,contact-study-rmit,Call Study@RMIT,send,no

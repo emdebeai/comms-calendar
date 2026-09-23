@@ -49,3 +49,24 @@ export function compare(v: MetricValue): "above" | "below" | "level" | null {
   const lessIsBetter = /bounce|abandon|wait|handle/i.test(v.metric);
   return (a > b) !== lessIsBetter ? "above" : "below";
 }
+
+// ── Page referrers (CJA Marketing Channel × UTM source) — DUMMY ──────────
+// Where a page's traffic came from, at CHANNEL level: CJA knows "EDM
+// Clicked", not which eDM or CTA. Same local-file rule as the values.
+import refRaw from "../../data/dummy/page-referrers.csv?raw";
+
+export interface Referrer {
+  channel: string;
+  utmSource?: string;
+  sessions: string;
+  share: string;
+}
+const refsByComm = new Map<string, Referrer[]>();
+for (const r of parseCsvRows(refRaw)) {
+  const id = r.comm_id?.trim();
+  if (!id) continue;
+  const list = refsByComm.get(id) ?? [];
+  list.push({ channel: r.channel?.trim() ?? "", utmSource: r.utm_source?.trim() || undefined, sessions: r.sessions?.trim() ?? "", share: r.share?.trim() ?? "" });
+  refsByComm.set(id, list);
+}
+export const referrersFor = (commId: string): Referrer[] => refsByComm.get(commId) ?? [];
