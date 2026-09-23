@@ -56,7 +56,7 @@ export function gapsFor(c: Comm): Gap[] {
   }
   const channelOnly = CHAINS.some((ch) => isLaneRef(ch.from) && ch.to === c.id);
   if (channelOnly && !CHAINS.some((ch) => !isLaneRef(ch.from) && ch.to === c.id)) {
-    gaps.push({ kind: "no-utm", label: "Channel only", detail: "Traffic arrives from the eDM channel but can't be resolved to a send." });
+    gaps.push({ kind: "no-utm", label: "Channel only", detail: "Marketo sees the click; the page only sees 'eDM channel', not which send or CTA." });
   }
   if (!c.cvp) {
     gaps.push({ kind: "no-cvp", label: "No CVP", detail: "No value proposition recorded — what is this asking the student to believe?" });

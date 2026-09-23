@@ -1,11 +1,11 @@
 comm_id,metric,value,benchmark,period
 explore-a-future-with-rmit,Open rate,42%,38%,COP 2025
-explore-a-future-with-rmit,CTOR,11%,14%,COP 2025
-explore-a-future-with-rmit,Clicks per CTA,120,,COP 2025
+explore-a-future-with-rmit,Click-to-open rate,11%,14%,COP 2025
+explore-a-future-with-rmit,People (clicked link),120,,COP 2025
 preference-rmit-first-guaranteed-pathway,Open rate,47%,38%,COP 2025
-preference-rmit-first-guaranteed-pathway,CTOR,16%,14%,COP 2025
+preference-rmit-first-guaranteed-pathway,Click-to-open rate,16%,14%,COP 2025
 cop-explained,Open rate,35%,38%,COP 2025
-cop-explained,CTOR,9%,14%,COP 2025
+cop-explained,Click-to-open rate,9%,14%,COP 2025
 thanks-for-preferencing-rmit,Open rate,55%,38%,COP 2025
 change-of-preference-closes-today,Open rate,31%,38%,COP 2025
 change-of-preference-page,Page views,10000,,COP 2025
