@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { EyeOff, FileDown, Home, Info, Link2, MoreHorizontal, Moon, Rows3, Shield, ShieldCheck, Sun } from "lucide-react";
+import { EyeOff, FileDown, Home, Info, Link2, MoreHorizontal, Moon, Rows3, Shield, ShieldCheck, Sun, Target } from "lucide-react";
 import type { CommType } from "../data/types";
 import { FOCUS_RING } from "../lib/styles";
 import { HoverTip } from "./HoverTip";
@@ -23,6 +23,10 @@ interface Props {
   onGoHome: () => void;
   /** hide the floating chrome (presentation mode) */
   onHideUi: () => void;
+  /** campaign lens — the first campaign is Change of Preference */
+  campaignActive: boolean;
+  campaignLabel: string;
+  onToggleCampaign: () => void;
 }
 
 /** Sleek floating control dock — pinned bottom-centre, frosted, always in
@@ -44,6 +48,9 @@ export function ControlDock({
   onToggleAdmin,
   onGoHome,
   onHideUi,
+  campaignActive,
+  campaignLabel,
+  onToggleCampaign,
 }: Props) {
   const allActive = activeTypes.size === ALL_TYPES.length;
   const [legendOpen, setLegendOpen] = useState(false);
@@ -168,6 +175,20 @@ export function ControlDock({
         >
           <Rows3 size={15} strokeWidth={1.75} aria-hidden />
           <HoverTip label="Overview — all lanes as rows" />
+        </button>
+
+        {/* Campaign lens */}
+        <button
+          type="button"
+          onClick={onToggleCampaign}
+          aria-pressed={campaignActive}
+          aria-label={campaignActive ? `Exit ${campaignLabel}` : `Campaign view — ${campaignLabel}`}
+          className={`${iconBtn} ${
+            campaignActive ? "bg-rmit-blue-interactive text-on-accent" : "text-grey-70 hover:bg-grey-20"
+          }`}
+        >
+          <Target size={15} strokeWidth={1.75} aria-hidden />
+          <HoverTip label={`Campaign — ${campaignLabel}`} />
         </button>
 
         {/* Trigger lines */}

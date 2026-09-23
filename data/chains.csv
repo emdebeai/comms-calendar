@@ -1,0 +1,8 @@
+from,to,via,resolution,measured
+explore-a-future-with-rmit,change-of-preference-webpage,Explore courses by ATAR,send,yes
+preference-rmit-first-guaranteed-pathway,change-of-preference-webpage,See your pathway options,send,yes
+lane:marketing,change-of-preference-webpage,,channel,yes
+lane:campaigns,change-of-preference-webpage,,channel,yes
+change-of-preference-webpage,change-of-preference-q-a,Register,send,no
+change-of-preference-webpage,results-are-out-talk-to-us,Talk to Study@RMIT,send,no
+cop-explained,change-of-preference-webpage,,send,no

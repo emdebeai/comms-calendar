@@ -1,5 +1,9 @@
 import { useState } from "react";
-import { Check, Pencil } from "lucide-react";
+import { ArrowDownRight, ArrowUpRight, Check, Minus, Pencil } from "lucide-react";
+import type { Campaign } from "../data/campaigns";
+import { type Gap } from "../lib/campaignLens";
+import { CHAINS, isLaneRef, laneOf } from "../lib/chains";
+import { compare, valuesFor, VALUES_ARE_DUMMY } from "../lib/metricValues";
 import { MOMENTS, STAGES } from "../data/journey";
 import { linkedQuestions } from "../data/studentExperience";
 import { leadGenFor } from "../data/leadGen";
@@ -26,6 +30,9 @@ interface Props {
   onEdit?: (patch: Partial<Comm>) => void;
   /** open another comm's panel (related-comm cards) */
   onOpenComm?: (commId: string) => void;
+  /** campaign lens — adds performance vs benchmark, chain, value proposition */
+  campaign?: Campaign | null;
+  gaps?: Gap[];
 }
 
 const FIELD =
@@ -129,7 +136,10 @@ function AttributeRow({ label, value }: { label: string; value?: string | null }
   );
 }
 
-export function CommDetailPanel({ comm, allComms, entries, onClose, onAdd, onDelete, onEdit, onOpenComm }: Props) {
+export function CommDetailPanel({ comm, allComms, entries, onClose, onAdd, onDelete, onEdit, onOpenComm, campaign, gaps }: Props) {
+  const values = campaign ? valuesFor(comm.id) : [];
+  const chains = campaign ? CHAINS.filter((ch) => ch.from === comm.id || ch.to === comm.id || ch.from === `lane:${comm.team}`) : [];
+  const chainName = (ref: string) => (isLaneRef(ref) ? `${laneOf(ref)} lane (channel)` : allComms.find((c) => c.id === ref)?.title ?? ref);
   const [editing, setEditing] = useState(false);
   const Icon = COMM_ICONS[comm.type];
   const colors = COMM_COLORS[comm.type];
@@ -202,6 +212,13 @@ export function CommDetailPanel({ comm, allComms, entries, onClose, onAdd, onDel
           </div>
         ) : (
         <>
+        {campaign && gaps && gaps.length > 0 && (
+          <ul className="mt-3 flex flex-wrap gap-1.5" aria-label="Gaps">
+            {gaps.map((g) => (
+              <li key={g.kind + g.label} title={g.detail} className="rounded-full bg-tint-amber px-2 py-0.5 text-xs font-medium text-grey-90">{g.label}</li>
+            ))}
+          </ul>
+        )}
         <dl className="mt-2">
           {/* Sits first so it reads straight on from the date in the header.
               Events only — AttributeRow renders nothing when it's unset. */}
@@ -309,6 +326,80 @@ export function CommDetailPanel({ comm, allComms, entries, onClose, onAdd, onDel
           </>
         )}
 
+        {/* ── Campaign lens: performance vs benchmark, chain, value proposition ── */}
+        {campaign && (
+          <>
+            <h3 className={`mt-6 border-t border-grey-30 pt-6 text-grey-70 ${EYEBROW}`}>Performance</h3>
+            {values.length ? (
+              <ul className="mt-2 divide-y divide-grey-30">
+                {values.map((v) => {
+                  const cmp = compare(v);
+                  const Arrow = cmp === "above" ? ArrowUpRight : cmp === "below" ? ArrowDownRight : Minus;
+                  const tone = cmp === "above" ? "text-success" : cmp === "below" ? "text-danger" : "text-grey-60";
+                  return (
+                    <li key={v.metric} className="flex items-baseline justify-between gap-3 py-1.5">
+                      <span className="text-sm text-grey-80">{v.metric}</span>
+                      <span className="flex items-baseline gap-2">
+                        <span className="text-base font-semibold text-grey-90">{v.value}</span>
+                        {v.benchmark ? (
+                          <span className={`flex items-center gap-0.5 text-xs ${tone}`}>
+                            <Arrow size={12} strokeWidth={2} aria-hidden />
+                            {v.benchmark}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-grey-60 italic">no benchmark</span>
+                        )}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+            ) : (
+              <p className="mt-2 text-sm text-grey-70 italic">Not measured — no metrics loaded.</p>
+            )}
+            {VALUES_ARE_DUMMY && values.length > 0 && (
+              <p className="mt-1 text-xs text-grey-60">Proxy figures · {values[0].period}</p>
+            )}
+
+            <h3 className={`mt-6 border-t border-grey-30 pt-6 text-grey-70 ${EYEBROW}`}>Chain</h3>
+            {chains.length ? (
+              <ul className="mt-2 flex flex-col gap-1.5">
+                {chains.map((ch) => {
+                  const outgoing = ch.from === comm.id;
+                  const other = outgoing ? ch.to : ch.from;
+                  return (
+                    <li key={ch.from + ch.to} className={`rounded-md border px-2.5 py-2 text-sm ${ch.measured ? "border-grey-30" : "border-dashed border-amber bg-tint-amber/40"}`}>
+                      <button type="button" disabled={isLaneRef(other) || !onOpenComm} onClick={() => onOpenComm?.(other)} className={`text-left text-grey-90 ${isLaneRef(other) ? "" : "hover:underline"} ${FOCUS_RING}`}>
+                        {outgoing ? "→ " : "← "}
+                        <TokenText text={chainName(other)} />
+                      </button>
+                      <span className="block text-xs text-grey-70">
+                        {ch.via ? `via “${ch.via}” · ` : ""}
+                        {ch.resolution === "channel" ? "channel-level — not resolved to a send" : "send-level"}
+                        {ch.measured ? "" : " · next step not measured"}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+            ) : (
+              <p className="mt-2 text-sm text-grey-70 italic">No chain recorded — where does this send people?</p>
+            )}
+
+            <h3 className={`mt-6 border-t border-grey-30 pt-6 text-grey-70 ${EYEBROW}`}>Value Proposition</h3>
+            {comm.cvp ? (
+              <p className="mt-2 text-sm text-grey-90">“{comm.cvp}”</p>
+            ) : (
+              <p className="mt-2 text-sm text-grey-70 italic">None recorded.</p>
+            )}
+            <dl className="mt-1">
+              <AttributeRow label="Variants" value={comm.variants ? `${comm.variants}${comm.variantBasis ? ` · ${comm.variantBasis}` : ""}` : undefined} />
+              <AttributeRow label="New for 2026" value={comm.new2026 ? "Yes" : undefined} />
+              <AttributeRow label="UTM tagged" value={comm.utm === "yes" ? "Yes" : comm.utm === "no" ? "No" : undefined} />
+            </dl>
+          </>
+        )}
+
         {/* ── Top lead-gen events: the programme's lead figure as the same
             big-stat treatment sends get. ── */}
         {comm.type === "event" &&
@@ -333,7 +424,7 @@ export function CommDetailPanel({ comm, allComms, entries, onClose, onAdd, onDel
           })()}
 
         {/* ── Send performance — plain stats, whitespace does the work ── */}
-        {comm.type !== "event" && (
+        {comm.type !== "event" && !campaign && (
           <>
             <h3 className={`mt-6 border-t border-grey-30 pt-6 text-grey-70 ${EYEBROW}`}>Performance</h3>
             {comm.openRate || comm.clickRate ? (

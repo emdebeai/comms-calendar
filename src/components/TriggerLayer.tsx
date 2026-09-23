@@ -1,10 +1,14 @@
 import { useMemo } from "react";
 import type { Comm } from "../data/types";
 import { CARD_W, MARKER_SIZE, TOTAL_H, TOTAL_W, commHeight, commPos, markerPos } from "../lib/scale";
+import { isLaneRef, laneOf, type Chain } from "../lib/chains";
 
 interface Link {
   from: string;
   to: string;
+  /** campaign chains carry a style: send-level solid, channel-level dotted,
+   *  broken (unmeasured) in the warning colour */
+  chain?: Chain;
 }
 
 function buildLinks(comms: Comm[]): Link[] {
@@ -85,20 +89,36 @@ interface Props {
   /** a question/moment spotlight is active — the whole map has dimmed, so the
    *  show-all trigger web recedes with it instead of staying bright on top. */
   recede?: boolean;
+  /** campaign lens — chains drawn on top of (and instead of) trigger links.
+   *  A "lane:<team>" source anchors to that lane's latest in-scope comm
+   *  before the target: the channel drove the page, no send is named. */
+  chains?: Chain[];
+  scopeIds?: Set<string>;
 }
 
 /** Trigger connectors: all of them when toggled on, otherwise just the
  *  hovered/pinned comm's. Links touching a comm that's folded into a
  *  "+N more" chip are skipped — no lines to invisible cards. */
-export function TriggerLayer({ comms, hiddenIds, collapsedLanes, activeId, showAll, recede }: Props) {
-  const links = useMemo(
-    () =>
-      buildLinks(comms).filter((l) => !hiddenIds.has(l.from) && !hiddenIds.has(l.to)),
-    [comms, hiddenIds],
-  );
+export function TriggerLayer({ comms, hiddenIds, collapsedLanes, activeId, showAll, recede, chains, scopeIds }: Props) {
   const byId = useMemo(() => new Map(comms.map((c) => [c.id, c])), [comms]);
+  const links = useMemo(() => {
+    if (chains) {
+      return chains.flatMap((ch) => {
+        let from = ch.from;
+        if (isLaneRef(from)) {
+          const target = byId.get(ch.to);
+          const lane = laneOf(from);
+          const cands = comms.filter((c) => c.team === lane && (!scopeIds || scopeIds.has(c.id)) && !hiddenIds.has(c.id) && target && c.month <= target.month);
+          if (!cands.length) return [];
+          from = cands.sort((a, b) => b.month - a.month)[0].id;
+        }
+        return !hiddenIds.has(from) && !hiddenIds.has(ch.to) ? [{ from, to: ch.to, chain: ch }] : [];
+      });
+    }
+    return buildLinks(comms).filter((l) => !hiddenIds.has(l.from) && !hiddenIds.has(l.to));
+  }, [comms, hiddenIds, chains, scopeIds, byId]);
 
-  const visible = showAll
+  const visible = showAll || chains
     ? links
     : links.filter((l) => l.from === activeId || l.to === activeId);
   if (visible.length === 0) return null;
@@ -117,17 +137,19 @@ export function TriggerLayer({ comms, hiddenIds, collapsedLanes, activeId, showA
           of colliding with their text, and both ends are anchored with a
           small dot. Hover-revealed lines draw in; the show-all overlay keeps
           non-hovered links dashed and quiet. */}
-      {visible.map((l) => {
+      {visible.map((l, i) => {
         const route = routePath(byId, l.from, l.to, collapsedLanes);
         if (!route) return null;
-        const emphasised = !showAll || l.from === activeId || l.to === activeId;
-        const drawIn = emphasised && !showAll; // hover reveal only
+        const ch = l.chain;
+        const emphasised = ch ? l.from === activeId || l.to === activeId || activeId === null : !showAll || l.from === activeId || l.to === activeId;
+        const drawIn = emphasised && !showAll && !ch; // hover reveal only
         // Under a question/moment spotlight the whole map dims — the show-all
         // web recedes with it rather than sitting bright over the dimmed cards.
         const groupOpacity = emphasised ? 1 : recede ? 0.12 : 0.5;
-        const stroke = "var(--color-rmit-blue-interactive)";
+        const stroke = ch && !ch.measured ? "var(--color-amber)" : "var(--color-rmit-blue-interactive)";
+        const dash = ch ? (ch.resolution === "channel" ? "2 4" : !ch.measured ? "6 4" : undefined) : emphasised ? undefined : "3 5";
         return (
-          <g key={`${l.from}-${l.to}`} opacity={groupOpacity}>
+          <g key={`${l.from}-${l.to}-${i}`} opacity={groupOpacity}>
             {/* casing — separates the line from whatever it crosses */}
             <path
               d={route.d}
@@ -143,7 +165,7 @@ export function TriggerLayer({ comms, hiddenIds, collapsedLanes, activeId, showA
               stroke={stroke}
               strokeWidth={emphasised ? 1.75 : 1.25}
               strokeLinecap="round"
-              strokeDasharray={emphasised ? undefined : "3 5"}
+              strokeDasharray={dash}
               pathLength={drawIn ? 1 : undefined}
               className={drawIn ? "animate-draw-line" : undefined}
             />

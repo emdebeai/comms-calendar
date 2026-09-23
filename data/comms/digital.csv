@@ -1,2 +1,3 @@
-id,title,primary_cta,type,school_year,month,day,moment,triggers,secondary_cta,tertiary_cta,marketo_id,open_rate,click_rate,platform,time,audience,recipient,campaign,theme,preference,college,campus,event_state,personas
-campus-tours-webpage,Campus tours webpage,Register for an April campus tour,webpage,10,Apr,7,,glimpse-2026-yr10,,,,,,,,Yr 10 prospective students & parents,,Campus tour,,,,,,domsl
+id,title,primary_cta,type,school_year,month,day,moment,triggers,secondary_cta,tertiary_cta,marketo_id,open_rate,click_rate,platform,time,audience,recipient,campaign,theme,preference,college,campus,event_state,cvp,variants,variant_basis,new_2026,utm,personas
+campus-tours-webpage,Campus tours webpage,Register for an April campus tour,webpage,10,Apr,7,,glimpse-2026-yr10,,,,,,,,Yr 10 prospective students & parents,,Campus tour,,,,,,,,,,,domsl
+,Change of preference webpage,Explore courses by ATAR,webpage,12,Nov,19,cop,,Talk to Study@RMIT,,,,,,,,,COP,,,,,,"Everything COP in one place — what it is, how, by when",2,personalisation,,,domsl

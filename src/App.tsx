@@ -12,6 +12,10 @@ import {
 } from "./lib/segments";
 import { connectedIds } from "./components/TriggerLayer";
 import { CommDetailPanel } from "./components/CommDetailPanel";
+import { CampaignStrip } from "./components/CampaignStrip";
+import { GapsPanel } from "./components/GapsPanel";
+import { CAMPAIGNS, campaignById } from "./data/campaigns";
+import { gapsFor, inScope, summarise, type Gap } from "./lib/campaignLens";
 import { StudentQuestionPanel, questionFeedbackId } from "./components/StudentQuestionPanel";
 import { OffscreenAnswers } from "./components/OffscreenAnswers";
 import { CampaignDetailPanel } from "./components/CampaignDetailPanel";
@@ -72,6 +76,8 @@ const DOTS_MODE = new URLSearchParams(window.location.search).has("dots");
 // sheet. Server-free, so it works on the static deploy (the on-map Export
 // button opens this view in a new tab).
 const EXPORT_MODE = new URLSearchParams(window.location.search).has("export");
+// ?campaign=cop-2026 opens the map straight into that campaign's lens.
+const CAMPAIGN_FROM_URL = new URLSearchParams(window.location.search).get("campaign");
 // The overview / "show all lanes at once" toggle collapses every lane to its
 // compact touchpoint strip so the whole map fits vertically.
 const COLLAPSIBLE_LANES = ["recruitment", "marketing-events", "marketing", "admissions", "conversion", "vtac", "campaigns", "digital", "study"];
@@ -295,6 +301,15 @@ export default function App() {
     [adminKey],
   );
   const [openCommId, setOpenCommId] = useState<string | null>(null);
+  // Campaign lens — the first campaign the tool measures is Change of
+  // Preference. Scopes the map to the campaign's window, surfaces gaps.
+  const [campaignId, setCampaignId] = useState<string | null>(
+    campaignById(CAMPAIGN_FROM_URL)?.id ?? null,
+  );
+  const [gapsOpen, setGapsOpen] = useState(false);
+  const campaign = campaignById(campaignId);
+  // Opening straight into a campaign (?campaign=) lands on its window.
+  const campaignJumped = useRef(false);
   const [openCampaignId, setOpenCampaignId] = useState<string | null>(null);
   // Measured card heights (id → px), reported by each CommCard. Feeds back
   // into layoutTimeline so rows stack by real height instead of a fixed slot.
@@ -456,10 +471,27 @@ export default function App() {
   // Focus precedence: an explicit student-question focus wins, then a moment,
   // then a hovered comm's trigger web. (An empty question set is meaningful —
   // it dims everything, the coverage gap made visible.)
+  // Campaign scope + gaps. Computed over the laid-out comms so the summary
+  // matches what's on screen.
+  const scopeIds = useMemo(
+    () => (campaign && baseLayout ? new Set(baseLayout.comms.filter((c) => inScope(c, campaign)).map((c) => c.id)) : null),
+    [campaign, baseLayout],
+  );
+  const gapMap = useMemo(() => {
+    if (!campaign || !baseLayout) return null;
+    const m = new Map<string, Gap[]>();
+    for (const c of baseLayout.comms) if (scopeIds?.has(c.id)) m.set(c.id, gapsFor(c));
+    return m;
+  }, [campaign, baseLayout, scopeIds]);
+  const campaignSummary = useMemo(
+    () => (campaign && baseLayout && gapMap ? summarise(baseLayout.comms, campaign, gapMap) : null),
+    [campaign, baseLayout, gapMap],
+  );
   const focusSet =
     questionCommIds ??
     momentCommIds ??
-    (triggerFocusActive ? new Set<string>([activeId as string, ...connected]) : null);
+    (triggerFocusActive ? new Set<string>([activeId as string, ...connected]) : null) ??
+    scopeIds;
 
   const filterActive =
     activeTypes.size < ALL_TYPES.length || segmentCount(segments) > 0 || equity !== null;
@@ -624,6 +656,12 @@ export default function App() {
   }, [comms]);
 
   // Stage names in the header band double as jump links.
+  useEffect(() => {
+    if (!campaign || !layout || campaignJumped.current || !entered) return;
+    campaignJumped.current = true;
+    jumpToStage(campaign.from - 0.5);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [campaign, layout, entered]);
   const jumpToStage = (from: number) =>
     scrollerRef.current?.scrollTo({ left: Math.max(0, scaleX(from) - 40), behavior: scrollBehavior() });
 
@@ -871,6 +909,8 @@ export default function App() {
               activeId={activeId}
               showLines={showLines}
               activeMomentId={activeMomentId}
+              campaign={campaign}
+              gapMap={gapMap}
               showStudentLayer={showStudentLayer}
               studentCollapsed={studentCollapsed}
               onToggleStudentCollapse={() => setStudentCollapsed((c) => !c)}
@@ -1056,7 +1096,44 @@ export default function App() {
         isAdmin={isAdmin}
         onToggleAdmin={toggleAdmin}
         onGoHome={goHome}
+        campaignActive={campaign !== null}
+        campaignLabel={CAMPAIGNS[0]?.name ?? "Campaign"}
+        onToggleCampaign={() => {
+          if (campaign) {
+            setCampaignId(null);
+            setGapsOpen(false);
+          } else if (CAMPAIGNS[0]) {
+            setCampaignId(CAMPAIGNS[0].id);
+            jumpToStage(CAMPAIGNS[0].from - 0.5);
+          }
+        }}
       />
+      )}
+
+      {campaign && campaignSummary && !PRINT_MODE && !uiHidden && !gapsOpen && !openCommId && (
+        <CampaignStrip
+          campaign={campaign}
+          summary={campaignSummary}
+          onOpenGaps={() => {
+            setOpenCommId(null);
+            setGapsOpen(true);
+          }}
+          onExit={() => setCampaignId(null)}
+        />
+      )}
+
+      {campaign && campaignSummary && gapMap && gapsOpen && layout && (
+        <GapsPanel
+          campaign={campaign}
+          comms={layout.comms}
+          gapMap={gapMap}
+          summary={campaignSummary}
+          onClose={() => setGapsOpen(false)}
+          onOpenComm={(id) => {
+            setGapsOpen(false);
+            setOpenCommId(id);
+          }}
+        />
       )}
 
       {/* Persona dock — bottom-left, names the persona and opens the segment
@@ -1101,6 +1178,8 @@ export default function App() {
           onDelete={isAdmin ? (entryId) => removeFeedback(openComm.id, entryId) : undefined}
           onEdit={(patch) => editComm(openComm.id, patch)}
           onOpenComm={(id) => setOpenCommId(id)}
+          campaign={campaign}
+          gaps={gapMap?.get(openComm.id)}
         />
       )}
 

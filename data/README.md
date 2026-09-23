@@ -11,6 +11,12 @@ copies, never source of truth.
 |---|---|
 | `comms/<team>.csv` | Every touchpoint on the map, ONE FILE PER SENDER TEAM — the filename is the team (no team column), so a file can go to that team's rep and come back without touching anyone else's rows. Column reference: `src/lib/commsSchema.ts` (`FILE_COLUMNS`). Read by the dev API (`server/dataStore.ts`) and baked into the standalone build (`src/lib/loadComms.ts`). |
 | `comms-template.csv` | Blank header row for teams adding sends — same columns as the per-team files (see `docs/data-handover.md`). |
+| `campaigns.csv` | Campaign definitions for the campaign lens — window, core moment, stage gate, possible extensions, calendar markers, outcome metric (definition only), scope rule. First row: Change of Preference 2026. |
+| `chains.csv` | Where a touchpoint sends people next (`from,to,via,resolution,measured`). `resolution` is `send` (exact touchpoint → page) or `channel` (`lane:<team>` → page — what CJA can say without a UTM naming the send). `measured=no` is a broken chain. |
+| `metrics-catalogue.csv` | Metric names, definitions, benchmark *level*, source system and owner per touchpoint type — never values. Edited on `/metrics`; `scripts/apply-metrics-catalogue.mjs` folds edits back. |
+| `dummy/metric-values.csv` | **Proxy figures only.** Obviously fake round numbers so the campaign lens can be seen working. Real values never enter the repo — a team loads its own export locally with the same columns (`comm_id,metric,value,benchmark,period`). |
+
+Campaign-lens columns on the per-team files: `cvp` (the value proposition, terse), `variants`, `variant_basis` (`segmentation` / `personalisation`), `new_2026`, `utm` (`yes` / `no`, blank = unknown).
 
 Two rules for the CSVs:
 

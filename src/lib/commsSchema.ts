@@ -85,6 +85,16 @@ export const COMMS_COLUMNS = [
   "college",
   "campus",
   "event_state",
+  // Campaign-lens fields (Phase 2). cvp = the value proposition the send
+  // makes, terse; variants = how many versions went out; variant_basis =
+  // "segmentation" (fixed audience cuts) or "personalisation" (responsive);
+  // new_2026 = yes when the touchpoint/variant is new this cycle; utm = yes/no
+  // whether its CTAs carry a trackable UTM (blank = unknown).
+  "cvp",
+  "variants",
+  "variant_basis",
+  "new_2026",
+  "utm",
 ] as const;
 
 // Column set for the per-team files in data/comms/ — the filename IS the
@@ -275,6 +285,11 @@ export function normalizeCommRow(
     campus: row.campus || undefined,
     eventState: row.event_state || undefined,
     equity: resolveEquity(row.audience || ""),
+    cvp: row.cvp || undefined,
+    variants: row.variants && Number.isFinite(Number(row.variants)) ? Number(row.variants) : undefined,
+    variantBasis: /^pers/i.test(row.variant_basis || "") ? "personalisation" : /^seg/i.test(row.variant_basis || "") ? "segmentation" : undefined,
+    new2026: /^(y|yes|true|1)$/i.test(row.new_2026 || ""),
+    utm: /^(y|yes|true|1)$/i.test(row.utm || "") ? "yes" : /^(n|no|false|0)$/i.test(row.utm || "") ? "no" : undefined,
     // Personas this row belongs to — a LENS, not a file split: shared
     // touchpoints (Open Day, VTAC sends) tag several personas rather than
     // being duplicated per journey. Blank = the current default persona.
