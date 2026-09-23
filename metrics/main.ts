@@ -111,8 +111,10 @@ function access(a: string): string {
   const on = /^yes/i.test(a);
   const via = /^via|^requested/i.test(a);
   const dot = on ? "bg-success" : via ? "bg-rmit-blue-interactive" : "bg-danger";
-  return `<span class="inline-flex items-center gap-1.5"><span class="size-1.5 rounded-full ${dot}" aria-hidden></span>${esc(a || "No source yet")}</span>`;
+  const word = on ? "we have access" : /^requested/i.test(a) ? "access requested" : via ? a.replace(/^via/i, "via").toLowerCase() : a ? "no access yet" : "no source yet";
+  return `<span class="inline-flex items-center gap-1.5"><span class="size-1.5 rounded-full ${dot}" aria-hidden></span>${esc(word)}</span>`;
 }
+const labelled = (label: string, value: string) => `<span><span class="text-grey-60">${label} </span>${value}</span>`;
 
 /** The usual value for a group — shown once in the header; rows only say
  *  where they differ from it. */
@@ -128,11 +130,11 @@ function shared(ms: Metric[]) {
 
 function view(m: Metric, common: ReturnType<typeof shared>): string {
   const meta = [
-    m.system !== common.system && m.system && esc(m.system),
-    m.owner !== common.owner && m.owner && esc(m.owner),
+    m.system !== common.system && m.system && labelled("From", esc(m.system)),
+    m.owner !== common.owner && m.owner && labelled("Owner", esc(m.owner)),
     m.access !== common.access && m.access && access(m.access),
-    m.joinKey !== common.joinKey && m.joinKey && `<code class="rounded bg-grey-10 px-1">${esc(m.joinKey)}</code>`,
-    m.benchmark && `Benchmark ${esc(m.benchmark)}${m.level ? ` (${esc(m.level.toLowerCase())})` : ""}`,
+    m.joinKey !== common.joinKey && m.joinKey && labelled("Matched by", `<code class="rounded bg-grey-10 px-1">${esc(m.joinKey)}</code>`),
+    m.benchmark && labelled("Benchmark", `${esc(m.benchmark)}${m.level ? ` (${esc(m.level.toLowerCase())})` : ""}`),
   ].filter(Boolean) as string[];
   return `<li data-id="${esc(m.metricId)}" class="group grid gap-x-6 gap-y-1 py-3 sm:grid-cols-[1.25rem_13rem_1fr]">
       <input type="checkbox" data-action="confirm" ${m.confirmed ? "checked" : ""}
@@ -175,10 +177,10 @@ function form(m: Metric): string {
 function section(t: string, ms: Metric[]): string {
   const common = shared(ms);
   const line = [
-    common.system ? esc(common.system) : "",
-    common.owner ? esc(common.owner) : "",
+    common.system ? labelled("From", esc(common.system)) : "",
+    common.owner ? labelled("Owner", esc(common.owner)) : "",
     common.access ? access(common.access) : "",
-    common.joinKey ? `<code class="rounded bg-grey-10 px-1">${esc(common.joinKey)}</code>` : "",
+    common.joinKey ? labelled("Matched by", `<code class="rounded bg-grey-10 px-1">${esc(common.joinKey)}</code>`) : "",
   ].filter(Boolean).join(" · ");
   return `<section class="mt-8" data-type="${esc(t)}">
       <div class="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 border-b border-grey-30 pb-2">
