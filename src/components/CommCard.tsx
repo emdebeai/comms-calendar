@@ -198,9 +198,16 @@ export function CommCard({
             panel. */}
         {gaps && (() => {
           const vals = valuesFor(comm.id);
-          const head = vals.find((v) => v.benchmark) ?? vals[0];
+          const PREFER = ["Traffic rank", "Open rate", "Registrations", "Delivered", "Bounce rate"];
+          const head =
+            PREFER.map((m) => vals.find((v) => !v.cta && v.metric === m)).find(Boolean) ??
+            vals.find((v) => !v.cta && v.benchmark) ??
+            vals.find((v) => !v.cta);
           const cmp = head ? compare(head) : null;
-          const top = rankGaps(gaps)[0];
+          // Only the gaps that cut the story get a chip on the card; benchmark
+          // and CVP gaps live in the panel and the gaps list.
+          const loud = rankGaps(gaps).filter((g) => g.kind === "chain-broken" || g.kind === "no-utm" || g.kind === "not-measured");
+          const top = loud[0];
           return (
             <>
               {head && (
@@ -220,7 +227,7 @@ export function CommCard({
                   className="mt-1 inline-flex w-fit items-center gap-1 rounded bg-tint-amber px-1.5 py-0.5 text-[11px] leading-none text-grey-90"
                 >
                   {top.label}
-                  {gaps.length > 1 && <span className="text-grey-70">+{gaps.length - 1}</span>}
+                  {loud.length > 1 && <span className="text-grey-70">+{loud.length - 1}</span>}
                 </span>
               )}
             </>

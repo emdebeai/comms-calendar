@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import type { Comm } from "../data/types";
 import { CARD_W, MARKER_SIZE, TOTAL_H, TOTAL_W, commHeight, commPos, markerPos } from "../lib/scale";
-import { isLaneRef, laneOf, type Chain } from "../lib/chains";
+import { isLaneRef, type Chain } from "../lib/chains";
 
 interface Link {
   from: string;
@@ -93,30 +93,25 @@ interface Props {
    *  A "lane:<team>" source anchors to that lane's latest in-scope comm
    *  before the target: the channel drove the page, no send is named. */
   chains?: Chain[];
-  scopeIds?: Set<string>;
 }
 
 /** Trigger connectors: all of them when toggled on, otherwise just the
  *  hovered/pinned comm's. Links touching a comm that's folded into a
  *  "+N more" chip are skipped — no lines to invisible cards. */
-export function TriggerLayer({ comms, hiddenIds, collapsedLanes, activeId, showAll, recede, chains, scopeIds }: Props) {
+export function TriggerLayer({ comms, hiddenIds, collapsedLanes, activeId, showAll, recede, chains }: Props) {
   const byId = useMemo(() => new Map(comms.map((c) => [c.id, c])), [comms]);
   const links = useMemo(() => {
     if (chains) {
-      return chains.flatMap((ch) => {
-        let from = ch.from;
-        if (isLaneRef(from)) {
-          const target = byId.get(ch.to);
-          const lane = laneOf(from);
-          const cands = comms.filter((c) => c.team === lane && (!scopeIds || scopeIds.has(c.id)) && !hiddenIds.has(c.id) && target && c.month <= target.month);
-          if (!cands.length) return [];
-          from = cands.sort((a, b) => b.month - a.month)[0].id;
-        }
-        return !hiddenIds.has(from) && !hiddenIds.has(ch.to) ? [{ from, to: ch.to, chain: ch }] : [];
-      });
+      // Send-level only: a channel-level chain ("the eDM lane drove this
+      // page") is a fact about the page, listed in its panel, not a line.
+      return chains.flatMap((ch) =>
+        !isLaneRef(ch.from) && !hiddenIds.has(ch.from) && !hiddenIds.has(ch.to)
+          ? [{ from: ch.from, to: ch.to, chain: ch }]
+          : [],
+      );
     }
     return buildLinks(comms).filter((l) => !hiddenIds.has(l.from) && !hiddenIds.has(l.to));
-  }, [comms, hiddenIds, chains, scopeIds, byId]);
+  }, [comms, hiddenIds, chains]);
 
   // Campaign chains are the story — always drawn, never hover-gated.
   const visible = showAll || chains
@@ -141,7 +136,7 @@ export function TriggerLayer({ comms, hiddenIds, collapsedLanes, activeId, showA
           of colliding with their text, and both ends are anchored with a
           small dot. Hover-revealed lines draw in; the show-all overlay keeps
           non-hovered links dashed and quiet. */}
-      {visible.map((l, i) => {
+      {visible.map((l) => {
         const route = routePath(byId, l.from, l.to, collapsedLanes);
         if (!route) return null;
         const ch = l.chain;
@@ -154,7 +149,7 @@ export function TriggerLayer({ comms, hiddenIds, collapsedLanes, activeId, showA
         const stroke = ch && !ch.measured ? "var(--color-amber)" : "var(--color-rmit-blue-interactive)";
         const dash = ch ? (ch.resolution === "channel" ? "2 4" : !ch.measured ? "6 4" : undefined) : emphasised ? undefined : "3 5";
         return (
-          <g key={`${l.from}-${l.to}-${i}`} opacity={groupOpacity}>
+          <g key={`${l.from}-${l.to}`} opacity={groupOpacity}>
             {/* casing — separates the line from whatever it crosses */}
             <path
               d={route.d}
@@ -174,32 +169,6 @@ export function TriggerLayer({ comms, hiddenIds, collapsedLanes, activeId, showA
               pathLength={drawIn ? 1 : undefined}
               className={drawIn ? "animate-draw-line" : undefined}
             />
-            {/* chain label — the CTA that carries it, or why it breaks */}
-            {ch && (() => {
-              const [x2, y2] = route.end;
-              const label = !ch.measured ? "not measured" : ch.resolution === "channel" ? "channel only" : ch.via ?? "";
-              if (!label) return null;
-              // At the arrival end, outside whichever card edge the line lands
-              // on, stacked per target so labels don't pile up.
-              const n = visible.slice(0, i).filter((o) => o.to === l.to).length;
-              const tgt = byId.get(l.to);
-              const onRight = tgt ? x2 > commPos(tgt).x + CARD_W / 2 : false;
-              return (
-                <text
-                  x={onRight ? x2 + 8 : x2 - 8}
-                  y={y2 + 4 - n * 12}
-                  textAnchor={onRight ? "start" : "end"}
-                  fontSize={10}
-                  fontWeight={600}
-                  fill={stroke}
-                  stroke="var(--color-card)"
-                  strokeWidth={3}
-                  paintOrder="stroke"
-                >
-                  {label}
-                </text>
-              );
-            })()}
             {/* endpoint anchors */}
             <circle cx={route.start[0]} cy={route.start[1]} r={2.5} fill={stroke} />
             <circle
