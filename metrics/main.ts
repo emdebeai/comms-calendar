@@ -37,7 +37,7 @@ const FIELDS: { key: Field; label: string; wide?: boolean; list?: string[] }[] =
   { key: "level", label: "Benchmark level", list: ["Touchpoint", "Channel", "None exists", "n/a"] },
   { key: "system", label: "Source system" },
   { key: "owner", label: "Source owner" },
-  { key: "access", label: "Access", list: ["Yes", "Requested", "No", "Via Study@ export", "Via export"] },
+  { key: "access", label: "Access", list: ["Yes", "Partial", "Requested", "No", "Via Study@ export", "Via export", "n/a"] },
   { key: "joinKey", label: "Join key to the map" },
   { key: "notes", label: "Notes", wide: true },
   { key: "team", label: "Team" },
@@ -109,9 +109,11 @@ const LINK = `rounded px-1 text-xs text-rmit-blue-interactive hover:underline ${
 // ── rendering ─────────────────────────────────────────────────────────────
 function access(a: string): string {
   const on = /^yes/i.test(a);
+  const partial = /^partial/i.test(a);
+  const na = /^n\/a/i.test(a);
   const via = /^via|^requested/i.test(a);
-  const dot = on ? "bg-success" : via ? "bg-rmit-blue-interactive" : "bg-danger";
-  const word = on ? "we have access" : /^requested/i.test(a) ? "access requested" : via ? a.replace(/^via/i, "via").toLowerCase() : a ? "no access yet" : "no source yet";
+  const dot = on ? "bg-success" : partial ? "bg-amber" : via ? "bg-rmit-blue-interactive" : na ? "bg-grey-40" : "bg-danger";
+  const word = on ? "we have access" : partial ? "partly" : na ? "not applicable" : /^requested/i.test(a) ? "access requested" : via ? a.replace(/^via/i, "via").toLowerCase() : a ? "no access yet" : "no source yet";
   return `<span class="inline-flex items-center gap-1.5"><span class="size-1.5 rounded-full ${dot}" aria-hidden></span>${esc(word)}</span>`;
 }
 const labelled = (label: string, value: string) => `<span><span class="text-grey-60">${label} </span>${value}</span>`;
@@ -192,6 +194,49 @@ function section(t: string, ms: Metric[]): string {
     </section>`;
 }
 
+/** Chain coverage — per touchpoint type, do we know where people came from
+ *  (top 3 referrers) and what they did next (top 3), and why not when not.
+ *  Read from the two conventional rows each type carries. */
+const REF = "Referrers (top 3)", NXT = "Next steps (top 3)";
+function coverage(all: Metric[]): string {
+  const types = uniq(all.map((m) => `${m.team}\u0000${m.type}`))
+    .map((k) => k.split("\u0000"))
+    .map(([team, type]) => ({
+      team, type,
+      ref: all.find((m) => m.team === team && m.type === type && m.metric === REF),
+      nxt: all.find((m) => m.team === team && m.type === type && m.metric === NXT),
+    }))
+    .filter((t) => t.ref || t.nxt);
+  if (!types.length) return "";
+  const cell = (m?: Metric) => {
+    if (!m) return `<td class="px-3 py-2 text-xs text-grey-60">—</td>`;
+    const status = /^yes/i.test(m.access) ? "Yes" : /^partial/i.test(m.access) ? "Partly" : /^n\/a/i.test(m.access) ? "n/a" : "No";
+    const tone = status === "Yes" ? "text-grey-90" : status === "n/a" ? "text-grey-60" : "text-grey-90";
+    const dot = status === "Yes" ? "bg-success" : status === "Partly" ? "bg-amber" : status === "n/a" ? "bg-grey-40" : "bg-danger";
+    return `<td class="px-3 py-2 align-top">
+        <span class="inline-flex items-center gap-1.5 text-sm font-medium ${tone}"><span class="size-2 rounded-full ${dot}" aria-hidden></span>${status}${m.system ? `<span class="font-normal text-grey-60"> · ${esc(m.system)}</span>` : ""}</span>
+        ${m.notes ? `<p class="mt-0.5 max-w-sm text-xs text-grey-70">${esc(m.notes)}</p>` : ""}
+      </td>`;
+  };
+  return `<section class="mt-8">
+      <h2 class="text-base font-semibold text-grey-90">Chain Coverage</h2>
+      <p class="mt-1 text-sm text-grey-70">For each kind of touchpoint: can we see where people came from, and what they did next?</p>
+      <div class="mt-3 overflow-x-auto rounded-lg border border-grey-30 bg-card">
+        <table class="w-full border-collapse text-left">
+          <thead class="bg-grey-10 text-xs font-semibold tracking-widest text-grey-70 uppercase">
+            <tr><th class="px-3 py-2">Touchpoint</th><th class="px-3 py-2">Referrers · top 3</th><th class="px-3 py-2">Next steps · top 3</th></tr>
+          </thead>
+          <tbody class="divide-y divide-grey-30">
+            ${types.map((t) => `<tr>
+              <td class="px-3 py-2 align-top"><span class="block text-sm font-semibold text-grey-90">${esc(t.type)}</span><span class="text-xs text-grey-60">${esc(t.team)}</span></td>
+              ${cell(t.ref)}${cell(t.nxt)}
+            </tr>`).join("")}
+          </tbody>
+        </table>
+      </div>
+    </section>`;
+}
+
 function render() {
   const all = rows();
   const teams = uniq(all.map((m) => m.team));
@@ -231,6 +276,8 @@ function render() {
         <span id="status" class="text-xs text-grey-60">All changes saved</span>
       </div>
       ${banner}
+
+      ${coverage(all)}
 
       <nav aria-label="Team" class="mt-6 flex flex-wrap gap-1 rounded-full border border-grey-30 bg-grey-10 p-1">${teamTabs}
         <button type="button" data-action="add-team" class="rounded-full px-3 py-2 text-sm text-grey-60 hover:bg-grey-20 ${FOCUS}">+ Team</button>
