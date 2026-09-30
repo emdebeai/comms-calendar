@@ -1,13 +1,13 @@
 from,to,cta,via,utm,resolution,measured,people
 cop-explained,change-of-preference-page,primary,Key dates COP,no,send,no,
 cop-explained-2,change-of-preference-page,primary,Key dates COP,no,send,no,
-preference-rmit-first-guaranteed-pathway,change-of-preference-page,primary,See your pathway options,yes,send,yes,160
+preference-rmit-first-guaranteed-pathway,change-of-preference-page,primary,See your pathway options,yes,send,yes,260
 preference-rmit-first-guaranteed-pathway,contact-study-rmit,secondary,Book a chat,yes,send,yes,45
 explore-a-future-with-rmit,change-of-preference-page,primary,It's not too late to make a course your #1,yes,send,yes,120
 explore-a-future-with-rmit,find-a-course-by-atar,secondary,Explore courses,yes,send,yes,40
 explore-a-future-with-rmit-2,change-of-preference-page,primary,It's not too late to make a course your #1,yes,send,yes,150
 explore-a-future-with-rmit-3,change-of-preference-page,primary,It's not too late to make a course your #1,yes,send,yes,70
-explore-a-future-with-rmit-4,change-of-preference-page,primary,It's not too late to make a course your #1,yes,send,yes,50
+explore-a-future-with-rmit-4,change-of-preference-page,primary,It's not too late to make a course your #1,yes,send,yes,30
 vtac-results-are-released-today,change-of-preference-page,primary,COP hotline until 12pm,yes,send,yes,700
 change-of-preference-closes-today,change-of-preference-page,primary,COP closes 12pm,yes,send,yes,420
 cop-paid-social,change-of-preference-page,primary,Change your preference,yes,channel,yes,1000

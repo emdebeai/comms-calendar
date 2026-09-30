@@ -28,6 +28,7 @@ import {
   CAMPAIGN,
   CHAINS,
   CHAINS_RAW,
+  FINDINGS,
   CONTACTS_BY_DAY,
   GAPS,
   GAP_ORDER,
@@ -726,6 +727,31 @@ function Page() {
         {shortDate(CAMPAIGN.from)} – {shortDate(CAMPAIGN.to)} · stage gate {shortDate(CAMPAIGN.stageGate)}
       </p>
       <p className="mt-6 max-w-3xl text-xl leading-relaxed text-grey-90">{SUMMARY.story}</p>
+
+      {/* Findings — the conclusions, written from the data by rules. Each
+          one lights its touchpoints on the flow below. */}
+      <ol className="mt-6 grid max-w-6xl gap-x-8 gap-y-3 sm:grid-cols-2">
+        {FINDINGS.map((f, i) => (
+          <li
+            key={i}
+            onMouseEnter={() => setHovered(f.ids[0] ?? null)}
+            onMouseLeave={() => setHovered(null)}
+            className="flex gap-3 rounded-md py-1"
+          >
+            <span aria-hidden className={`mt-1.5 size-2.5 shrink-0 rounded-full ${f.tone === "good" ? "bg-success" : f.tone === "bad" ? "bg-danger" : "bg-amber"}`} />
+            <p className="text-sm leading-relaxed text-grey-90">
+              <span className="sr-only">{f.tone === "good" ? "Working: " : f.tone === "bad" ? "Not working: " : "Can't see: "}</span>
+              {f.text}
+              {f.ids[0] && (
+                <>
+                  {" "}
+                  <button type="button" onClick={() => setOpenId(f.ids[0])} className={`rounded text-rmit-blue-interactive hover:underline ${FOCUS_RING}`}>Open</button>
+                </>
+              )}
+            </p>
+          </li>
+        ))}
+      </ol>
 
       <Flow hovered={hovered} onHover={setHovered} onOpen={setOpenId} />
 
