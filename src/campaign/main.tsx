@@ -28,7 +28,6 @@ import {
   CAMPAIGN,
   CHAINS,
   CHAINS_RAW,
-  FINDINGS,
   CONTACTS_BY_DAY,
   GAPS,
   GAP_ORDER,
@@ -187,8 +186,17 @@ function Card({ t, dim, active, onHover, onOpen, register }: {
 }) {
   const T = TYPE[t.type];
   const gaps = (GAPS.get(t.id) ?? []).filter((g) => g.kind === "chain-broken" || g.kind === "no-chain" || g.kind === "no-utm" || g.kind === "not-measured");
-  const head = headline(t.values);
-  const heads = t.variants.map((v) => headline(v.values)).filter((v): v is MetricValue => Boolean(v));
+  // Lead with the metric that has a verdict (a benchmark); the plain headline
+  // (rank, contacts) becomes context beside it.
+  const JUDGE = ["Open rate", "Bounce rate", "Attendance rate", "Click-through rate"];
+  const judged = (vals: MetricValue[]) =>
+    JUDGE.map((m) => vals.find((v) => !v.cta && v.benchmark && v.metric === m)).find(Boolean) ??
+    vals.find((v) => !v.cta && v.benchmark && /peak wait/i.test(v.metric)) ??
+    vals.find((v) => !v.cta && v.benchmark) ??
+    headline(vals);
+  const head = judged(t.values);
+  const context = headline(t.values);
+  const heads = t.variants.map((v) => judged(v.values)).filter((v): v is MetricValue => Boolean(v));
   let number = "", unit = "";
   if (t.variants.length > 1 && heads.length > 1 && heads.every((h) => h.value.includes("%"))) {
     const ns = heads.map((h) => num(h.value));
@@ -196,9 +204,15 @@ function Card({ t, dim, active, onHover, onOpen, register }: {
     unit = `${heads[0].metric.toLowerCase()} · ${t.variants.length} variants`;
   } else if (head) {
     number = /^\d+$/.test(head.value) ? Number(head.value).toLocaleString() : head.value;
-    unit = head.metric.toLowerCase();
+    unit = head.metric.replace(/\s*\(.*\)/, "").toLowerCase();
+    if (context && context !== head) unit += ` · ${/^\d+$/.test(context.value) ? Number(context.value).toLocaleString() : context.value} ${context.metric.toLowerCase()}`;
   }
-  const cmp = head && t.variants.length === 1 ? compare(head) : null;
+  // The verdict is drawn, not written: a coloured edge and number for the
+  // headline against its benchmark, one dot per variant so the spread shows.
+  const verdicts = t.variants.map((v) => { const h = judged(v.values); return h ? compare(h) : null; });
+  const cmp = t.variants.length === 1 ? verdicts[0] : verdicts.some((x) => x === "worse") ? "worse" : verdicts.every((x) => x === "better") ? "better" : verdicts.some((x) => x) ? "level" : null;
+  const edge = cmp === "better" ? "border-l-success" : cmp === "worse" ? "border-l-danger" : "border-l-grey-40";
+  const numTone = cmp === "better" ? "text-success" : cmp === "worse" ? "text-danger" : "text-grey-90";
   return (
     <button
       id={`tp-${t.id}`}
@@ -210,17 +224,26 @@ function Card({ t, dim, active, onHover, onOpen, register }: {
       onBlur={() => onHover(null)}
       onClick={() => onOpen(t.id)}
       aria-label={`${t.title}${number ? `, ${number} ${unit}` : ", not measured"}${gaps[0] ? `, ${gaps[0].label}` : ""}`}
-      className={`relative z-10 flex w-full items-center gap-2.5 rounded-lg border bg-card py-2 pr-3 pl-2.5 text-left transition-[opacity,box-shadow,border-color] duration-200 ${
+      className={`relative z-10 flex w-full items-center gap-2.5 rounded-lg border border-l-4 bg-card py-2 pr-3 pl-2.5 text-left transition-[opacity,box-shadow,border-color] duration-200 ${edge} ${
         active ? "border-rmit-blue-interactive shadow-md" : "border-grey-30"
       } ${dim ? "opacity-30" : ""} ${FOCUS_RING}`}
     >
       <span className={`flex size-6 shrink-0 items-center justify-center rounded-full ${T.chip} ${T.text}`}>
         <T.Icon size={13} strokeWidth={2} aria-hidden />
       </span>
-      <span className="min-w-0 flex-1 truncate text-sm text-grey-90">{t.title}</span>
+      <span className="min-w-0 flex-1">
+        <span className="block truncate text-sm text-grey-90">{t.title}</span>
+        {t.variants.length > 1 && (
+          <span className="mt-1 flex gap-1" aria-label={`${t.variants.length} variants: ${verdicts.map((v, i) => `${t.variants[i].audience} ${v ?? "no benchmark"}`).join(", ")}`}>
+            {verdicts.map((v, i) => (
+              <span key={i} title={`${t.variants[i].audience} · ${judged(t.variants[i].values)?.value ?? "not measured"}`} className={`size-2 rounded-full ${v === "better" ? "bg-success" : v === "worse" ? "bg-danger" : "bg-grey-40"}`} />
+            ))}
+          </span>
+        )}
+      </span>
       {number ? (
         <span className="shrink-0 text-right text-sm">
-          <span className={`font-semibold ${cmp === "worse" ? "text-danger" : "text-grey-90"}`}>{number}</span>
+          <span className={`font-semibold ${numTone}`}>{number}</span>
           <span className="block text-xs leading-none text-grey-60">{unit}</span>
         </span>
       ) : (
@@ -377,6 +400,9 @@ function Flow({ hovered, onHover, onOpen }: { hovered: string | null; onHover: (
           <li className="flex items-center gap-1.5"><svg width="28" height="8" aria-hidden><path d="M0,4 H28" stroke={BLUE} strokeWidth={1.5} /></svg>Hand-off we can follow</li>
           <li className="flex items-center gap-1.5"><svg width="28" height="8" aria-hidden><path d="M0,4 H28" stroke={AMBER} strokeWidth={1.5} strokeDasharray="6 5" /></svg>Not measured</li>
           <li className="flex items-center gap-1.5"><svg width="28" height="8" aria-hidden><path d="M0,4 H28" stroke={BLUE} strokeWidth={1.5} strokeDasharray="2 5" strokeLinecap="round" /></svg>Known by channel only</li>
+          <li className="flex items-center gap-1.5"><span className="h-3.5 w-1 rounded-sm bg-success" aria-hidden />Above benchmark</li>
+          <li className="flex items-center gap-1.5"><span className="h-3.5 w-1 rounded-sm bg-danger" aria-hidden />Below benchmark</li>
+          <li className="flex items-center gap-1.5"><span className="h-3.5 w-1 rounded-sm bg-grey-40" aria-hidden />No benchmark</li>
           <li className="flex items-center gap-1.5"><span className="size-2.5 rounded-full bg-amber" aria-hidden />Something we can&rsquo;t see — hover for what</li>
         </ul>
       </div>
@@ -727,31 +753,6 @@ function Page() {
         {shortDate(CAMPAIGN.from)} – {shortDate(CAMPAIGN.to)} · stage gate {shortDate(CAMPAIGN.stageGate)}
       </p>
       <p className="mt-6 max-w-3xl text-xl leading-relaxed text-grey-90">{SUMMARY.story}</p>
-
-      {/* Findings — the conclusions, written from the data by rules. Each
-          one lights its touchpoints on the flow below. */}
-      <ol className="mt-6 grid max-w-6xl gap-x-8 gap-y-3 sm:grid-cols-2">
-        {FINDINGS.map((f, i) => (
-          <li
-            key={i}
-            onMouseEnter={() => setHovered(f.ids[0] ?? null)}
-            onMouseLeave={() => setHovered(null)}
-            className="flex gap-3 rounded-md py-1"
-          >
-            <span aria-hidden className={`mt-1.5 size-2.5 shrink-0 rounded-full ${f.tone === "good" ? "bg-success" : f.tone === "bad" ? "bg-danger" : "bg-amber"}`} />
-            <p className="text-sm leading-relaxed text-grey-90">
-              <span className="sr-only">{f.tone === "good" ? "Working: " : f.tone === "bad" ? "Not working: " : "Can't see: "}</span>
-              {f.text}
-              {f.ids[0] && (
-                <>
-                  {" "}
-                  <button type="button" onClick={() => setOpenId(f.ids[0])} className={`rounded text-rmit-blue-interactive hover:underline ${FOCUS_RING}`}>Open</button>
-                </>
-              )}
-            </p>
-          </li>
-        ))}
-      </ol>
 
       <Flow hovered={hovered} onHover={setHovered} onOpen={setOpenId} />
 
