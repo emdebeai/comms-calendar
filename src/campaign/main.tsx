@@ -401,6 +401,12 @@ function Values({ values }: { values: MetricValue[] }) {
 function Panel({ t, onClose, onOpen }: { t: Touchpoint; onClose: () => void; onOpen: (id: string) => void }) {
   const ref = useRef<HTMLDivElement>(null);
   const T = TYPE[t.type];
+  // Variants are a toggle, not stacked tables — each chip carries the
+  // headline number so the comparison is on the chips, the detail below.
+  const [variantId, setVariantId] = useState(t.variants[0]?.id);
+  useEffect(() => setVariantId(t.variants[0]?.id), [t.id, t.variants]);
+  const variant = t.variants.find((v) => v.id === variantId) ?? t.variants[0];
+  const shown = variant?.values ?? t.values;
   useEffect(() => {
     ref.current?.focus();
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -469,21 +475,39 @@ function Panel({ t, onClose, onOpen }: { t: Touchpoint; onClose: () => void; onO
         <p className={`mt-2 text-sm ${t.cvp ? "text-grey-90" : "text-grey-70 italic"}`}>{t.cvp ? `“${t.cvp}”` : "None recorded."}</p>
 
         <H>Performance</H>
-        {t.variants.length > 1 ? (
-          t.variants.map((v) => (
-            <div key={v.id} className="mt-3">
-              <p className="text-sm font-semibold text-grey-90">{v.audience}</p>
-              <p className="text-xs text-grey-70">{t.variantBasis}</p>
-              <Values values={v.values.filter((x) => !x.cta)} />
+        {t.variants.length > 1 && (
+          <>
+            <p className="mt-2 text-xs text-grey-70">{t.variants.length} variants · {t.variantBasis ?? "audience splits"}</p>
+            <div role="group" aria-label="Variant" className="mt-2 flex flex-wrap gap-1.5">
+              {t.variants.map((v) => {
+                const hv = headline(v.values);
+                const on = v.id === variant?.id;
+                const worse = hv && compare(hv) === "worse";
+                return (
+                  <button
+                    key={v.id}
+                    type="button"
+                    aria-pressed={on}
+                    onClick={() => setVariantId(v.id)}
+                    className={`flex items-baseline gap-1.5 rounded-full border px-2.5 py-1 text-xs transition-colors ${
+                      on ? "border-grey-90 bg-grey-90 text-on-accent" : "border-grey-30 bg-card text-grey-80 hover:bg-grey-10"
+                    } ${FOCUS_RING}`}
+                  >
+                    {v.audience.replace(/^Year 12 · ?/, "") || "Year 12"}
+                    {hv && <span className={`font-semibold ${on ? "" : worse ? "text-danger" : "text-grey-90"}`}>{hv.value}</span>}
+                  </button>
+                );
+              })}
             </div>
-          ))
-        ) : t.values.length ? (
-          <div className="mt-2"><Values values={t.values.filter((x) => !x.cta)} /></div>
+          </>
+        )}
+        {shown.length ? (
+          <div className="mt-2"><Values values={shown.filter((x) => !x.cta)} /></div>
         ) : (
           <p className="mt-2 text-sm text-grey-70 italic">Not measured.</p>
         )}
         {(["primary", "secondary"] as const).map((k) => {
-          const vals = t.values.filter((x) => x.cta === k);
+          const vals = shown.filter((x) => x.cta === k);
           return vals.length ? (
             <div key={k} className="mt-3 border-l-2 border-grey-30 pl-3">
               <p className="text-xs text-grey-70">{k === "primary" ? "Primary" : "Secondary"} CTA · <span className="text-grey-90">{k === "primary" ? t.cta : t.secondaryCta}</span></p>
