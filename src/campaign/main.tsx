@@ -450,6 +450,12 @@ function Panel({ t, onClose, onOpen }: { t: Touchpoint; onClose: () => void; onO
   const edmRefs = refs.filter((r) => /edm/i.test(r.channel));
   const otherRefs = refs.filter((r) => !/edm/i.test(r.channel));
   const edmShare = edmRefs.length ? `${edmRefs.reduce((a, r) => a + num(r.share), 0)}%` : undefined;
+  // The eDM channel opened out: each send + CTA as a share of everything
+  // eDMs delivered here, largest first; the ones we can't count last.
+  const edmIn = incoming
+    .filter((ch) => byId.get(ch.from)?.type === "email")
+    .sort((a, b) => (b.measured ? b.people ?? 0 : -1) - (a.measured ? a.people ?? 0 : -1));
+  const edmTotal = edmIn.reduce((a, ch) => a + (ch.measured ? ch.people ?? 0 : 0), 0);
 
   return (
     <div
@@ -631,24 +637,34 @@ function Panel({ t, onClose, onOpen }: { t: Touchpoint; onClose: () => void; onO
                     className={`grid w-full grid-cols-[1rem_1fr_5rem_2.5rem] items-center gap-2 rounded text-left text-sm ${FOCUS_RING}`}
                   >
                     <span className="text-grey-60">{edmOpen ? "▾" : "▸"}</span>
-                    <span className="text-grey-80">eDMs <span className="text-grey-60">· {incoming.filter((ch) => byId.get(ch.from)?.kind === "send").length} CTAs</span></span>
+                    <span className="text-grey-80">eDMs <span className="text-grey-60">· {edmIn.length} CTAs</span></span>
                     <span className="h-1.5 rounded-full bg-grey-30"><span className="block h-full rounded-full bg-rmit-blue-interactive" style={{ width: edmShare ?? "0%" }} /></span>
                     <span className="text-right font-semibold text-grey-90">{edmShare ?? "—"}</span>
                   </button>
                   {edmOpen && (
                     <ul className="mt-2 ml-6 divide-y divide-grey-30 border-l-2 border-grey-30 pl-3">
-                      {incoming.map((ch) => {
+                      <li className="pb-1 text-xs text-grey-60">Share of the {edmTotal.toLocaleString()} people eDMs delivered here</li>
+                      {edmIn.map((ch) => {
                         const src = byId.get(ch.from)!;
                         const v = src.variants.find((x) => x.id === ch.fromVariant);
+                        const counted = ch.measured && ch.people;
+                        const pct = counted ? Math.round(((ch.people ?? 0) / edmTotal) * 100) : null;
                         return (
-                          <li key={ch.fromVariant + (ch.cta ?? "")} className="flex items-baseline justify-between gap-3 py-1.5">
+                          <li key={ch.fromVariant + (ch.cta ?? "")} className="grid grid-cols-[1fr_4rem_2.5rem] items-center gap-2 py-1.5">
                             <button type="button" onClick={() => onOpen(src.id)} className={`min-w-0 rounded text-left text-sm hover:underline ${FOCUS_RING}`}>
-                              <span className="text-grey-90">{src.title}</span>
+                              <span className="text-grey-90">{src.title}{v && src.variants.length > 1 && <span className="text-grey-60"> · {v.audience.replace(/^Year 12 · ?/, "")}</span>}</span>
                               <span className="block text-xs text-grey-70">
-                                {[v && src.variants.length > 1 && v.audience, ch.cta && `${ch.cta} CTA`, ch.via && `“${ch.via}”`, ch.utm === false && "no UTM", !ch.measured && "not measured", ch.resolution === "channel" && "channel only"].filter(Boolean).join(" · ")}
+                                {[ch.cta && `${ch.cta} CTA`, ch.via && `“${ch.via}”`, ch.utm === false && "no UTM", !ch.measured && "not measured"].filter(Boolean).join(" · ")}
                               </span>
                             </button>
-                            <span className={`shrink-0 text-sm font-semibold ${ch.measured && ch.people ? "text-grey-90" : "text-amber"}`}>{ch.measured && ch.people ? ch.people.toLocaleString() : "?"}</span>
+                            {pct !== null ? (
+                              <>
+                                <span className="h-1.5 rounded-full bg-grey-30"><span className="block h-full rounded-full bg-rmit-blue-interactive" style={{ width: `${pct}%` }} /></span>
+                                <span className="text-right text-sm font-semibold text-grey-90">{pct}%</span>
+                              </>
+                            ) : (
+                              <span className="col-span-2 text-right text-xs text-amber">not counted</span>
+                            )}
                           </li>
                         );
                       })}
