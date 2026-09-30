@@ -377,18 +377,27 @@ function Flow({ hovered, onHover, onOpen }: { hovered: string | null; onHover: (
               {TEAMS.filter((team) => TOUCHPOINTS.some((t) => t.team === team && t.kind === k.kind)).map((team) => (
                 <section key={team} aria-label={`${team} — ${k.label}`}>
                   <p className={`mb-2 text-grey-70 ${EYEBROW}`}>{team}</p>
+                  {/* Chronological inside the group: a small date label
+                      each time the day changes, so the column still reads
+                      top-to-bottom in time. */}
                   <div className="flex flex-col gap-2">
-                    {TOUCHPOINTS.filter((t) => t.team === team && t.kind === k.kind).map((t) => (
-                      <Card
-                        key={t.id}
-                        t={t}
-                        register={register}
-                        onHover={onHover}
-                        onOpen={onOpen}
-                        active={hovered === t.id}
-                        dim={connected !== null && !connected.has(t.id)}
-                      />
-                    ))}
+                    {TOUCHPOINTS.filter((t) => t.team === team && t.kind === k.kind)
+                      .sort((a, b) => (a.date ?? "").localeCompare(b.date ?? ""))
+                      .map((t, i, arr) => (
+                        <div key={t.id} className={i > 0 && arr[i - 1].date !== t.date ? "mt-2" : ""}>
+                          {(i === 0 || arr[i - 1].date !== t.date) && (
+                            <p className="mb-1 text-xs text-grey-60">{t.date ? shortDate(t.date) : "Live all window"}</p>
+                          )}
+                          <Card
+                            t={t}
+                            register={register}
+                            onHover={onHover}
+                            onOpen={onOpen}
+                            active={hovered === t.id}
+                            dim={connected !== null && !connected.has(t.id)}
+                          />
+                        </div>
+                      ))}
                   </div>
                 </section>
               ))}
