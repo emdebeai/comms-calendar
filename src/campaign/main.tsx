@@ -296,7 +296,7 @@ function Flow({ hovered, onHover, onOpen }: { hovered: string | null; onHover: (
         end = [x2, y2]; dir = 1; label = [(x1 + x2) / 2, (y1 + y2) / 2 - 6];
       }
       const w = 1.5;
-      return { ch, key: `${ch.from}>${ch.to}`, d, end, dir, label, w };
+      return { ch, key: `${ch.from}>${ch.to}>${ch.cta ?? ""}`, d, end, dir, label, w };
     });
   }, [boxes]);
 
@@ -309,9 +309,13 @@ function Flow({ hovered, onHover, onOpen }: { hovered: string | null; onHover: (
             const faded = (hovered !== null || hotChain !== null) && !hot;
             const sw = hot ? 2.5 : w;
             const stroke = ch.measured ? BLUE : AMBER;
-            const text = !ch.measured
-              ? `${ch.via ? `${ch.via} · ` : ""}not measured`
-              : `${ch.via ?? "next page"}${ch.people ? ` · ${ch.people.toLocaleString()} people` : ""}${ch.resolution === "channel" ? " · channel only" : ""}`;
+            const ctaLabel = ch.cta ? `${ch.cta[0].toUpperCase()}${ch.cta.slice(1)} CTA` : "";
+            const text = [
+              ctaLabel && ch.via ? `${ctaLabel} “${ch.via}”` : ctaLabel || ch.via || "next page",
+              ch.measured ? ch.people && `${ch.people.toLocaleString()} people` : "not measured",
+              ch.utm === false && "no UTM",
+              ch.resolution === "channel" && "channel only",
+            ].filter(Boolean).join(" · ");
             return (
               <g key={key} opacity={faded ? 0.08 : hot ? 1 : 0.45} className="transition-opacity duration-200">
                 <path d={d} fill="none" stroke="var(--color-surface)" strokeWidth={sw + 3} />
@@ -510,15 +514,23 @@ function Panel({ t, onClose, onOpen }: { t: Touchpoint; onClose: () => void; onO
               const out = ch.from === t.id;
               const other = byId.get(out ? ch.to : ch.from)!;
               return (
-                <li key={ch.from + ch.to}>
+                <li key={ch.from + ch.to + (ch.cta ?? "")}>
                   <button
                     type="button"
                     onClick={() => onOpen(other.id)}
                     className={`w-full rounded-md border px-3 py-2 text-left text-sm hover:bg-grey-10 ${ch.measured ? "border-grey-30" : "border-dashed border-amber"} ${FOCUS_RING}`}
+                    key={ch.from + ch.to + ch.cta}
                   >
                     <span className="text-grey-90">{out ? "To" : "From"} <b className="font-semibold">{other.title}</b></span>
                     <span className="block text-xs text-grey-70">
-                      {[other.team, ch.via && `via “${ch.via}”`, ch.measured ? ch.people && `${ch.people.toLocaleString()} people` : "not measured", ch.resolution === "channel" && "channel only"].filter(Boolean).join(" · ")}
+                      {[
+                        other.team,
+                        out && ch.cta && `${ch.cta} CTA`,
+                        ch.via && `“${ch.via}”`,
+                        ch.measured ? ch.people && `${ch.people.toLocaleString()} people` : "not measured",
+                        ch.utm === false && "no UTM",
+                        ch.resolution === "channel" && "channel only",
+                      ].filter(Boolean).join(" · ")}
                     </span>
                   </button>
                 </li>

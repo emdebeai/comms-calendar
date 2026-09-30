@@ -54,6 +54,10 @@ export interface Touchpoint {
 export interface Chain {
   from: string;
   to: string;
+  /** which CTA in the send carries this hand-off — one arrow per CTA */
+  cta?: "primary" | "secondary" | "tertiary";
+  /** does that CTA carry its own UTM (undefined = not applicable / unknown) */
+  utm?: boolean;
   via?: string;
   resolution: "send" | "channel";
   measured: boolean;
@@ -207,9 +211,11 @@ const merged = new Map<string, Chain & { n: number; unmeasured: number }>();
 for (const r of parseCsvRows(chainsRaw)) {
   const from = ownerOf.get(r.from), to = ownerOf.get(r.to);
   if (!from || !to) continue;
-  const key = `${from}>${to}`;
+  const cta = r.cta === "primary" || r.cta === "secondary" || r.cta === "tertiary" ? r.cta : undefined;
+  const key = `${from}>${to}>${cta ?? ""}`;
   const m = merged.get(key) ?? {
-    from, to, via: r.via || undefined, resolution: r.resolution === "channel" ? "channel" as const : "send" as const,
+    from, to, cta, via: r.via || undefined, resolution: r.resolution === "channel" ? "channel" as const : "send" as const,
+    utm: r.utm ? yes(r.utm) : undefined,
     measured: true, people: 0, n: 0, unmeasured: 0,
   };
   m.n++;
@@ -255,7 +261,9 @@ export function gapsFor(t: Touchpoint): Gap[] {
   const broken = outgoing.filter((ch) => !ch.measured);
   if (broken.length) add("chain-broken", `To ${broken.map((ch) => byId.get(ch.to)?.title).join(", ")}.`);
   if (!outgoing.length && t.kind === "send") add("no-chain", t.cta ? `CTA “${t.cta}” has no destination recorded.` : "No CTA and no destination recorded.");
-  if (t.kind === "send" && t.utm === "no") add("no-utm", "Its links carry no UTM.");
+  const untagged = outgoing.filter((ch) => ch.utm === false);
+  if (untagged.length) add("no-utm", `${untagged.map((ch) => `${ch.cta ?? "the"} CTA “${ch.via}”`).join(", ")} ${untagged.length > 1 ? "carry" : "carries"} no UTM.`);
+  else if (t.kind === "send" && !outgoing.length && t.utm === "no") add("no-utm", "Its links carry no UTM.");
   const all = t.variants.flatMap((v) => v.values);
   if (!all.length) add("not-measured", "No metrics loaded.");
   else if (all.some((v) => !v.cta && !v.benchmark && /rate|time|csat/i.test(v.metric))) add("no-benchmark", "Some rates have no benchmark.");

@@ -1,19 +1,21 @@
-from,to,via,resolution,measured,people
-cop-explained,change-of-preference-page,Key dates COP,send,no,
-preference-rmit-first-guaranteed-pathway,change-of-preference-page,See your pathway options,send,yes,160
-explore-a-future-with-rmit,change-of-preference-page,It's not too late to make a course your #1,send,yes,120
-explore-a-future-with-rmit-2,change-of-preference-page,It's not too late to make a course your #1,send,yes,150
-vtac-results-are-released-today,change-of-preference-page,COP hotline until 12pm,send,yes,700
-change-of-preference-closes-today,change-of-preference-page,COP closes 12pm,send,yes,420
-cop-paid-social,change-of-preference-page,Change your preference,channel,yes,1000
-results-are-out-talk-to-us,studyat-phone,Call Study@RMIT,send,no,
-change-of-preference-page,find-a-course-by-atar,Explore courses by ATAR,send,yes,2400
-find-a-course-by-atar,pathways-into-rmit,,send,yes,600
-change-of-preference-page,contact-study-rmit,Talk to Study@RMIT,send,yes,300
-change-of-preference-page,change-of-preference-q-a,Register,send,yes,210
-contact-study-rmit,studyat-phone,Call,send,yes,800
-contact-study-rmit,studyat-chat,Chat,send,yes,500
-change-of-preference-q-a,studyat-phone,,send,no,
-explore-a-future-with-rmit-3,change-of-preference-page,It's not too late to make a course your #1,send,yes,70
-explore-a-future-with-rmit-4,change-of-preference-page,It's not too late to make a course your #1,send,yes,50
-cop-explained-2,change-of-preference-page,Key dates COP,send,no,
+from,to,cta,via,utm,resolution,measured,people
+cop-explained,change-of-preference-page,primary,Key dates COP,no,send,no,
+cop-explained-2,change-of-preference-page,primary,Key dates COP,no,send,no,
+preference-rmit-first-guaranteed-pathway,change-of-preference-page,primary,See your pathway options,yes,send,yes,160
+preference-rmit-first-guaranteed-pathway,contact-study-rmit,secondary,Book a chat,yes,send,yes,45
+explore-a-future-with-rmit,change-of-preference-page,primary,It's not too late to make a course your #1,yes,send,yes,120
+explore-a-future-with-rmit,find-a-course-by-atar,secondary,Explore courses,yes,send,yes,40
+explore-a-future-with-rmit-2,change-of-preference-page,primary,It's not too late to make a course your #1,yes,send,yes,150
+explore-a-future-with-rmit-3,change-of-preference-page,primary,It's not too late to make a course your #1,yes,send,yes,70
+explore-a-future-with-rmit-4,change-of-preference-page,primary,It's not too late to make a course your #1,yes,send,yes,50
+vtac-results-are-released-today,change-of-preference-page,primary,COP hotline until 12pm,yes,send,yes,700
+change-of-preference-closes-today,change-of-preference-page,primary,COP closes 12pm,yes,send,yes,420
+cop-paid-social,change-of-preference-page,primary,Change your preference,yes,channel,yes,1000
+results-are-out-talk-to-us,studyat-phone,primary,Call Study@RMIT,no,send,no,
+change-of-preference-page,find-a-course-by-atar,primary,Explore courses by ATAR,,send,yes,2400
+change-of-preference-page,contact-study-rmit,secondary,Talk to Study@RMIT,,send,yes,300
+change-of-preference-page,change-of-preference-q-a,,Register,,send,yes,210
+find-a-course-by-atar,pathways-into-rmit,,,,send,yes,600
+contact-study-rmit,studyat-phone,primary,Call,,send,yes,800
+contact-study-rmit,studyat-chat,primary,Chat,,send,yes,500
+change-of-preference-q-a,studyat-phone,,,,send,no,
