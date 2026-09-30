@@ -1,9 +1,9 @@
 import { useLayoutEffect, useRef, useState } from "react";
-import { Link2, MessageCircle, MousePointerClick, TrendingUp, Users } from "lucide-react";
+import { Link2, MessageCircle, TrendingUp } from "lucide-react";
+import { ChipBody, chipClasses } from "./CommChip";
 import type { Comm } from "../data/types";
 import { leadGenFor } from "../data/leadGen";
 import { CARD_W, PILL_H, commPos, monthLabel } from "../lib/scale";
-import { markerAccent } from "../lib/designConfig";
 import { FOCUS_RING } from "../lib/styles";
 import { COMM_COLORS, COMM_ICONS } from "./icons";
 import { TokenText } from "./TokenText";
@@ -67,10 +67,7 @@ export function CommCard({
   const external = comm.team === "vtac";
   // grey-60 dashed: the outline is the card's ONLY marker (no accent strip),
   // so it must clear the 3:1 non-text minimum on the lane stripes.
-  const chipClass = external
-    ? "rounded-md border border-dashed border-grey-60 bg-grey-10"
-    : `rounded-l-none rounded-r-md ${colors.chip}`;
-  const textClass = external ? "text-grey-80" : colors.text;
+  const { chip: chipClass } = chipClasses(colors, external);
 
   const day = Math.round((comm.month % 1) * 30) + 1;
   const dateLabel = `${day} ${monthLabel(Math.floor(comm.month))}`;
@@ -149,41 +146,34 @@ export function CommCard({
       >
         {dateLabel}
       </span>
-      {/* left-edge accent — full-colour strip flush on the flat left edge
-          (no border now, so left-0) that the stem continues into seamlessly.
-          External (VTAC) cards drop it: the dashed outline is their marker. */}
-      {!external && (
-        <span
-          aria-hidden
-          className={`absolute inset-y-0 left-0 w-[1.25px] ${markerAccent(colors.accent, "line")}`}
-        />
-      )}
-      <span className={`mt-px shrink-0 ${textClass}`}>
-        <Icon size={13} strokeWidth={2} aria-hidden />
-      </span>
-      <span className="min-w-0 flex-1">
-        <span className={`block text-xs font-semibold leading-tight line-clamp-2 ${textClass}`}>
-          <TokenText text={comm.title} />
-        </span>
-        {/* audience variant — only on look-alike stacks, so "COP Explained"
-            ×3 reads as three audience splits, not a triple-send */}
-        {variant && (
-          <span className="mt-0.5 flex items-center gap-1 text-xs leading-tight text-grey-80">
-            <Users size={10} strokeWidth={2} className="shrink-0" aria-hidden />
-            <span className="truncate">{variant}</span>
-          </span>
-        )}
-        {/* CTA line only when one is recorded. An unrecorded CTA is ONE fact
-            about the planner, not a per-email finding — repeating "not
-            recorded" on ~78 cards is noise, so the gap lives in the detail
-            panel (explicit "Not recorded" row) and the request spreadsheet
-            instead. Never fabricate a default here. */}
-        {!isEvent && comm.cta && (
-          <span className="mt-0.5 flex items-center gap-1 text-xs leading-tight text-grey-80">
-            <MousePointerClick size={10} strokeWidth={2} className="shrink-0" aria-hidden />
-            <span className="truncate">{comm.cta}</span>
-          </span>
-        )}
+      <ChipBody
+        Icon={Icon}
+        colors={colors}
+        external={external}
+        title={<TokenText text={comm.title} />}
+        // audience variant — only on look-alike stacks, so "COP Explained"
+        // ×3 reads as three audience splits, not a triple-send
+        variant={variant}
+        // CTA line only when one is recorded. An unrecorded CTA is ONE fact
+        // about the planner, not a per-email finding — the gap lives in the
+        // detail panel instead. Never fabricate a default here.
+        cta={!isEvent ? comm.cta : undefined}
+        trailing={
+          (hasTriggers || feedbackCount > 0) && (
+            <span className="mt-px flex shrink-0 flex-col items-end gap-0.5">
+              {hasTriggers && (
+                <Link2 size={11} strokeWidth={1.75} className="text-grey-70" aria-label="Triggers another comm" />
+              )}
+              {feedbackCount > 0 && (
+                <span className="flex items-center gap-0.5 text-xs leading-none text-rmit-blue" aria-label={`${feedbackCount} feedback notes`}>
+                  <MessageCircle size={11} strokeWidth={1.75} aria-hidden />
+                  {feedbackCount}
+                </span>
+              )}
+            </span>
+          )
+        }
+      >
         {/* Top lead-gen rank — a solid pill so the five biggest recruiters
             jump out of the events sea. Programme-level figure; the basis
             year/scope lives in the detail panel. */}
@@ -196,28 +186,7 @@ export function CommCard({
             #{leadGen.rank} · {leadGen.leads.toLocaleString()} leads
           </span>
         )}
-      </span>
-      {(hasTriggers || feedbackCount > 0) && (
-        <span className="mt-px flex shrink-0 flex-col items-end gap-0.5">
-          {hasTriggers && (
-            <Link2
-              size={11}
-              strokeWidth={1.75}
-              className="text-grey-70"
-              aria-label="Triggers another comm"
-            />
-          )}
-          {feedbackCount > 0 && (
-            <span
-              className="flex items-center gap-0.5 text-xs leading-none text-rmit-blue"
-              aria-label={`${feedbackCount} feedback notes`}
-            >
-              <MessageCircle size={11} strokeWidth={1.75} aria-hidden />
-              {feedbackCount}
-            </span>
-          )}
-        </span>
-      )}
+      </ChipBody>
     </button>
   );
 }

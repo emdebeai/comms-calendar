@@ -15,15 +15,17 @@ import {
   MessageSquare,
   MessagesSquare,
   Minus,
-  MousePointerClick,
   Phone,
   Users,
   Video,
-  X,
   type LucideIcon,
 } from "lucide-react";
 import "../index.css";
 import { COMM_COLORS } from "../components/icons";
+import { ChipBody, chipClasses } from "../components/CommChip";
+import { DateDot, Stem } from "../components/DateMarks";
+import { DetailPanelShell } from "../components/DetailPanelShell";
+import { markerAccent } from "../lib/designConfig";
 import { EYEBROW, FOCUS_RING } from "../lib/styles";
 import {
   CAMPAIGN,
@@ -117,6 +119,15 @@ function Card({ t, dim, active, onHover, onOpen, register, bar }: {
   const verdicts = t.variants.map((v) => { const h = judged(v.values); return h ? compare(h) : null; });
   const cmp = t.variants.length === 1 ? verdicts[0] : verdicts.some((x) => x === "worse") ? "worse" : verdicts.every((x) => x === "better") ? "better" : verdicts.some((x) => x) ? "level" : null;
   const numTone = cmp === "better" ? "text-success" : cmp === "worse" ? "text-danger" : "text-grey-90";
+  const { chip } = chipClasses(T);
+  const numberLine = number ? (
+    <span className="mt-1 flex items-baseline gap-1 text-xs leading-tight">
+      <span className={`text-sm font-semibold ${numTone}`}>{number}</span>
+      <span className="truncate text-grey-70">{unit}</span>
+    </span>
+  ) : (
+    <span className="mt-1 block text-xs text-grey-70 italic">not measured</span>
+  );
   return (
     <button
       id={`tp-${t.id}`}
@@ -128,20 +139,29 @@ function Card({ t, dim, active, onHover, onOpen, register, bar }: {
       onBlur={() => onHover(null)}
       onClick={() => onOpen(t.id)}
       aria-label={`${t.title}${number ? `, ${number} ${unit}` : ", not measured"}${gaps[0] ? `, ${gaps[0].label}` : ""}`}
-      className={`relative z-10 flex w-full gap-1.5 rounded-l-none rounded-r-md px-2 py-1.5 text-left transition-[opacity,box-shadow] duration-200 ${T.chip} ${
+      className={`relative z-10 flex w-full gap-1.5 px-2 py-1.5 text-left transition-[opacity,box-shadow] duration-300 ${chip} ${
         bar ? "items-center" : "items-start"
-      } ${active ? "ring-1 ring-rmit-blue-interactive shadow-md" : ""} ${dim ? "opacity-[0.1]" : ""} ${FOCUS_RING}`}
+      } ${active ? "ring-1 ring-rmit-blue-interactive shadow-md" : ""} ${dim ? "opacity-[0.1] focus-visible:opacity-100" : ""} ${FOCUS_RING}`}
     >
-      <span aria-hidden className={`absolute inset-y-0 left-0 w-[1.25px] ${T.accent}`} />
-      <span className={`mt-px shrink-0 ${T.text}`}><T.Icon size={13} strokeWidth={2} aria-hidden /></span>
-      <span className="min-w-0 flex-1">
-        <span className={`block text-xs leading-tight font-semibold ${bar ? "truncate" : "line-clamp-2"} ${T.text}`}>{t.title}</span>
-        {!bar && t.cta && (
-          <span className="mt-0.5 flex items-center gap-1 text-xs leading-tight text-grey-80">
-            <MousePointerClick size={10} strokeWidth={2} className="shrink-0" aria-hidden />
-            <span className="truncate">{t.cta}</span>
-          </span>
-        )}
+      <ChipBody
+        Icon={T.Icon}
+        colors={T}
+        title={t.title}
+        cta={t.cta}
+        bar={bar}
+        trailing={
+          bar ? (
+            number ? (
+              <span className="shrink-0 text-right">
+                <span className={`block text-sm leading-tight font-semibold ${numTone}`}>{number}</span>
+                <span className="block max-w-56 truncate text-xs leading-tight text-grey-70">{unit}</span>
+              </span>
+            ) : (
+              <span className="shrink-0 text-xs text-grey-70 italic">not measured</span>
+            )
+          ) : undefined
+        }
+      >
         {!bar && t.variants.length > 1 && (
           <span className="mt-1 flex gap-1" aria-label={`${t.variants.length} variants`}>
             {verdicts.map((v, i) => (
@@ -149,23 +169,8 @@ function Card({ t, dim, active, onHover, onOpen, register, bar }: {
             ))}
           </span>
         )}
-        {!bar && (number ? (
-          <span className="mt-1 flex items-baseline gap-1 text-xs leading-tight">
-            <span className={`text-sm font-semibold ${numTone}`}>{number}</span>
-            <span className="truncate text-grey-70">{unit}</span>
-          </span>
-        ) : (
-          <span className="mt-1 block text-xs text-grey-70 italic">not measured</span>
-        ))}
-      </span>
-      {bar && (number ? (
-        <span className="shrink-0 text-right">
-          <span className={`block text-sm leading-tight font-semibold ${numTone}`}>{number}</span>
-          <span className="block max-w-56 truncate text-xs leading-tight text-grey-70">{unit}</span>
-        </span>
-      ) : (
-        <span className="shrink-0 text-xs text-grey-70 italic">not measured</span>
-      ))}
+        {!bar && numberLine}
+      </ChipBody>
       {gaps[0] && (
         <span title={gaps.map((g) => `${g.label} — ${g.detail}`).join("\n")} className="absolute -top-1 -right-1 size-2.5 rounded-full bg-amber ring-2 ring-card" aria-hidden />
       )}
@@ -353,8 +358,8 @@ function Window({ hovered, onHover, onOpen }: { hovered: string | null; onHover:
               const dim = connected !== null && !connected.has(t.id);
               return (
                 <div key={t.id}>
-                  <span aria-hidden className={`absolute z-10 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full ring-2 ring-card ${TYPE[t.type].accent} ${dim ? "opacity-[0.1]" : ""}`} style={{ left: x(t.date!), top: DOT_STRIP / 2 }} />
-                  <span aria-hidden className={`absolute w-[1.25px] ${TYPE[t.type].accent} ${dim ? "opacity-[0.1]" : ""}`} style={{ left: x(t.date!), top: DOT_STRIP / 2, height: top - DOT_STRIP / 2 + 2 }} />
+                  <DateDot accent={markerAccent(TYPE[t.type].accent, "dot")} dim={dim ? "opacity-[0.1]" : ""} style={{ left: x(t.date!), top: DOT_STRIP / 2 }} />
+                  <Stem accent={markerAccent(TYPE[t.type].accent, "line")} dim={dim ? "opacity-[0.1]" : ""} style={{ left: x(t.date!), top: DOT_STRIP / 2, height: top - DOT_STRIP / 2 + 2 }} />
                   <div className="absolute" style={{ left, top, width: CARD_W }}>
                     <Card t={t} register={register} onHover={onHover} onOpen={onOpen} active={hovered === t.id} dim={dim} />
                   </div>
@@ -424,7 +429,6 @@ function Values({ values }: { values: MetricValue[] }) {
 }
 
 function Panel({ t, onClose, onOpen }: { t: Touchpoint; onClose: () => void; onOpen: (id: string) => void }) {
-  const ref = useRef<HTMLDivElement>(null);
   const T = TYPE[t.type];
   // Audience is the first thing on a send: it's the variant, and it changes
   // everything below it — value proposition, performance, destinations.
@@ -434,12 +438,6 @@ function Panel({ t, onClose, onOpen }: { t: Touchpoint; onClose: () => void; onO
   const shown = variant?.values ?? t.values;
   const cvp = variant?.cvp ?? t.cvp;
   const [edmOpen, setEdmOpen] = useState(false);
-  useEffect(() => {
-    ref.current?.focus();
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [onClose, t.id]);
   const H = ({ children }: { children: string }) => <h3 className={`mt-7 border-t border-grey-30 pt-5 text-grey-70 ${EYEBROW}`}>{children}</h3>;
   const gaps = GAPS.get(t.id) ?? [];
   const refs = referrersFor(t);
@@ -481,33 +479,19 @@ function Panel({ t, onClose, onOpen }: { t: Touchpoint; onClose: () => void; onO
   const edmTotal = edmIn.reduce((a, ch) => a + (ch.measured ? ch.people ?? 0 : 0), 0);
 
   return (
-    <div
-      ref={ref}
-      role="dialog"
-      aria-modal="false"
-      aria-label={t.title}
-      tabIndex={-1}
-      className="fixed top-0 right-0 z-40 flex h-full w-full max-w-md flex-col border-l border-grey-30 bg-card shadow-xl outline-none"
+    <DetailPanelShell
+      overline={[T.label, t.team, t.date && shortDate(t.date)].filter(Boolean).join(" · ")}
+      title={t.title}
+      iconChipClass={`${T.chip} ${T.text}`}
+      icon={<T.Icon size={16} strokeWidth={1.75} aria-hidden />}
+      onClose={onClose}
     >
-      <header className="flex items-start gap-3 border-b border-grey-30 p-5">
-        <span className={`flex size-9 shrink-0 items-center justify-center rounded-full ${T.chip} ${T.text}`}>
-          <T.Icon size={16} strokeWidth={1.75} aria-hidden />
-        </span>
-        <div className="min-w-0 flex-1">
-          <p className={`text-grey-70 ${EYEBROW}`}>{[T.label, t.team, t.date && shortDate(t.date)].filter(Boolean).join(" · ")}</p>
-          <h2 className="text-xl font-semibold text-grey-90">{t.title}</h2>
-          {t.url && (
-            <a href={t.url} target="_blank" rel="noreferrer" className={`mt-0.5 block truncate rounded text-sm text-rmit-blue-interactive hover:underline ${FOCUS_RING}`}>
-              {t.url.replace(/^https?:\/\/(www\.)?/, "")}
-            </a>
-          )}
-        </div>
-        <button type="button" onClick={onClose} aria-label="Close" className={`rounded-md p-1.5 text-grey-70 hover:bg-grey-10 ${FOCUS_RING}`}>
-          <X size={18} strokeWidth={2} aria-hidden />
-        </button>
-      </header>
-
       <div className="flex-1 overflow-y-auto p-5">
+        {t.url && (
+          <a href={t.url} target="_blank" rel="noreferrer" className={`mb-4 block truncate rounded text-sm text-rmit-blue-interactive hover:underline ${FOCUS_RING}`}>
+            {t.url.replace(/^https?:\/\/(www\.)?/, "")}
+          </a>
+        )}
         {gaps.length > 0 && (
           <ul className="flex flex-col gap-1.5">
             {gaps.map((g) => (
@@ -728,7 +712,7 @@ function Panel({ t, onClose, onOpen }: { t: Touchpoint; onClose: () => void; onO
           </>
         )}
       </div>
-    </div>
+    </DetailPanelShell>
   );
 }
 

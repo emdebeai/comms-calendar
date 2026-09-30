@@ -32,6 +32,7 @@ import { EYEBROW, FOCUS_RING } from "../lib/styles";
 import { COMM_COLORS, COMM_ICONS, COMM_LABELS } from "./icons";
 import { CampaignGantt } from "./CampaignGantt";
 import { CommCard } from "./CommCard";
+import { DateDot, Stem } from "./DateMarks";
 import { MomentsBand, MonthBand, StageBand, YearBand } from "./HeaderBands";
 import { InboundLane } from "./InboundLane";
 import { StudentJourneyLane, type QuestionRef } from "./StudentJourneyLane";
@@ -572,13 +573,11 @@ export function Timeline({
           // except for filtered-out comms, where the ghost dot IS the whole
           // footprint (no card, no stem), so it carries a hover title.
           return (
-            <span
+            <DateDot
               key={`dot-${c.id}`}
-              aria-hidden
               title={filteredOut ? `${c.title} — hidden by filters` : undefined}
-              className={`absolute z-10 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full ring-2 ring-card transition-opacity duration-300 ${accent} ${
-                filteredOut ? "opacity-[0.06]" : dotDimmed ? "opacity-[0.1]" : ""
-              }`}
+              accent={accent}
+              dim={filteredOut ? "opacity-[0.06]" : dotDimmed ? "opacity-[0.1]" : ""}
               style={pos}
             />
           );
@@ -601,13 +600,10 @@ export function Timeline({
               /* 3px stem left-aligned to the card's left edge (cx) — the exact
                  x of the card's accent strip — so dot → stem → card edge is
                  one straight continuous line, no offset or kink */
-              <span
+              <Stem
                 key={`stem-${c.id}`}
-                aria-hidden
-                className={`absolute w-[1.25px] transition-opacity duration-300 ${markerAccent(
-                  c.team === "vtac" ? "bg-grey-40" : COMM_COLORS[c.type].accent,
-                  "line",
-                )} ${stemDimmed ? "opacity-[0.1]" : ""}`}
+                accent={markerAccent(c.team === "vtac" ? "bg-grey-40" : COMM_COLORS[c.type].accent, "line")}
+                dim={stemDimmed ? "opacity-[0.1]" : ""}
                 style={{ left: cx, top, height: Math.max(y - top + 2, 0) }}
               />
             );
