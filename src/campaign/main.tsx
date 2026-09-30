@@ -423,7 +423,6 @@ function Panel({ t, onClose, onOpen }: { t: Touchpoint; onClose: () => void; onO
     ) : null;
   const gaps = GAPS.get(t.id) ?? [];
   const refs = referrersFor(t);
-  const chains = chainsOf(t.id);
   return (
     <div
       ref={ref}
@@ -506,15 +505,76 @@ function Panel({ t, onClose, onOpen }: { t: Touchpoint; onClose: () => void; onO
         ) : (
           <p className="mt-2 text-sm text-grey-70 italic">Not measured.</p>
         )}
-        {(["primary", "secondary"] as const).map((k) => {
-          const vals = shown.filter((x) => x.cta === k);
-          return vals.length ? (
-            <div key={k} className="mt-3 border-l-2 border-grey-30 pl-3">
-              <p className="text-xs text-grey-70">{k === "primary" ? "Primary" : "Secondary"} CTA · <span className="text-grey-90">{k === "primary" ? t.cta : t.secondaryCta}</span></p>
-              <Values values={vals} />
-            </div>
-          ) : null;
-        })}
+        {/* ── CTAs: the Marketo click report and the hand-off in one row each.
+            What the link says, where it lands, who clicked, whether the page
+            can tell it was this send. ── */}
+        {(() => {
+          const outgoing = chainsOf(t.id).filter((ch) => ch.from === t.id);
+          const slots = (["primary", "secondary", "tertiary"] as const)
+            .map((k) => ({ k, text: k === "primary" ? t.cta : k === "secondary" ? t.secondaryCta : undefined, chains: outgoing.filter((ch) => ch.cta === k) }))
+            .filter((sl) => sl.text || sl.chains.length);
+          const loose = outgoing.filter((ch) => !ch.cta);
+          const rows = [
+            ...slots.flatMap((sl) => (sl.chains.length ? sl.chains : [null]).map((ch) => ({ k: sl.k as string, text: sl.text ?? ch?.via, ch }))),
+            ...loose.map((ch) => ({ k: "", text: ch.via, ch })),
+          ];
+          if (!rows.length) return null;
+          const metric = (k: string, name: string) => shown.find((x) => x.cta === k && x.metric === name)?.value;
+          return (
+            <>
+              <H>CTAs</H>
+              <ul className="mt-2 divide-y divide-grey-30">
+                {rows.map(({ k, text, ch }, i) => {
+                  const dest = ch ? byId.get(ch.to) : undefined;
+                  const people = metric(k, "Link — people"), pct = metric(k, "Link — % of people");
+                  const status = !ch
+                    ? { tone: "text-amber", label: "no destination recorded" }
+                    : ch.utm === false
+                      ? { tone: "text-amber", label: "no UTM — the page can't tell it was this send" }
+                      : !ch.measured
+                        ? { tone: "text-amber", label: "next step not measured" }
+                        : ch.resolution === "channel"
+                          ? { tone: "text-grey-60", label: "known by channel only" }
+                          : { tone: "text-grey-60", label: "UTM tagged" };
+                  return (
+                    <li key={`${k}-${i}`} className="grid grid-cols-[1fr_auto] gap-x-4 py-2.5">
+                      <div className="min-w-0">
+                        {k && <p className={`text-grey-70 ${EYEBROW}`}>{k} CTA</p>}
+                        <p className="text-sm font-semibold text-grey-90">“{text}”</p>
+                        <p className="mt-0.5 flex items-center gap-1 text-sm">
+                          <span className="text-grey-60">→</span>
+                          {dest ? (
+                            <button type="button" onClick={() => onOpen(dest.id)} className={`rounded text-rmit-blue-interactive hover:underline ${FOCUS_RING}`}>
+                              {dest.title} <span className="text-grey-60">· {dest.team}</span>
+                            </button>
+                          ) : (
+                            <span className="text-grey-60 italic">nowhere recorded</span>
+                          )}
+                        </p>
+                        <p className={`mt-0.5 text-xs ${status.tone}`}>{status.label}</p>
+                      </div>
+                      <div className="text-right">
+                        {people ? (
+                          <>
+                            <p className="text-lg leading-tight font-semibold text-grey-90">{Number(people).toLocaleString()}</p>
+                            <p className="text-xs text-grey-70">people clicked{pct ? ` · ${pct}` : ""}</p>
+                          </>
+                        ) : ch?.people ? (
+                          <>
+                            <p className="text-lg leading-tight font-semibold text-grey-90">{ch.people.toLocaleString()}</p>
+                            <p className="text-xs text-grey-70">people</p>
+                          </>
+                        ) : (
+                          <p className="text-xs text-grey-60 italic">no click data</p>
+                        )}
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            </>
+          );
+        })()}
 
         {refs.length > 0 && (
           <>
@@ -531,39 +591,30 @@ function Panel({ t, onClose, onOpen }: { t: Touchpoint; onClose: () => void; onO
           </>
         )}
 
-        <H>Hand-offs</H>
-        {chains.length ? (
-          <ul className="mt-2 flex flex-col gap-1.5">
-            {chains.map((ch) => {
-              const out = ch.from === t.id;
-              const other = byId.get(out ? ch.to : ch.from)!;
-              return (
-                <li key={ch.from + ch.to + (ch.cta ?? "")}>
-                  <button
-                    type="button"
-                    onClick={() => onOpen(other.id)}
-                    className={`w-full rounded-md border px-3 py-2 text-left text-sm hover:bg-grey-10 ${ch.measured ? "border-grey-30" : "border-dashed border-amber"} ${FOCUS_RING}`}
-                    key={ch.from + ch.to + ch.cta}
-                  >
-                    <span className="text-grey-90">{out ? "To" : "From"} <b className="font-semibold">{other.title}</b></span>
-                    <span className="block text-xs text-grey-70">
-                      {[
-                        other.team,
-                        out && ch.cta && `${ch.cta} CTA`,
-                        ch.via && `“${ch.via}”`,
-                        ch.measured ? ch.people && `${ch.people.toLocaleString()} people` : "not measured",
-                        ch.utm === false && "no UTM",
-                        ch.resolution === "channel" && "channel only",
-                      ].filter(Boolean).join(" · ")}
-                    </span>
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-        ) : (
-          <p className="mt-2 text-sm text-grey-70 italic">None recorded.</p>
-        )}
+        {/* ── Comes from: the hand-offs that land here ── */}
+        {(() => {
+          const incoming = chainsOf(t.id).filter((ch) => ch.to === t.id);
+          if (!incoming.length) return null;
+          return (
+            <>
+              <H>Comes From</H>
+              <ul className="mt-2 divide-y divide-grey-30">
+                {incoming.map((ch) => {
+                  const src = byId.get(ch.from)!;
+                  return (
+                    <li key={ch.from + (ch.cta ?? "")} className="flex items-baseline justify-between gap-3 py-2">
+                      <button type="button" onClick={() => onOpen(src.id)} className={`min-w-0 rounded text-left text-sm hover:underline ${FOCUS_RING}`}>
+                        <span className="text-grey-90">{src.title}</span>
+                        <span className="block text-xs text-grey-70">{[src.team, ch.cta && `${ch.cta} CTA`, ch.via && `“${ch.via}”`, ch.utm === false && "no UTM", !ch.measured && "not measured", ch.resolution === "channel" && "channel only"].filter(Boolean).join(" · ")}</span>
+                      </button>
+                      {ch.measured && ch.people && <span className="shrink-0 text-sm font-semibold text-grey-90">{ch.people.toLocaleString()}</span>}
+                    </li>
+                  );
+                })}
+              </ul>
+            </>
+          );
+        })()}
       </div>
     </div>
   );
