@@ -80,39 +80,6 @@ function Versus({ v }: { v: MetricValue }) {
   );
 }
 
-/** A rate against its benchmark: a thin bar with the benchmark as a tick. */
-function Bullet({ v, label }: { v: MetricValue; label?: string }) {
-  const value = num(v.value), bench = v.benchmark ? num(v.benchmark) : NaN;
-  const max = Math.max(70, value, Number.isFinite(bench) ? bench : 0) * 1.05;
-  return (
-    <span className="flex items-center gap-2">
-      {label && <span className="w-20 shrink-0 truncate text-xs text-grey-70">{label}</span>}
-      <span className="relative h-1.5 min-w-10 flex-1 rounded-full bg-grey-30">
-        <span className="absolute inset-y-0 left-0 rounded-full bg-rmit-blue-interactive" style={{ width: `${(value / max) * 100}%` }} />
-        {Number.isFinite(bench) && (
-          <span className="absolute -top-1 h-3.5 w-0.5 rounded-full bg-grey-90" style={{ left: `${(bench / max) * 100}%` }} aria-hidden />
-        )}
-      </span>
-      <span className="w-9 shrink-0 text-right text-xs font-semibold text-grey-90">{v.value}</span>
-    </span>
-  );
-}
-
-function Spark({ series }: { series: { date: string; value: number }[] }) {
-  const w = 200, h = 28;
-  const max = Math.max(...series.map((s) => s.value));
-  const pts = series.map((s, i) => [(i / (series.length - 1)) * w, h - 2 - (s.value / max) * (h - 6)] as const);
-  const peak = pts[series.findIndex((s) => s.value === max)];
-  const d = pts.map(([x, y], i) => `${i ? "L" : "M"}${x.toFixed(1)},${y.toFixed(1)}`).join(" ");
-  return (
-    <svg viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" className="h-7 w-full" aria-hidden>
-      <path d={`${d} L${w},${h} L0,${h} Z`} fill={BLUE} opacity={0.1} />
-      <path d={d} fill="none" stroke={BLUE} strokeWidth={2} vectorEffect="non-scaling-stroke" strokeLinejoin="round" />
-      <circle cx={peak[0]} cy={peak[1]} r={3} fill={BLUE} stroke="var(--color-card)" strokeWidth={2} vectorEffect="non-scaling-stroke" />
-    </svg>
-  );
-}
-
 // ── the window: sends against Study@ contacts per day ─────────────────────
 function WindowStrip({ hovered, onHover }: { hovered: string | null; onHover: (id: string | null) => void }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -206,7 +173,7 @@ function WindowStrip({ hovered, onHover }: { hovered: string | null; onHover: (i
   );
 }
 
-// ── a touchpoint card ─────────────────────────────────────────────────────
+// ── a touchpoint card: one line, one number ───────────────────────────────
 function Card({ t, dim, active, onHover, onOpen, register }: {
   t: Touchpoint;
   dim: boolean;
@@ -216,11 +183,19 @@ function Card({ t, dim, active, onHover, onOpen, register }: {
   register: (id: string, el: HTMLElement | null) => void;
 }) {
   const T = TYPE[t.type];
-  const gaps = GAPS.get(t.id) ?? [];
-  const loud = gaps.filter((g) => g.kind === "chain-broken" || g.kind === "no-chain" || g.kind === "no-utm" || g.kind === "not-measured");
+  const gaps = (GAPS.get(t.id) ?? []).filter((g) => g.kind === "chain-broken" || g.kind === "no-chain" || g.kind === "no-utm" || g.kind === "not-measured");
   const head = headline(t.values);
-  const rate = head && head.value.includes("%");
-  const sub = [t.date && shortDate(t.date), t.variants.length > 1 ? `${t.variants.length} variants` : t.audience, t.new2026 && "new"].filter(Boolean).join(" · ");
+  const heads = t.variants.map((v) => headline(v.values)).filter((v): v is MetricValue => Boolean(v));
+  let number = "", unit = "";
+  if (t.variants.length > 1 && heads.length > 1 && heads.every((h) => h.value.includes("%"))) {
+    const ns = heads.map((h) => num(h.value));
+    number = `${Math.min(...ns)}–${Math.max(...ns)}%`;
+    unit = `${heads[0].metric.toLowerCase()} · ${t.variants.length} variants`;
+  } else if (head) {
+    number = /^\d+$/.test(head.value) ? Number(head.value).toLocaleString() : head.value;
+    unit = head.metric.toLowerCase();
+  }
+  const cmp = head && t.variants.length === 1 ? compare(head) : null;
   return (
     <button
       id={`tp-${t.id}`}
@@ -231,46 +206,25 @@ function Card({ t, dim, active, onHover, onOpen, register }: {
       onFocus={() => onHover(t.id)}
       onBlur={() => onHover(null)}
       onClick={() => onOpen(t.id)}
-      className={`relative z-10 flex w-full flex-col gap-1 rounded-lg border bg-card px-3 py-2 text-left transition-[opacity,box-shadow] duration-200 ${
+      aria-label={`${t.title}${number ? `, ${number} ${unit}` : ", not measured"}${gaps[0] ? `, ${gaps[0].label}` : ""}`}
+      className={`relative z-10 flex w-full items-center gap-2.5 rounded-lg border bg-card py-2 pr-3 pl-2.5 text-left transition-[opacity,box-shadow,border-color] duration-200 ${
         active ? "border-rmit-blue-interactive shadow-md" : "border-grey-30"
-      } ${dim ? "opacity-35" : ""} ${FOCUS_RING}`}
+      } ${dim ? "opacity-30" : ""} ${FOCUS_RING}`}
     >
-      <span className="flex items-start gap-2">
-        <span className={`flex size-6 shrink-0 items-center justify-center rounded-full ${T.chip} ${T.text}`}>
-          <T.Icon size={13} strokeWidth={2} aria-hidden />
-        </span>
-        <span className="min-w-0 flex-1">
-          <span className="block text-sm leading-tight font-semibold text-grey-90">{t.title}</span>
-          {sub && <span className="block truncate text-xs text-grey-70">{sub}</span>}
-        </span>
+      <span className={`flex size-6 shrink-0 items-center justify-center rounded-full ${T.chip} ${T.text}`}>
+        <T.Icon size={13} strokeWidth={2} aria-hidden />
       </span>
-      {t.series && <Spark series={t.series} />}
-      {head && rate && t.variants.length > 1
-        ? t.variants.map((v) => {
-            const hv = headline(v.values);
-            return hv ? <Bullet key={v.id} v={hv} label={v.audience.replace(/^Year 12 · ?/, "") || "Year 12"} /> : null;
-          })
-        : head && rate
-          ? <Bullet v={head} label={head.metric} />
-          : head && (
-              <span className="flex items-baseline gap-1.5 text-xs text-grey-70">
-                <span className="text-sm font-semibold text-grey-90">{/^\d+$/.test(head.value) ? Number(head.value).toLocaleString() : head.value}</span>
-                {head.metric.toLowerCase()}
-              </span>
-            )}
-      {t.series && t.values[1] && (
-        <span className="flex items-baseline gap-1.5 text-xs text-grey-70">
-          <span className="font-semibold text-grey-90">{t.values[1].value}</span>
-          {t.values[1].metric.replace(/^./, (c) => c.toLowerCase())}
-          <Versus v={t.values[1]} />
+      <span className="min-w-0 flex-1 truncate text-sm text-grey-90">{t.title}</span>
+      {number ? (
+        <span className="shrink-0 text-right text-sm">
+          <span className={`font-semibold ${cmp === "worse" ? "text-danger" : "text-grey-90"}`}>{number}</span>
+          <span className="block text-xs leading-none text-grey-60">{unit}</span>
         </span>
+      ) : (
+        <span className="shrink-0 text-xs text-grey-60 italic">not measured</span>
       )}
-      {!head && <span className="text-xs text-grey-60 italic">Not measured</span>}
-      {loud[0] && (
-        <span className="w-fit rounded bg-tint-amber px-1.5 py-0.5 text-xs text-grey-90">
-          {loud[0].label}
-          {loud.length > 1 && <span className="text-grey-70"> +{loud.length - 1}</span>}
-        </span>
+      {gaps[0] && (
+        <span title={gaps.map((g) => `${g.label} — ${g.detail}`).join("\n")} className="absolute -top-1 -right-1 size-2.5 rounded-full bg-amber ring-2 ring-card" aria-hidden />
       )}
     </button>
   );
@@ -322,7 +276,9 @@ function Flow({ hovered, onHover, onOpen }: { hovered: string | null; onHover: (
       const sorted = [...list].sort((a, z) => mid(boxes.get(other(a))!) - mid(boxes.get(other(z))!));
       return b.top + ((sorted.indexOf(ch) + 1) * (b.bottom - b.top)) / (sorted.length + 1);
     };
-    const ok = CHAINS.filter((ch) => boxes.has(ch.from) && boxes.has(ch.to));
+    // Page-to-page links live in the panel; drawing them added loops the
+    // diagram doesn't need.
+    const ok = CHAINS.filter((ch) => boxes.has(ch.from) && boxes.has(ch.to) && Math.abs(boxes.get(ch.from)!.left - boxes.get(ch.to)!.left) >= 8);
     return ok.map((ch) => {
       const a = boxes.get(ch.from)!, b = boxes.get(ch.to)!;
       const y1 = slot(ok.filter((c) => c.from === ch.from), ch, a, (c) => c.to);
@@ -339,37 +295,38 @@ function Flow({ hovered, onHover, onOpen }: { hovered: string | null; onHover: (
         d = `M${x1},${y1} C${x1 + k},${y1} ${x2 - k},${y2} ${x2},${y2}`;
         end = [x2, y2]; dir = 1; label = [(x1 + x2) / 2, (y1 + y2) / 2 - 6];
       }
-      const w = ch.measured && ch.people ? Math.min(7, 1.5 + Math.sqrt(ch.people) / 8) : 1.5;
+      const w = 1.5;
       return { ch, key: `${ch.from}>${ch.to}`, d, end, dir, label, w };
     });
   }, [boxes]);
 
   return (
-    <div className="mt-3 overflow-x-auto rounded-lg border border-grey-30 bg-grey-10">
-      <div ref={wrap} className="relative min-w-[60rem] p-5">
+    <div className="mt-4 overflow-x-auto">
+      <div ref={wrap} className="relative min-w-[60rem] py-2">
         <svg width={size.w} height={size.h} className="pointer-events-none absolute top-0 left-0 z-0" aria-hidden>
           {routes.map(({ ch, key, d, end, dir, label, w }) => {
             const hot = hotChain === key || (hovered !== null && (ch.from === hovered || ch.to === hovered));
             const faded = (hovered !== null || hotChain !== null) && !hot;
+            const sw = hot ? 2.5 : w;
             const stroke = ch.measured ? BLUE : AMBER;
             const text = !ch.measured
               ? `${ch.via ? `${ch.via} · ` : ""}not measured`
               : `${ch.via ?? "next page"}${ch.people ? ` · ${ch.people.toLocaleString()} people` : ""}${ch.resolution === "channel" ? " · channel only" : ""}`;
             return (
-              <g key={key} opacity={faded ? 0.1 : hot ? 1 : 0.5} className="transition-opacity duration-200">
-                <path d={d} fill="none" stroke="var(--color-grey-10)" strokeWidth={w + 3} />
+              <g key={key} opacity={faded ? 0.08 : hot ? 1 : 0.45} className="transition-opacity duration-200">
+                <path d={d} fill="none" stroke="var(--color-surface)" strokeWidth={sw + 3} />
                 <path
                   d={d}
                   fill="none"
                   stroke={stroke}
-                  strokeWidth={w}
+                  strokeWidth={sw}
                   strokeLinecap="round"
                   strokeDasharray={!ch.measured ? "6 5" : ch.resolution === "channel" ? "2 5" : undefined}
                 />
                 <path d={`M${end[0] + 7 * dir},${end[1]} l${-7 * dir},-4.5 v9 Z`} fill={stroke} />
                 <path d={d} fill="none" stroke="transparent" strokeWidth={14} className="pointer-events-auto" onMouseEnter={() => setHotChain(key)} onMouseLeave={() => setHotChain(null)} />
                 {hot && (
-                  <text x={label[0]} y={label[1]} textAnchor={dir === 1 ? "middle" : "start"} className="fill-grey-90 text-xs font-semibold" stroke="var(--color-grey-10)" strokeWidth={4} paintOrder="stroke">
+                  <text x={label[0]} y={label[1]} textAnchor={dir === 1 ? "middle" : "start"} className="fill-grey-90 text-xs font-semibold" stroke="var(--color-surface)" strokeWidth={4} paintOrder="stroke">
                     {text}
                   </text>
                 )}
@@ -381,17 +338,15 @@ function Flow({ hovered, onHover, onOpen }: { hovered: string | null; onHover: (
         {/* Columns are what the student passes through, left to right; inside
             each, one labelled block per team. An arrow that leaves a block is
             a hand-off between teams. */}
-        <div className="grid grid-cols-3 gap-x-32 pb-3">
+        {/* Columns are what the student passes through, left to right; inside
+            each, a quiet team label above its cards. An arrow that leaves a
+            group is a hand-off between teams. */}
+        <div className="grid grid-cols-3 items-center gap-x-40">
           {KINDS.map((k) => (
-            <h3 key={k.kind} className={`text-grey-70 ${EYEBROW}`}>{k.label}</h3>
-          ))}
-        </div>
-        <div className="grid grid-cols-3 items-center gap-x-32">
-          {KINDS.map((k) => (
-            <div key={k.kind} className="flex flex-col gap-4 self-center">
+            <div key={k.kind} className="flex flex-col gap-7 self-center">
               {TEAMS.filter((team) => TOUCHPOINTS.some((t) => t.team === team && t.kind === k.kind)).map((team) => (
-                <section key={team} aria-label={team} className="rounded-xl border border-grey-30 bg-surface p-2.5">
-                  <p className="px-1 pb-2 text-sm font-semibold text-grey-90">{team}</p>
+                <section key={team} aria-label={`${team} — ${k.label}`}>
+                  <p className={`mb-2 text-grey-70 ${EYEBROW}`}>{team}</p>
                   <div className="flex flex-col gap-2">
                     {TOUCHPOINTS.filter((t) => t.team === team && t.kind === k.kind).map((t) => (
                       <Card
@@ -411,11 +366,11 @@ function Flow({ hovered, onHover, onOpen }: { hovered: string | null; onHover: (
           ))}
         </div>
 
-        <ul className="mt-5 flex flex-wrap gap-x-5 gap-y-1 border-t border-grey-30 pt-3 text-xs text-grey-70">
-          <li className="flex items-center gap-1.5"><svg width="28" height="8" aria-hidden><path d="M0,4 H28" stroke={BLUE} strokeWidth={3} /></svg>Hand-off we can follow (thicker = more people)</li>
-          <li className="flex items-center gap-1.5"><svg width="28" height="8" aria-hidden><path d="M0,4 H28" stroke={AMBER} strokeWidth={1.5} strokeDasharray="6 5" /></svg>Hand-off not measured</li>
-          <li className="flex items-center gap-1.5"><svg width="28" height="8" aria-hidden><path d="M0,4 H28" stroke={BLUE} strokeWidth={2} strokeDasharray="2 5" strokeLinecap="round" /></svg>Known by channel only</li>
-          <li className="flex items-center gap-1.5"><span className="h-3.5 w-0.5 rounded-full bg-grey-90" aria-hidden />Benchmark</li>
+        <ul className="mt-6 flex flex-wrap gap-x-5 gap-y-1 text-xs text-grey-70">
+          <li className="flex items-center gap-1.5"><svg width="28" height="8" aria-hidden><path d="M0,4 H28" stroke={BLUE} strokeWidth={1.5} /></svg>Hand-off we can follow</li>
+          <li className="flex items-center gap-1.5"><svg width="28" height="8" aria-hidden><path d="M0,4 H28" stroke={AMBER} strokeWidth={1.5} strokeDasharray="6 5" /></svg>Not measured</li>
+          <li className="flex items-center gap-1.5"><svg width="28" height="8" aria-hidden><path d="M0,4 H28" stroke={BLUE} strokeWidth={1.5} strokeDasharray="2 5" strokeLinecap="round" /></svg>Known by channel only</li>
+          <li className="flex items-center gap-1.5"><span className="size-2.5 rounded-full bg-amber" aria-hidden />Something we can&rsquo;t see — hover for what</li>
         </ul>
       </div>
     </div>
@@ -583,96 +538,77 @@ function Page() {
   const [hovered, setHovered] = useState<string | null>(null);
   const [openId, setOpenId] = useState<string | null>(null);
   const open = openId ? byId.get(openId) : undefined;
-  const stats: [string, string, string][] = [
-    [String(SUMMARY.total), "", `touchpoints, ${SUMMARY.teams} teams`],
-    [String(SUMMARY.measured), ` / ${SUMMARY.total}`, "measured"],
-    [String(SUMMARY.chains - SUMMARY.brokenChains), ` / ${SUMMARY.chains}`, "hand-offs we can follow"],
-    [String(SUMMARY.questions - SUMMARY.unanswered), ` / ${SUMMARY.questions}`, "student questions answered"],
-    [String(SUMMARY.withCvp), ` / ${SUMMARY.total}`, "with a value proposition"],
-  ];
   const maxOutcome = Math.max(...OUTCOMES.map((o) => o.preferenceChanged));
   return (
-    <div className="mx-auto max-w-[92rem] px-5 pt-8 pb-24">
+    <div className="mx-auto max-w-[88rem] px-6 pt-8 pb-24">
       <a href="/" className={`inline-flex items-center gap-1 rounded text-sm text-rmit-blue-interactive hover:underline ${FOCUS_RING}`}>
         <ArrowLeft size={14} strokeWidth={2} aria-hidden /> Current State Touchpoints
       </a>
-      <p className={`mt-5 text-grey-70 ${EYEBROW}`}>Campaign · pilot · proxy data</p>
+      <p className={`mt-6 text-grey-70 ${EYEBROW}`}>Campaign · proxy data</p>
       <h1 className="text-3xl font-bold text-rmit-blue">{CAMPAIGN.name}</h1>
-      <p className="mt-1 text-grey-80">
+      <p className="mt-1 text-grey-70">
         {shortDate(CAMPAIGN.from)} – {shortDate(CAMPAIGN.to)} · stage gate {shortDate(CAMPAIGN.stageGate)}
       </p>
+      <p className="mt-6 max-w-3xl text-xl leading-relaxed text-grey-90">{SUMMARY.story}</p>
 
-      <p className="mt-5 max-w-3xl text-lg text-grey-90">{SUMMARY.story}</p>
-      <dl className="mt-4 grid grid-cols-2 gap-x-8 gap-y-3 sm:grid-cols-3 lg:grid-cols-5">
-        {stats.map(([n, of, label]) => (
-          <div key={label}>
-            <dd className="text-3xl font-semibold text-grey-90">{n}<span className="text-base font-normal text-grey-60">{of}</span></dd>
-            <dt className="text-sm text-grey-70">{label}</dt>
-          </div>
-        ))}
-      </dl>
-
-      <h2 className="mt-10 text-xl font-semibold text-grey-90">Sends Against Study@ Contacts per Day</h2>
-      <WindowStrip hovered={hovered} onHover={setHovered} />
-
-      <h2 className="mt-10 text-xl font-semibold text-grey-90">Across the Teams</h2>
       <Flow hovered={hovered} onHover={setHovered} onOpen={setOpenId} />
 
-      <div className="mt-10 grid gap-10 lg:grid-cols-2">
-        <section>
-          <h2 className="text-xl font-semibold text-grey-90">What Students Ask</h2>
-          <ul className="mt-3 flex flex-col gap-1.5">
-            {[...QUESTIONS].sort((a, b) => a.answeredBy.length - b.answeredBy.length).map((q) => (
-              <li key={q.stage + q.question} className={`rounded-md border px-3 py-2 ${q.answeredBy.length ? "border-grey-30 bg-card" : "border-dashed border-grey-60"}`}>
-                <p className="text-sm text-grey-90">{q.question}</p>
-                {q.answeredBy.length ? (
-                  <p className="mt-0.5 flex flex-wrap gap-x-2 text-xs">
-                    {q.answeredBy.map((t) => (
-                      <button key={t.id} type="button" onClick={() => setOpenId(t.id)} onMouseEnter={() => setHovered(t.id)} onMouseLeave={() => setHovered(null)} className={`rounded text-rmit-blue-interactive hover:underline ${FOCUS_RING}`}>
-                        {t.title}
-                      </button>
-                    ))}
-                  </p>
-                ) : (
-                  <p className="mt-0.5 text-xs text-grey-70">No touchpoint in the window</p>
-                )}
-              </li>
-            ))}
-          </ul>
-        </section>
+      <div className="mt-16 max-w-4xl">
+        <h2 className="text-base font-semibold text-grey-90">Sends against Study@ contacts per day</h2>
+        <WindowStrip hovered={hovered} onHover={setHovered} />
 
-        <section>
-          <h2 className="text-xl font-semibold text-grey-90">What We Can&rsquo;t See</h2>
+        <h2 className="mt-14 text-base font-semibold text-grey-90">What we can&rsquo;t see</h2>
+        <ul className="mt-3 divide-y divide-grey-30">
           {GAP_ORDER.map((kind) => {
             const items = TOUCHPOINTS.filter((t) => (GAPS.get(t.id) ?? []).some((g) => g.kind === kind));
             if (!items.length) return null;
             return (
-              <div key={kind} className="mt-3 rounded-md border border-grey-30 bg-card px-3 py-2.5">
-                <p className="text-sm font-semibold text-grey-90">{GAP_TITLES[kind].title} <span className="font-normal text-grey-60">· {items.length}</span></p>
-                <p className="text-xs text-grey-70">{GAP_TITLES[kind].why}</p>
-                <p className="mt-1.5 flex flex-wrap gap-1.5">
+              <li key={kind} className="grid gap-x-8 gap-y-1 py-3 sm:grid-cols-[14rem_1fr]">
+                <div>
+                  <p className="text-sm font-semibold text-grey-90">{GAP_TITLES[kind].title} <span className="font-normal text-grey-60">· {items.length}</span></p>
+                  <p className="text-xs text-grey-70">{GAP_TITLES[kind].why}</p>
+                </div>
+                <p className="flex flex-wrap gap-x-3 gap-y-1 text-sm">
                   {items.map((t) => (
-                    <button key={t.id} type="button" onClick={() => setOpenId(t.id)} onMouseEnter={() => setHovered(t.id)} onMouseLeave={() => setHovered(null)} className={`rounded-full bg-grey-10 px-2 py-0.5 text-xs text-grey-90 hover:bg-grey-20 ${FOCUS_RING}`}>
+                    <button key={t.id} type="button" onClick={() => setOpenId(t.id)} className={`rounded text-grey-80 hover:text-rmit-blue-interactive hover:underline ${FOCUS_RING}`}>
                       {t.title}
                     </button>
                   ))}
                 </p>
-              </div>
+              </li>
             );
           })}
+        </ul>
 
-          <h2 className="mt-10 text-xl font-semibold text-grey-90">Preference Changes Recorded by Study@</h2>
-          <p className="mt-1 text-sm text-grey-70">By week. Not linked to any touchpoint.</p>
-          <ul className="mt-3 flex flex-col gap-2">
-            {OUTCOMES.map((o) => (
-              <li key={o.week} className="grid grid-cols-[6rem_1fr_3rem] items-center gap-3 text-sm" title={`${o.preferenceChanged} preference changes from ${o.contacts.toLocaleString()} contacts`}>
-                <span className="text-grey-70">Week of {shortDate(o.week)}</span>
-                <span className="h-3"><span className="block h-full rounded-r bg-rmit-blue-interactive" style={{ width: `${(o.preferenceChanged / maxOutcome) * 100}%` }} /></span>
-                <span className="text-right font-semibold text-grey-90">{o.preferenceChanged}</span>
-              </li>
-            ))}
-          </ul>
-        </section>
+        <h2 className="mt-14 text-base font-semibold text-grey-90">What students ask</h2>
+        <ul className="mt-3 divide-y divide-grey-30">
+          {[...QUESTIONS].sort((a, b) => a.answeredBy.length - b.answeredBy.length).map((q) => (
+            <li key={q.stage + q.question} className="grid gap-x-8 gap-y-1 py-2.5 sm:grid-cols-[1fr_14rem]">
+              <p className="text-sm text-grey-90">{q.question}</p>
+              {q.answeredBy.length ? (
+                <p className="flex flex-wrap gap-x-2 text-sm">
+                  {q.answeredBy.map((t) => (
+                    <button key={t.id} type="button" onClick={() => setOpenId(t.id)} className={`rounded text-rmit-blue-interactive hover:underline ${FOCUS_RING}`}>{t.title}</button>
+                  ))}
+                </p>
+              ) : (
+                <p className="text-sm text-grey-60">No touchpoint</p>
+              )}
+            </li>
+          ))}
+        </ul>
+
+        <h2 className="mt-14 text-base font-semibold text-grey-90">Preference changes recorded by Study@</h2>
+        <p className="mt-1 text-sm text-grey-70">By week. Not linked to any touchpoint.</p>
+        <ul className="mt-3 flex flex-col gap-2">
+          {OUTCOMES.map((o) => (
+            <li key={o.week} className="grid grid-cols-[7rem_1fr_3rem] items-center gap-3 text-sm" title={`${o.preferenceChanged} preference changes from ${o.contacts.toLocaleString()} contacts`}>
+              <span className="text-grey-70">Week of {shortDate(o.week)}</span>
+              <span className="h-2.5"><span className="block h-full rounded-r bg-rmit-blue-interactive" style={{ width: `${(o.preferenceChanged / maxOutcome) * 100}%` }} /></span>
+              <span className="text-right font-semibold text-grey-90">{o.preferenceChanged}</span>
+            </li>
+          ))}
+        </ul>
       </div>
 
       {open && <Panel t={open} onClose={() => setOpenId(null)} onOpen={setOpenId} />}
