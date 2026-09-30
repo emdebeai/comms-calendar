@@ -15,6 +15,7 @@ import {
   MessageSquare,
   MessagesSquare,
   Minus,
+  MousePointerClick,
   Phone,
   Users,
   Video,
@@ -80,19 +81,20 @@ function Versus({ v }: { v: MetricValue }) {
   );
 }
 
-// ── a touchpoint card: one line, one number ───────────────────────────────
-function Card({ t, dim, active, onHover, onOpen, register }: {
+// ── a touchpoint card, in the map's own style: tinted chip, accent strip,
+// icon, title, CTA line — plus one judged number. `bar` stretches it across
+// the window for things that are live all the way through. ───────────────
+function Card({ t, dim, active, onHover, onOpen, register, bar }: {
   t: Touchpoint;
   dim: boolean;
   active: boolean;
   onHover: (id: string | null) => void;
   onOpen: (id: string) => void;
   register: (id: string, el: HTMLElement | null) => void;
+  bar?: boolean;
 }) {
   const T = TYPE[t.type];
   const gaps = (GAPS.get(t.id) ?? []).filter((g) => g.kind === "chain-broken" || g.kind === "no-chain" || g.kind === "no-utm" || g.kind === "not-measured");
-  // Lead with the metric that has a verdict (a benchmark); the plain headline
-  // (rank, contacts) becomes context beside it.
   const JUDGE = ["Open rate", "Bounce rate", "Attendance rate", "Click-through rate"];
   const judged = (vals: MetricValue[]) =>
     JUDGE.map((m) => vals.find((v) => !v.cta && v.benchmark && v.metric === m)).find(Boolean) ??
@@ -106,17 +108,14 @@ function Card({ t, dim, active, onHover, onOpen, register }: {
   if (t.variants.length > 1 && heads.length > 1 && heads.every((h) => h.value.includes("%"))) {
     const ns = heads.map((h) => num(h.value));
     number = `${Math.min(...ns)}–${Math.max(...ns)}%`;
-    unit = `${heads[0].metric.toLowerCase()} · ${t.variants.length} variants`;
+    unit = heads[0].metric.toLowerCase();
   } else if (head) {
     number = /^\d+$/.test(head.value) ? Number(head.value).toLocaleString() : head.value;
     unit = head.metric.replace(/\s*\(.*\)/, "").toLowerCase();
     if (context && context !== head) unit += ` · ${/^\d+$/.test(context.value) ? Number(context.value).toLocaleString() : context.value} ${context.metric.toLowerCase()}`;
   }
-  // The verdict is drawn, not written: a coloured edge and number for the
-  // headline against its benchmark, one dot per variant so the spread shows.
   const verdicts = t.variants.map((v) => { const h = judged(v.values); return h ? compare(h) : null; });
   const cmp = t.variants.length === 1 ? verdicts[0] : verdicts.some((x) => x === "worse") ? "worse" : verdicts.every((x) => x === "better") ? "better" : verdicts.some((x) => x) ? "level" : null;
-  const edge = cmp === "better" ? "border-l-success" : cmp === "worse" ? "border-l-danger" : "border-l-grey-40";
   const numTone = cmp === "better" ? "text-success" : cmp === "worse" ? "text-danger" : "text-grey-90";
   return (
     <button
@@ -129,31 +128,44 @@ function Card({ t, dim, active, onHover, onOpen, register }: {
       onBlur={() => onHover(null)}
       onClick={() => onOpen(t.id)}
       aria-label={`${t.title}${number ? `, ${number} ${unit}` : ", not measured"}${gaps[0] ? `, ${gaps[0].label}` : ""}`}
-      className={`relative z-10 flex w-full items-center gap-2.5 rounded-lg border border-l-4 bg-card py-2 pr-3 pl-2.5 text-left transition-[opacity,box-shadow,border-color] duration-200 ${edge} ${
-        active ? "border-rmit-blue-interactive shadow-md" : "border-grey-30"
-      } ${dim ? "opacity-30" : ""} ${FOCUS_RING}`}
+      className={`relative z-10 flex w-full gap-1.5 rounded-l-none rounded-r-md px-2 py-1.5 text-left transition-[opacity,box-shadow] duration-200 ${T.chip} ${
+        bar ? "items-center" : "items-start"
+      } ${active ? "ring-1 ring-rmit-blue-interactive shadow-md" : ""} ${dim ? "opacity-[0.1]" : ""} ${FOCUS_RING}`}
     >
-      <span className={`flex size-6 shrink-0 items-center justify-center rounded-full ${T.chip} ${T.text}`}>
-        <T.Icon size={13} strokeWidth={2} aria-hidden />
-      </span>
+      <span aria-hidden className={`absolute inset-y-0 left-0 w-[1.25px] ${T.accent}`} />
+      <span className={`mt-px shrink-0 ${T.text}`}><T.Icon size={13} strokeWidth={2} aria-hidden /></span>
       <span className="min-w-0 flex-1">
-        <span className="block truncate text-sm text-grey-90">{t.title}</span>
-        {t.variants.length > 1 && (
-          <span className="mt-1 flex gap-1" aria-label={`${t.variants.length} variants: ${verdicts.map((v, i) => `${t.variants[i].audience} ${v ?? "no benchmark"}`).join(", ")}`}>
+        <span className={`block text-xs leading-tight font-semibold ${bar ? "truncate" : "line-clamp-2"} ${T.text}`}>{t.title}</span>
+        {!bar && t.cta && (
+          <span className="mt-0.5 flex items-center gap-1 text-xs leading-tight text-grey-80">
+            <MousePointerClick size={10} strokeWidth={2} className="shrink-0" aria-hidden />
+            <span className="truncate">{t.cta}</span>
+          </span>
+        )}
+        {!bar && t.variants.length > 1 && (
+          <span className="mt-1 flex gap-1" aria-label={`${t.variants.length} variants`}>
             {verdicts.map((v, i) => (
               <span key={i} title={`${t.variants[i].audience} · ${judged(t.variants[i].values)?.value ?? "not measured"}`} className={`size-2 rounded-full ${v === "better" ? "bg-success" : v === "worse" ? "bg-danger" : "bg-grey-40"}`} />
             ))}
           </span>
         )}
+        {!bar && (number ? (
+          <span className="mt-1 flex items-baseline gap-1 text-xs leading-tight">
+            <span className={`text-sm font-semibold ${numTone}`}>{number}</span>
+            <span className="truncate text-grey-70">{unit}</span>
+          </span>
+        ) : (
+          <span className="mt-1 block text-xs text-grey-70 italic">not measured</span>
+        ))}
       </span>
-      {number ? (
-        <span className="shrink-0 text-right text-sm">
-          <span className={`font-semibold ${numTone}`}>{number}</span>
-          <span className="block text-xs leading-none text-grey-60">{unit}</span>
+      {bar && (number ? (
+        <span className="shrink-0 text-right">
+          <span className={`block text-sm leading-tight font-semibold ${numTone}`}>{number}</span>
+          <span className="block max-w-56 truncate text-xs leading-tight text-grey-70">{unit}</span>
         </span>
       ) : (
-        <span className="shrink-0 text-xs text-grey-60 italic">not measured</span>
-      )}
+        <span className="shrink-0 text-xs text-grey-70 italic">not measured</span>
+      ))}
       {gaps[0] && (
         <span title={gaps.map((g) => `${g.label} — ${g.detail}`).join("\n")} className="absolute -top-1 -right-1 size-2.5 rounded-full bg-amber ring-2 ring-card" aria-hidden />
       )}
@@ -161,13 +173,12 @@ function Card({ t, dim, active, onHover, onOpen, register }: {
   );
 }
 
-// ── the window: beats on top, pulse underneath ────────────────────────────
-// Sends and events are BEATS — they happen on a day, so they sit on the
-// timeline as cards. Pages and Study@ channels are the PULSE — always there,
-// rising and falling — so they're daily bars across the whole window, with
-// the pages/channels themselves listed beside their pulse, not placed in time.
+// ── the window, in the map's grammar: a date band and a moments band, then
+// one lane per team. Sends hang off their date dot on a stem. The website
+// and Study@ lanes carry their daily curve, with the pages and channels as
+// bars across the whole window — live throughout, not placed on a day. ───
 type Box = { left: number; right: number; top: number; bottom: number };
-const CARD_W = 184, RAIL_W = 288, DAY_MIN = 40;
+const CARD_W = 172, CARD_H = 74, ROW_GAP = 8, DOT_STRIP = 18, LANE_PAD = 10, LABEL_W = 176, RIGHT_PAD = 120;
 const LANES = ["Marketing", "Paid media", "Recruitment and events"];
 
 function Window({ hovered, onHover, onOpen }: { hovered: string | null; onHover: (id: string | null) => void; onOpen: (id: string) => void }) {
@@ -200,146 +211,194 @@ function Window({ hovered, onHover, onOpen }: { hovered: string | null; onHover:
     return () => ro.disconnect();
   }, [measure]);
 
-  const axisW = Math.max(width - RAIL_W, DAYS.length * DAY_MIN);
+  const axisW = Math.max(width - LABEL_W - RIGHT_PAD, DAYS.length * 44);
+  const canvasW = axisW + RIGHT_PAD;
   const dayW = axisW / DAYS.length;
-  const x = (date: string) => DAYS.findIndex((d) => d.date === date) * dayW;
+  const x = (date: string) => DAYS.findIndex((d) => d.date === date) * dayW + dayW / 2;
   const beats = TOUCHPOINTS.filter((t) => t.date);
   const connected = useMemo(() => {
     if (!hovered) return null;
     return new Set([hovered, ...chainsOf(hovered).map((ch) => (ch.from === hovered ? ch.to : ch.from))]);
   }, [hovered]);
 
-  // Pack each lane: a card sits at its day; if it would overlap the card
-  // before it, it drops to the next row.
+  // Skyline per lane: a card's left edge sits on its dot; if that overlaps
+  // the card before it, it takes the next row.
   const lanes = LANES.map((team) => {
     const items = beats.filter((t) => t.team === team).sort((a, b) => a.date!.localeCompare(b.date!));
     const rows: number[] = [];
     const placed = items.map((t) => {
       const left = x(t.date!);
       let row = 0;
-      while (rows[row] !== undefined && rows[row] > left - 8) row++;
+      while (rows[row] !== undefined && rows[row] > left - 6) row++;
       rows[row] = left + CARD_W;
       return { t, left, row };
     });
-    return { team, placed, rows: rows.length };
+    return { team, placed, rows: Math.max(rows.length, 1) };
   }).filter((l) => l.placed.length);
 
-  const CARD_H = 52, ROW_GAP = 8;
   const drops = useMemo(() =>
     beats.filter((t) => t.kind === "send").map((t) => {
       const chs = CHAINS.filter((ch) => ch.from === t.id && byId.get(ch.to)?.kind === "page");
-      const a = boxes.get(t.id), b = boxes.get("pulse-web");
+      const a = boxes.get(t.id), b = boxes.get("lane-web");
       if (!chs.length || !a || !b) return null;
       const measured = chs.some((ch) => ch.measured);
       const people = chs.reduce((n, ch) => n + (ch.measured ? ch.people ?? 0 : 0), 0);
-      const cx = (a.left + a.right) / 2;
-      return { id: t.id, x1: cx, y1: a.bottom, y2: b.top + 4, measured, label: measured ? `${people.toLocaleString()} people · ${chs.length} CTA${chs.length > 1 ? "s" : ""}` : "can't be followed" };
+      return { id: t.id, x1: a.left + 1 - LABEL_W, y1: a.bottom, y2: b.top + DOT_STRIP / 2, measured, label: measured ? `${people.toLocaleString()} people · ${chs.length} CTA${chs.length > 1 ? "s" : ""}` : "can't be followed" };
     }).filter((d): d is NonNullable<typeof d> => Boolean(d)),
   [boxes, beats]);
 
-  const webMax = Math.max(...WEB_BY_DAY.map((d) => d.value));
-  const studyMax = Math.max(...STUDY_BY_DAY.map((d) => d.contacts));
-  const PULSE_H = 96;
-
-  const Pulse = ({ id, title, series, max, unit, rail }: { id: string; title: string; series: { date: string; value: number; overloaded?: boolean; wait?: string }[]; max: number; unit: string; rail: Touchpoint[] }) => {
+  const CURVE_H = 84;
+  const Curve = ({ series, max, unit }: { series: { date: string; value: number; overloaded?: boolean; wait?: string }[]; max: number; unit: string }) => {
+    const y = (v: number) => CURVE_H - 6 - (v / max) * (CURVE_H - 24);
+    const pts = series.map((d) => [x(d.date), y(d.value)] as const);
+    const line = pts.map(([px, py], i) => `${i ? "L" : "M"}${px.toFixed(1)},${py.toFixed(1)}`).join(" ");
     const peak = series.reduce((a, b) => (b.value > a.value ? b : a));
+    const at = day ? series.find((d) => d.date === day) : undefined;
     return (
-      <div className="grid gap-x-8" style={{ gridTemplateColumns: `${axisW}px ${RAIL_W - 32}px` }}>
-        <div>
-          <p className={`text-grey-70 ${EYEBROW}`}>{title}</p>
-          <div ref={(el) => register(id, el)} className="relative mt-2" style={{ height: PULSE_H }}>
-            <svg width={axisW} height={PULSE_H} className="absolute inset-0" role="img" aria-label={`${title}, per day, peaking at ${peak.value.toLocaleString()} on ${shortDate(peak.date)}`}>
-              {series.map((d) => {
-                const h = (d.value / max) * (PULSE_H - 18);
-                const hot = day === d.date;
-                return (
-                  <rect key={d.date} x={x(d.date) + 2} y={PULSE_H - h} width={Math.max(dayW - 4, 2)} height={h} rx={2}
-                    fill={d.overloaded ? "var(--color-danger)" : BLUE} opacity={hot ? 1 : d.overloaded ? 0.85 : 0.55} />
-                );
-              })}
-              <text x={x(peak.date) + dayW / 2} y={PULSE_H - (peak.value / max) * (PULSE_H - 18) - 6} textAnchor="middle" className="fill-grey-90 text-xs font-semibold">{peak.value.toLocaleString()}</text>
-            </svg>
-            {day && (() => {
-              const d = series.find((s) => s.date === day);
-              if (!d) return null;
-              return (
-                <div className="pointer-events-none absolute z-10 rounded-md bg-tooltip px-2 py-1 text-xs whitespace-nowrap text-white shadow-md" style={{ left: Math.min(x(day) + dayW, axisW - 150), top: 4 }}>
-                  {shortDate(day)} · {d.value.toLocaleString()} {unit}{d.wait ? ` · wait ${d.wait}` : ""}
-                </div>
-              );
-            })()}
-          </div>
-          <table className="sr-only"><caption>{title}</caption><tbody>{series.map((d) => <tr key={d.date}><th>{shortDate(d.date)}</th><td>{d.value}</td></tr>)}</tbody></table>
-        </div>
-        {/* the rail: what's behind this pulse, with its verdict — a list, not
-            a place in time */}
-        <div className="flex flex-col gap-1.5 self-end">
-          {rail.map((t) => (
-            <Card key={t.id} t={t} register={register} onHover={onHover} onOpen={onOpen} active={hovered === t.id} dim={connected !== null && !connected.has(t.id)} />
+      <div className="relative" style={{ height: CURVE_H }}>
+        <svg width={axisW} height={CURVE_H} className="absolute inset-0" role="img" aria-label={`${unit} per day, peaking at ${peak.value.toLocaleString()} on ${shortDate(peak.date)}`}>
+          <path d={`${line} L${pts[pts.length - 1][0]},${CURVE_H} L${pts[0][0]},${CURVE_H} Z`} fill={BLUE} opacity={0.08} />
+          <path d={line} fill="none" stroke={BLUE} strokeWidth={2} strokeLinejoin="round" />
+          {series.filter((d) => d.overloaded).map((d) => (
+            <circle key={d.date} cx={x(d.date)} cy={y(d.value)} r={5} fill="var(--color-danger)" stroke="var(--color-card)" strokeWidth={2} />
           ))}
-        </div>
+          <circle cx={x(peak.date)} cy={y(peak.value)} r={3.5} fill={peak.overloaded ? "var(--color-danger)" : BLUE} stroke="var(--color-card)" strokeWidth={2} />
+          {day && <line x1={x(day)} x2={x(day)} y1={0} y2={CURVE_H} stroke="var(--color-grey-60)" strokeDasharray="2 3" />}
+        </svg>
+        <span className="pointer-events-none absolute text-xs text-grey-70" style={{ left: x(peak.date) - 120, width: 112, top: y(peak.value) - 9, textAlign: "right" }}>
+          <b className={`font-semibold ${peak.overloaded ? "text-danger" : "text-grey-90"}`}>{peak.value.toLocaleString()}</b> {unit}
+        </span>
+        {at && (
+          <div className="pointer-events-none absolute z-20 rounded-md bg-tooltip px-2 py-1 text-xs whitespace-nowrap text-white shadow-md" style={{ left: Math.min(x(day!) + 10, axisW - 170), top: 4 }}>
+            {shortDate(at.date)} · {at.value.toLocaleString()} {unit}{at.wait ? ` · phone wait ${at.wait}` : ""}
+          </div>
+        )}
+        <table className="sr-only"><tbody>{series.map((d) => <tr key={d.date}><th>{shortDate(d.date)}</th><td>{d.value}</td></tr>)}</tbody></table>
       </div>
     );
   };
 
+  // Every row is [gutter | canvas], like the map: labels live in a sticky
+  // left gutter, never over the cards.
+  const Row = ({ id, gutter, children, height, className = "" }: { id?: string; gutter?: React.ReactNode; children: React.ReactNode; height?: number; className?: string }) => (
+    <div className={`grid border-b border-grey-30 ${className}`} style={{ gridTemplateColumns: `${LABEL_W}px ${canvasW}px`, minHeight: height }}>
+      <div className="sticky left-0 z-30 border-r border-grey-30 bg-surface/25 px-3 pt-2 backdrop-blur-md">{gutter}</div>
+      <div ref={id ? (el) => register(id, el) : undefined} className="relative">{children}</div>
+    </div>
+  );
+  const Lane = ({ id, label, sub, children, height }: { id?: string; label: string; sub?: string; children: React.ReactNode; height?: number }) => (
+    <Row id={id} height={height} gutter={<><p className={`text-grey-90 ${EYEBROW}`}>{label}</p>{sub && <p className="text-xs text-grey-70">{sub}</p>}</>}>
+      {children}
+    </Row>
+  );
+
+  const pages = TOUCHPOINTS.filter((t) => t.kind === "page");
+  const channels = TOUCHPOINTS.filter((t) => t.kind === "conversation" && !t.date);
+  const BAR_H = 34;
+
   return (
-    <div className="mt-6 overflow-x-auto">
+    <div className="mt-6 overflow-x-auto rounded-lg border border-grey-30 bg-card">
       <div ref={wrap} className="relative" onMouseLeave={() => setDay(null)}>
-        {/* drops: send → the website pulse on its day */}
-        <svg className="pointer-events-none absolute top-0 left-0 z-0" width={axisW} height={boxes.get("pulse-web")?.bottom ?? 0} aria-hidden>
+        {/* the COP window and the stage gate, through every lane */}
+        <div aria-hidden className="pointer-events-none absolute top-0 bottom-0 z-0 border-l border-dashed border-grey-40 bg-rmit-blue-interactive/5" style={{ left: LABEL_W + x(CAMPAIGN.coreFrom) - dayW / 2, width: dayW * 3 }} />
+        <div aria-hidden className="pointer-events-none absolute top-0 bottom-0 z-0 border-l-2 border-rmit-blue" style={{ left: LABEL_W + x(CAMPAIGN.to) + dayW / 2 - 1 }} />
+
+        {/* drops: send → website lane on its day */}
+        <svg className="pointer-events-none absolute top-0 z-10" style={{ left: LABEL_W }} width={canvasW} height={boxes.get("lane-web")?.bottom ?? 0} aria-hidden>
           {drops.map((d) => {
             const hot = hovered === d.id;
             const faded = hovered !== null && !hot;
             const stroke = d.measured ? BLUE : AMBER;
             return (
-              <g key={d.id} opacity={faded ? 0.08 : hot ? 1 : 0.45}>
-                <line x1={d.x1} x2={d.x1} y1={d.y1} y2={d.y2} stroke={stroke} strokeWidth={hot ? 2.5 : 1.5} strokeDasharray={d.measured ? undefined : "5 4"} />
-                <circle cx={d.x1} cy={d.y2} r={3} fill={stroke} />
-                {hot && <text x={d.x1 + 6} y={(d.y1 + d.y2) / 2} className="fill-grey-90 text-xs font-semibold" stroke="var(--color-surface)" strokeWidth={4} paintOrder="stroke">{d.label}</text>}
+              <g key={d.id} opacity={faded ? 0.08 : hot ? 1 : 0.4}>
+                <line x1={d.x1} x2={d.x1} y1={d.y1} y2={d.y2} stroke={stroke} strokeWidth={hot ? 2 : 1.25} strokeDasharray={d.measured ? undefined : "5 4"} />
+                <circle cx={d.x1} cy={d.y2} r={3} fill="var(--color-card)" stroke={stroke} strokeWidth={1.5} />
+                {hot && <text x={d.x1 + 6} y={(d.y1 + d.y2) / 2} className="fill-grey-90 text-xs font-semibold" stroke="var(--color-card)" strokeWidth={4} paintOrder="stroke">{d.label}</text>}
               </g>
             );
           })}
         </svg>
 
-        {/* day axis with countdown */}
-        <div className="relative border-b border-grey-30" style={{ width: axisW, height: 44 }} onMouseMove={(e) => { const r = e.currentTarget.getBoundingClientRect(); setDay(DAYS[Math.min(DAYS.length - 1, Math.max(0, Math.floor((e.clientX - r.left) / dayW)))].date); }}>
+        {/* date band */}
+        <Row height={36} className="sticky top-0 z-30 bg-card/70 backdrop-blur-md" gutter={<p className="text-xs text-grey-70">Day</p>}>
+        <div className="relative h-full" onMouseMove={(e) => { const r = e.currentTarget.getBoundingClientRect(); setDay(DAYS[Math.min(DAYS.length - 1, Math.max(0, Math.floor((e.clientX - r.left) / dayW)))].date); }}>
           {DAYS.map((d) => (
-            <div key={d.date} className={`absolute top-0 h-full border-l ${d.core ? "border-rmit-blue-interactive/40" : "border-grey-30/60"}`} style={{ left: x(d.date), width: dayW }}>
-              <p className={`truncate pl-1 text-xs ${d.core ? "font-semibold text-rmit-blue" : "text-grey-90"}`}>{d.label.split(" ")[0]}{(d.date === CAMPAIGN.from || d.label.startsWith("1 ")) && <span className="text-grey-60"> {d.label.split(" ")[1]}</span>}</p>
-              <p className={`truncate pl-1 text-xs ${d.core ? "font-semibold text-rmit-blue" : "text-grey-60"}`}>{d.marker ?? d.countdown}</p>
+            <div key={d.date} className={`absolute top-0 flex h-full items-center justify-center text-xs ${d.weekend ? "text-grey-60" : "text-grey-90"} ${d.core ? "font-semibold text-rmit-blue" : ""}`} style={{ left: x(d.date) - dayW / 2, width: dayW }}>
+              {d.label.split(" ")[0]}
+              {(d.date === CAMPAIGN.from || d.label.startsWith("1 ")) && <span className="ml-1 text-grey-60">{d.label.split(" ")[1]}</span>}
             </div>
           ))}
         </div>
+        </Row>
+        {/* moments band — stacked so the end-of-window labels don't collide */}
+        <Row height={62} gutter={<p className="text-xs text-grey-70">Moments that matter</p>}>
+          {[
+            { date: CAMPAIGN.markers[0]?.date, label: CAMPAIGN.markers[0]?.label, line: 0 },
+            { date: CAMPAIGN.markers[1]?.date, label: CAMPAIGN.markers[1]?.label, line: 0 },
+            { date: CAMPAIGN.coreFrom, label: "Change of Preference · 10–12 Dec", line: 1 },
+            { date: CAMPAIGN.to, label: "Stage gate · extend or stop", line: 2 },
+          ].filter((m) => m.date).map((m) => (
+            <span key={m.label} className={`absolute border-l pl-1.5 text-xs whitespace-nowrap ${m.line === 2 ? "font-semibold text-rmit-blue" : "text-grey-90"} border-grey-60`} style={{ left: x(m.date!) - dayW / 2, top: 4 + m.line * 19 }}>
+              {m.label}
+            </span>
+          ))}
+        </Row>
 
-        {/* the COP band, down through everything */}
-        <div aria-hidden className="pointer-events-none absolute top-0 bottom-0 z-0 bg-rmit-blue-interactive/6" style={{ left: x(CAMPAIGN.coreFrom), width: dayW * 3 }} />
-        <div aria-hidden className="pointer-events-none absolute top-0 bottom-0 z-0 border-l-2 border-rmit-blue" style={{ left: x(CAMPAIGN.to) + dayW - 1 }} />
-
-        {/* beats: one lane per sending team */}
-        {lanes.map((lane) => (
-          <div key={lane.team} className="relative border-b border-grey-30" style={{ width: axisW, height: 28 + lane.rows * (CARD_H + ROW_GAP) }}>
-            <p className={`absolute top-1.5 left-1 text-grey-70 ${EYEBROW}`}>{lane.team}</p>
-            {lane.placed.map(({ t, left, row }) => (
-              <div key={t.id} className="absolute" style={{ left: Math.min(left, axisW - CARD_W), top: 28 + row * (CARD_H + ROW_GAP), width: CARD_W }}>
-                <Card t={t} register={register} onHover={onHover} onOpen={onOpen} active={hovered === t.id} dim={connected !== null && !connected.has(t.id)} />
-              </div>
-            ))}
-          </div>
+        {/* team lanes: dots on the baseline, stems, cards */}
+        {lanes.map((lane, li) => (
+          <Lane key={lane.team} label={lane.team} sub={`${lane.placed.length} touchpoint${lane.placed.length === 1 ? "" : "s"}`} height={DOT_STRIP + LANE_PAD + lane.rows * (CARD_H + ROW_GAP) + LANE_PAD}>
+            <div className={li % 2 ? "absolute inset-0 bg-grey-10" : ""} aria-hidden />
+            {lane.placed.map(({ t, left, row }) => {
+              const top = DOT_STRIP + LANE_PAD + row * (CARD_H + ROW_GAP);
+              const dim = connected !== null && !connected.has(t.id);
+              return (
+                <div key={t.id}>
+                  <span aria-hidden className={`absolute z-10 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full ring-2 ring-card ${TYPE[t.type].accent} ${dim ? "opacity-[0.1]" : ""}`} style={{ left: x(t.date!), top: DOT_STRIP / 2 }} />
+                  <span aria-hidden className={`absolute w-[1.25px] ${TYPE[t.type].accent} ${dim ? "opacity-[0.1]" : ""}`} style={{ left: x(t.date!), top: DOT_STRIP / 2, height: top - DOT_STRIP / 2 + 2 }} />
+                  <div className="absolute" style={{ left, top, width: CARD_W }}>
+                    <Card t={t} register={register} onHover={onHover} onOpen={onOpen} active={hovered === t.id} dim={dim} />
+                  </div>
+                </div>
+              );
+            })}
+          </Lane>
         ))}
 
-        {/* pulse: the website, then Study@ */}
-        <div className="mt-8 flex flex-col gap-10">
-          <Pulse id="pulse-web" title="Website · sessions per day" series={WEB_BY_DAY} max={webMax} unit="sessions" rail={TOUCHPOINTS.filter((t) => t.kind === "page")} />
-          <Pulse id="pulse-study" title="Study@RMIT · contacts per day" series={STUDY_BY_DAY.map((d) => ({ date: d.date, value: d.contacts, overloaded: d.overloaded, wait: d.wait }))} max={studyMax} unit="contacts" rail={TOUCHPOINTS.filter((t) => t.kind === "conversation" && !t.date)} />
-        </div>
+        {/* website lane: the curve, then every page as a bar across the window */}
+        <Lane id="lane-web" label="Website" sub="Sessions per day">
+          <div className="pt-8">
+            <Curve series={WEB_BY_DAY} max={Math.max(...WEB_BY_DAY.map((d) => d.value))} unit="sessions" />
+            <div className="flex flex-col gap-1.5 px-2 pt-2 pb-3">
+              {pages.map((t) => (
+                <div key={t.id} style={{ height: BAR_H }}>
+                  <Card t={t} bar register={register} onHover={onHover} onOpen={onOpen} active={hovered === t.id} dim={connected !== null && !connected.has(t.id)} />
+                </div>
+              ))}
+            </div>
+          </div>
+        </Lane>
 
-        <ul className="mt-6 flex flex-wrap gap-x-5 gap-y-1 text-xs text-grey-70">
-          <li className="flex items-center gap-1.5"><span className="h-3.5 w-1 rounded-sm bg-success" aria-hidden />Above benchmark</li>
-          <li className="flex items-center gap-1.5"><span className="h-3.5 w-1 rounded-sm bg-danger" aria-hidden />Below benchmark</li>
-          <li className="flex items-center gap-1.5"><span className="h-3.5 w-1 rounded-sm bg-grey-40" aria-hidden />No benchmark</li>
-          <li className="flex items-center gap-1.5"><svg width="8" height="20" aria-hidden><path d="M4,0 V20" stroke={BLUE} strokeWidth={1.5} /></svg>Send landing on the website that day</li>
-          <li className="flex items-center gap-1.5"><svg width="8" height="20" aria-hidden><path d="M4,0 V20" stroke={AMBER} strokeWidth={1.5} strokeDasharray="5 4" /></svg>Can&rsquo;t be followed</li>
-          <li className="flex items-center gap-1.5"><span className="h-3 w-2.5 rounded-sm bg-danger" aria-hidden />Phone wait over twice normal</li>
+        {/* Study@ lane: the curve (red where the phone couldn't cope), then each channel as a bar */}
+        <Lane id="lane-study" label="Study@RMIT" sub="Contacts per day">
+          <div className="pt-8">
+            <Curve series={STUDY_BY_DAY.map((d) => ({ date: d.date, value: d.contacts, overloaded: d.overloaded, wait: d.wait }))} max={Math.max(...STUDY_BY_DAY.map((d) => d.contacts))} unit="contacts" />
+            <div className="flex flex-col gap-1.5 px-2 pt-2 pb-3">
+              {channels.map((t) => (
+                <div key={t.id} style={{ height: BAR_H }}>
+                  <Card t={t} bar register={register} onHover={onHover} onOpen={onOpen} active={hovered === t.id} dim={connected !== null && !connected.has(t.id)} />
+                </div>
+              ))}
+            </div>
+          </div>
+        </Lane>
+
+        <ul className="flex flex-wrap gap-x-5 gap-y-1 px-3 py-3 text-xs text-grey-70">
+          <li className="flex items-center gap-1.5"><span className="font-semibold text-success">42%</span>above benchmark</li>
+          <li className="flex items-center gap-1.5"><span className="font-semibold text-danger">24%</span>below benchmark</li>
+          <li className="flex items-center gap-1.5"><span className="font-semibold text-grey-90">#2</span>no benchmark</li>
+          <li className="flex items-center gap-1.5"><svg width="8" height="18" aria-hidden><path d="M4,0 V18" stroke={BLUE} strokeWidth={1.25} /></svg>Send landing on the website that day</li>
+          <li className="flex items-center gap-1.5"><svg width="8" height="18" aria-hidden><path d="M4,0 V18" stroke={AMBER} strokeWidth={1.25} strokeDasharray="5 4" /></svg>Can&rsquo;t be followed</li>
+          <li className="flex items-center gap-1.5"><span className="size-2.5 rounded-full bg-danger" aria-hidden />Phone wait over twice normal</li>
           <li className="flex items-center gap-1.5"><span className="size-2.5 rounded-full bg-amber" aria-hidden />Something we can&rsquo;t see — hover for what</li>
         </ul>
       </div>
