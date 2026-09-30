@@ -279,6 +279,27 @@ function Home({ onEnter, setPage }: { onEnter: () => void; setPage: (p: Page) =>
         </div>
       </section>
 
+      {/* Campaigns — their own pages; the map is not involved */}
+      <section>
+        <h2 className="text-xl font-semibold text-grey-90">Campaigns</h2>
+        <div className="mt-5 grid gap-4 sm:grid-cols-3">
+          <a
+            href="/campaign/"
+            className={`group ${CARD} text-left transition-colors hover:border-rmit-blue-interactive ${FOCUS_RING}`}
+          >
+            <span className="inline-block rounded-md bg-tint-amber px-2 py-0.5 text-xs font-semibold uppercase tracking-widest text-grey-90">
+              Pilot
+            </span>
+            <p className="mt-3 text-base font-semibold text-grey-90">Change of Preference 2026</p>
+            <p className="mt-1 text-sm text-grey-70">19 Nov – 12 Dec · proxy data</p>
+            <span className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-rmit-blue-interactive">
+              View the campaign
+              <ArrowRight size={15} strokeWidth={2} className="transition-transform group-hover:translate-x-0.5" aria-hidden />
+            </span>
+          </a>
+        </div>
+      </section>
+
       {/* Reference pages */}
       <section>
         <h2 className="text-xl font-semibold text-grey-90">Reference</h2>

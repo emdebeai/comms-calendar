@@ -16,7 +16,7 @@ const marketingEdmsTrailingSlash: Plugin = {
   configureServer(server) {
     server.middlewares.use((req, res, next) => {
       const [pathname, query] = (req.url ?? "").split("?");
-      if (pathname === "/marketing-edms" || pathname === "/metrics") {
+      if (pathname === "/marketing-edms" || pathname === "/metrics" || pathname === "/campaign") {
         res.writeHead(301, { Location: `${pathname}/${query ? `?${query}` : ""}` });
         res.end();
         return;
@@ -52,6 +52,7 @@ export default defineConfig({
             main: resolve(__dirname, "index.html"),
             "marketing-edms": resolve(__dirname, "marketing-edms/index.html"),
             metrics: resolve(__dirname, "metrics/index.html"),
+            campaign: resolve(__dirname, "campaign/index.html"),
           },
         },
       },
