@@ -27,6 +27,7 @@ import { EYEBROW, FOCUS_RING } from "../lib/styles";
 import {
   CAMPAIGN,
   CHAINS,
+  CHAINS_RAW,
   CONTACTS_BY_DAY,
   GAPS,
   GAP_ORDER,
@@ -42,6 +43,7 @@ import {
   compare,
   dayNumber,
   headline,
+  nextStepsFor,
   num,
   referrersFor,
   shortDate,
@@ -401,28 +403,54 @@ function Values({ values }: { values: MetricValue[] }) {
 function Panel({ t, onClose, onOpen }: { t: Touchpoint; onClose: () => void; onOpen: (id: string) => void }) {
   const ref = useRef<HTMLDivElement>(null);
   const T = TYPE[t.type];
-  // Variants are a toggle, not stacked tables — each chip carries the
-  // headline number so the comparison is on the chips, the detail below.
+  // Audience is the first thing on a send: it's the variant, and it changes
+  // everything below it — value proposition, performance, destinations.
   const [variantId, setVariantId] = useState(t.variants[0]?.id);
   useEffect(() => setVariantId(t.variants[0]?.id), [t.id, t.variants]);
   const variant = t.variants.find((v) => v.id === variantId) ?? t.variants[0];
   const shown = variant?.values ?? t.values;
+  const cvp = variant?.cvp ?? t.cvp;
+  const [edmOpen, setEdmOpen] = useState(false);
   useEffect(() => {
     ref.current?.focus();
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, [onClose, t.id]);
-  const H = ({ children }: { children: string }) => <h3 className={`mt-6 border-t border-grey-30 pt-5 text-grey-70 ${EYEBROW}`}>{children}</h3>;
-  const Row = ({ label, value }: { label: string; value?: string }) =>
-    value ? (
-      <div className="flex gap-3 py-1">
-        <dt className="w-28 shrink-0 text-sm text-grey-70">{label}</dt>
-        <dd className="min-w-0 text-sm text-grey-90">{value}</dd>
-      </div>
-    ) : null;
+  const H = ({ children }: { children: string }) => <h3 className={`mt-7 border-t border-grey-30 pt-5 text-grey-70 ${EYEBROW}`}>{children}</h3>;
   const gaps = GAPS.get(t.id) ?? [];
   const refs = referrersFor(t);
+  const incoming = CHAINS_RAW.filter((ch) => ch.to === t.id);
+  const outgoing = CHAINS_RAW.filter((ch) => (variant ? ch.fromVariant === variant.id : ch.from === t.id));
+  const metric = (k: string, name: string) => shown.find((x) => x.cta === k && x.metric === name)?.value;
+  const isSend = t.kind === "send";
+  const isPage = t.kind === "page";
+
+  // Destinations: one row per CTA — what it says, where it lands, who
+  // clicked (the Marketo click report), whether the page can tell it was us.
+  const slots = (["primary", "secondary", "tertiary"] as const)
+    .map((k) => ({ k, text: k === "primary" ? t.cta : k === "secondary" ? t.secondaryCta : undefined, chains: outgoing.filter((ch) => ch.cta === k) }))
+    .filter((sl) => sl.text || sl.chains.length);
+  const destinations = [
+    ...slots.flatMap((sl) => (sl.chains.length ? sl.chains : [null]).map((ch) => ({ k: sl.k as string, text: sl.text ?? ch?.via, ch }))),
+    ...outgoing.filter((ch) => !ch.cta).map((ch) => ({ k: "", text: ch.via, ch })),
+  ];
+
+  const status = (ch: (typeof outgoing)[number] | null) =>
+    !ch
+      ? { tone: "text-amber", label: "no destination recorded" }
+      : ch.utm === false
+        ? { tone: "text-amber", label: "no UTM — the page can't tell it was this send" }
+        : !ch.measured
+          ? { tone: "text-amber", label: "next step not measured" }
+          : ch.resolution === "channel"
+            ? { tone: "text-grey-60", label: "known by channel only" }
+            : { tone: "text-grey-60", label: "UTM tagged" };
+
+  const edmRefs = refs.filter((r) => /edm/i.test(r.channel));
+  const otherRefs = refs.filter((r) => !/edm/i.test(r.channel));
+  const edmShare = edmRefs.length ? `${edmRefs.reduce((a, r) => a + num(r.share), 0)}%` : undefined;
+
   return (
     <div
       ref={ref}
@@ -439,11 +467,17 @@ function Panel({ t, onClose, onOpen }: { t: Touchpoint; onClose: () => void; onO
         <div className="min-w-0 flex-1">
           <p className={`text-grey-70 ${EYEBROW}`}>{[T.label, t.team, t.date && shortDate(t.date)].filter(Boolean).join(" · ")}</p>
           <h2 className="text-xl font-semibold text-grey-90">{t.title}</h2>
+          {t.url && (
+            <a href={t.url} target="_blank" rel="noreferrer" className={`mt-0.5 block truncate rounded text-sm text-rmit-blue-interactive hover:underline ${FOCUS_RING}`}>
+              {t.url.replace(/^https?:\/\/(www\.)?/, "")}
+            </a>
+          )}
         </div>
         <button type="button" onClick={onClose} aria-label="Close" className={`rounded-md p-1.5 text-grey-70 hover:bg-grey-10 ${FOCUS_RING}`}>
           <X size={18} strokeWidth={2} aria-hidden />
         </button>
       </header>
+
       <div className="flex-1 overflow-y-auto p-5">
         {gaps.length > 0 && (
           <ul className="flex flex-col gap-1.5">
@@ -454,134 +488,177 @@ function Panel({ t, onClose, onOpen }: { t: Touchpoint; onClose: () => void; onO
             ))}
           </ul>
         )}
-        <dl className={gaps.length ? "mt-4" : ""}>
-          <Row label="Audience" value={t.variants.length > 1 ? undefined : t.audience} />
-          <Row label="Primary CTA" value={t.cta} />
-          <Row label="Secondary CTA" value={t.secondaryCta} />
-          <Row label="UTM tagged" value={t.utm === "yes" ? "Yes" : t.utm === "no" ? "No" : undefined} />
-          <Row label="New for 2026" value={t.new2026 ? "Yes" : undefined} />
-          {t.url && (
-            <div className="flex gap-3 py-1">
-              <dt className="w-28 shrink-0 text-sm text-grey-70">Page</dt>
-              <dd className="min-w-0 truncate text-sm">
-                <a href={t.url} target="_blank" rel="noreferrer" className={`text-rmit-blue-interactive hover:underline ${FOCUS_RING}`}>{t.url.replace(/^https?:\/\/(www\.)?/, "")}</a>
-              </dd>
-            </div>
-          )}
-        </dl>
 
-        <H>Value Proposition</H>
-        <p className={`mt-2 text-sm ${t.cvp ? "text-grey-90" : "text-grey-70 italic"}`}>{t.cvp ? `“${t.cvp}”` : "None recorded."}</p>
-
-        <H>Performance</H>
-        {t.variants.length > 1 && (
+        {/* ── Audience — the variants, as a toggle that drives the rest ── */}
+        {isSend && (
           <>
-            <p className="mt-2 text-xs text-grey-70">{t.variants.length} variants · {t.variantBasis ?? "audience splits"}</p>
-            <div role="group" aria-label="Variant" className="mt-2 flex flex-wrap gap-1.5">
-              {t.variants.map((v) => {
-                const hv = headline(v.values);
-                const on = v.id === variant?.id;
-                const worse = hv && compare(hv) === "worse";
-                return (
-                  <button
-                    key={v.id}
-                    type="button"
-                    aria-pressed={on}
-                    onClick={() => setVariantId(v.id)}
-                    className={`flex items-baseline gap-1.5 rounded-full border px-2.5 py-1 text-xs transition-colors ${
-                      on ? "border-grey-90 bg-grey-90 text-on-accent" : "border-grey-30 bg-card text-grey-80 hover:bg-grey-10"
-                    } ${FOCUS_RING}`}
-                  >
-                    {v.audience.replace(/^Year 12 · ?/, "") || "Year 12"}
-                    {hv && <span className={`font-semibold ${on ? "" : worse ? "text-danger" : "text-grey-90"}`}>{hv.value}</span>}
-                  </button>
-                );
-              })}
-            </div>
+            <h3 className={`${gaps.length ? "mt-6" : ""} text-grey-70 ${EYEBROW}`}>Audience{t.variants.length > 1 ? ` · ${t.variants.length} variants` : ""}</h3>
+            {t.variants.length > 1 ? (
+              <div role="group" aria-label="Audience variant" className="mt-2 flex flex-wrap gap-1.5">
+                {t.variants.map((v) => {
+                  const hv = headline(v.values);
+                  const on = v.id === variant?.id;
+                  const worse = hv && compare(hv) === "worse";
+                  return (
+                    <button
+                      key={v.id}
+                      type="button"
+                      aria-pressed={on}
+                      onClick={() => setVariantId(v.id)}
+                      className={`flex items-baseline gap-1.5 rounded-full border px-2.5 py-1 text-xs transition-colors ${
+                        on ? "border-grey-90 bg-grey-90 text-on-accent" : "border-grey-30 bg-card text-grey-80 hover:bg-grey-10"
+                      } ${FOCUS_RING}`}
+                    >
+                      {v.audience.replace(/^Year 12 · ?/, "") || "Year 12"}
+                      {hv && <span className={`font-semibold ${on ? "" : worse ? "text-danger" : "text-grey-90"}`}>{hv.value}</span>}
+                    </button>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="mt-1 text-sm text-grey-90">{t.audience ?? "—"}</p>
+            )}
+            {t.variantBasis && <p className="mt-1.5 text-xs text-grey-70">Variants by {t.variantBasis}</p>}
           </>
         )}
-        {shown.length ? (
+
+        {/* ── Value proposition — the one line the touchpoint asks the student
+            to believe. Styled as the thing itself, not a data row. ── */}
+        {(isSend || isPage) && (
+          <>
+            <H>Value Proposition</H>
+            {cvp ? (
+              <blockquote className={`mt-3 border-l-4 pl-4 ${T.text.replace("text-", "border-")}`}>
+                <p className="text-lg leading-snug font-medium text-grey-90">“{cvp}”</p>
+              </blockquote>
+            ) : (
+              <p className="mt-2 text-sm text-grey-70 italic">None recorded.</p>
+            )}
+          </>
+        )}
+
+        <H>Performance</H>
+        {shown.filter((x) => !x.cta).length ? (
           <div className="mt-2"><Values values={shown.filter((x) => !x.cta)} /></div>
         ) : (
           <p className="mt-2 text-sm text-grey-70 italic">Not measured.</p>
         )}
-        {/* ── CTAs: the Marketo click report and the hand-off in one row each.
-            What the link says, where it lands, who clicked, whether the page
-            can tell it was this send. ── */}
-        {(() => {
-          const outgoing = chainsOf(t.id).filter((ch) => ch.from === t.id);
-          const slots = (["primary", "secondary", "tertiary"] as const)
-            .map((k) => ({ k, text: k === "primary" ? t.cta : k === "secondary" ? t.secondaryCta : undefined, chains: outgoing.filter((ch) => ch.cta === k) }))
-            .filter((sl) => sl.text || sl.chains.length);
-          const loose = outgoing.filter((ch) => !ch.cta);
-          const rows = [
-            ...slots.flatMap((sl) => (sl.chains.length ? sl.chains : [null]).map((ch) => ({ k: sl.k as string, text: sl.text ?? ch?.via, ch }))),
-            ...loose.map((ch) => ({ k: "", text: ch.via, ch })),
-          ];
-          if (!rows.length) return null;
-          const metric = (k: string, name: string) => shown.find((x) => x.cta === k && x.metric === name)?.value;
+
+        {/* ── Destinations (sends): one row per CTA ── */}
+        {isSend && destinations.length > 0 && (
+          <>
+            <H>Destinations</H>
+            <ul className="mt-2 divide-y divide-grey-30">
+              {destinations.map(({ k, text, ch }, i) => {
+                const dest = ch ? byId.get(ch.to) : undefined;
+                const people = metric(k, "Link — people"), pct = metric(k, "Link — % of people");
+                const st = status(ch);
+                return (
+                  <li key={`${k}-${i}`} className="grid grid-cols-[1fr_auto] gap-x-4 py-2.5">
+                    <div className="min-w-0">
+                      {k && <p className={`text-grey-70 ${EYEBROW}`}>{k} CTA</p>}
+                      <p className="text-sm font-semibold text-grey-90">“{text}”</p>
+                      <p className="mt-0.5 flex items-center gap-1 text-sm">
+                        <span className="text-grey-60">→</span>
+                        {dest ? (
+                          <button type="button" onClick={() => onOpen(dest.id)} className={`rounded text-rmit-blue-interactive hover:underline ${FOCUS_RING}`}>
+                            {dest.title} <span className="text-grey-60">· {dest.team}</span>
+                          </button>
+                        ) : (
+                          <span className="text-grey-60 italic">nowhere recorded</span>
+                        )}
+                      </p>
+                      <p className={`mt-0.5 text-xs ${st.tone}`}>{st.label}</p>
+                    </div>
+                    <div className="text-right">
+                      {people ? (
+                        <>
+                          <p className="text-lg leading-tight font-semibold text-grey-90">{Number(people).toLocaleString()}</p>
+                          <p className="text-xs text-grey-70">people clicked{pct ? ` · ${pct}` : ""}</p>
+                        </>
+                      ) : (
+                        <p className="text-xs text-grey-60 italic">no click data</p>
+                      )}
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </>
+        )}
+
+        {/* ── Top 3 actions (pages) ── */}
+        {isPage && (() => {
+          const steps = nextStepsFor(t);
           return (
             <>
-              <H>CTAs</H>
-              <ul className="mt-2 divide-y divide-grey-30">
-                {rows.map(({ k, text, ch }, i) => {
-                  const dest = ch ? byId.get(ch.to) : undefined;
-                  const people = metric(k, "Link — people"), pct = metric(k, "Link — % of people");
-                  const status = !ch
-                    ? { tone: "text-amber", label: "no destination recorded" }
-                    : ch.utm === false
-                      ? { tone: "text-amber", label: "no UTM — the page can't tell it was this send" }
-                      : !ch.measured
-                        ? { tone: "text-amber", label: "next step not measured" }
-                        : ch.resolution === "channel"
-                          ? { tone: "text-grey-60", label: "known by channel only" }
-                          : { tone: "text-grey-60", label: "UTM tagged" };
-                  return (
-                    <li key={`${k}-${i}`} className="grid grid-cols-[1fr_auto] gap-x-4 py-2.5">
-                      <div className="min-w-0">
-                        {k && <p className={`text-grey-70 ${EYEBROW}`}>{k} CTA</p>}
-                        <p className="text-sm font-semibold text-grey-90">“{text}”</p>
-                        <p className="mt-0.5 flex items-center gap-1 text-sm">
-                          <span className="text-grey-60">→</span>
-                          {dest ? (
-                            <button type="button" onClick={() => onOpen(dest.id)} className={`rounded text-rmit-blue-interactive hover:underline ${FOCUS_RING}`}>
-                              {dest.title} <span className="text-grey-60">· {dest.team}</span>
-                            </button>
-                          ) : (
-                            <span className="text-grey-60 italic">nowhere recorded</span>
-                          )}
-                        </p>
-                        <p className={`mt-0.5 text-xs ${status.tone}`}>{status.label}</p>
-                      </div>
-                      <div className="text-right">
-                        {people ? (
-                          <>
-                            <p className="text-lg leading-tight font-semibold text-grey-90">{Number(people).toLocaleString()}</p>
-                            <p className="text-xs text-grey-70">people clicked{pct ? ` · ${pct}` : ""}</p>
-                          </>
-                        ) : ch?.people ? (
-                          <>
-                            <p className="text-lg leading-tight font-semibold text-grey-90">{ch.people.toLocaleString()}</p>
-                            <p className="text-xs text-grey-70">people</p>
-                          </>
+              <H>Top 3 Actions</H>
+              {steps.length ? (
+                <ol className="mt-2 divide-y divide-grey-30">
+                  {steps.map((st, i) => (
+                    <li key={st.action} className="flex items-baseline gap-3 py-2">
+                      <span className="w-4 shrink-0 text-sm text-grey-60">{i + 1}</span>
+                      <span className="min-w-0 flex-1 text-sm text-grey-90">
+                        {st.to ? (
+                          <button type="button" onClick={() => onOpen(st.to!.id)} className={`rounded text-left hover:underline ${FOCUS_RING}`}>{st.action}</button>
                         ) : (
-                          <p className="text-xs text-grey-60 italic">no click data</p>
+                          st.action
                         )}
-                      </div>
+                      </span>
+                      <span className="shrink-0 text-sm"><b className="font-semibold text-grey-90">{st.share}</b> <span className="text-xs text-grey-70">· {st.people.toLocaleString()}</span></span>
                     </li>
-                  );
-                })}
-              </ul>
+                  ))}
+                </ol>
+              ) : (
+                <p className="mt-2 text-sm text-grey-70 italic">Not measured.</p>
+              )}
             </>
           );
         })()}
 
-        {refs.length > 0 && (
+        {/* ── Arrives from (pages): channels, with the eDM channel opening
+            out to the exact sends and CTAs that fed it ── */}
+        {isPage && (refs.length > 0 || incoming.length > 0) && (
           <>
             <H>Arrives From</H>
-            <ul className="mt-2 flex flex-col gap-1.5">
-              {refs.map((r) => (
-                <li key={r.channel + r.utmSource} className="grid grid-cols-[1fr_5rem_2.5rem] items-center gap-2 text-sm">
+            <ul className="mt-2 divide-y divide-grey-30">
+              {(edmRefs.length || incoming.length) > 0 && (
+                <li className="py-2">
+                  <button
+                    type="button"
+                    aria-expanded={edmOpen}
+                    onClick={() => setEdmOpen((o) => !o)}
+                    className={`grid w-full grid-cols-[1rem_1fr_5rem_2.5rem] items-center gap-2 rounded text-left text-sm ${FOCUS_RING}`}
+                  >
+                    <span className="text-grey-60">{edmOpen ? "▾" : "▸"}</span>
+                    <span className="text-grey-80">eDMs <span className="text-grey-60">· {incoming.filter((ch) => byId.get(ch.from)?.kind === "send").length} CTAs</span></span>
+                    <span className="h-1.5 rounded-full bg-grey-30"><span className="block h-full rounded-full bg-rmit-blue-interactive" style={{ width: edmShare ?? "0%" }} /></span>
+                    <span className="text-right font-semibold text-grey-90">{edmShare ?? "—"}</span>
+                  </button>
+                  {edmOpen && (
+                    <ul className="mt-2 ml-6 divide-y divide-grey-30 border-l-2 border-grey-30 pl-3">
+                      {incoming.map((ch) => {
+                        const src = byId.get(ch.from)!;
+                        const v = src.variants.find((x) => x.id === ch.fromVariant);
+                        return (
+                          <li key={ch.fromVariant + (ch.cta ?? "")} className="flex items-baseline justify-between gap-3 py-1.5">
+                            <button type="button" onClick={() => onOpen(src.id)} className={`min-w-0 rounded text-left text-sm hover:underline ${FOCUS_RING}`}>
+                              <span className="text-grey-90">{src.title}</span>
+                              <span className="block text-xs text-grey-70">
+                                {[v && src.variants.length > 1 && v.audience, ch.cta && `${ch.cta} CTA`, ch.via && `“${ch.via}”`, ch.utm === false && "no UTM", !ch.measured && "not measured", ch.resolution === "channel" && "channel only"].filter(Boolean).join(" · ")}
+                              </span>
+                            </button>
+                            <span className={`shrink-0 text-sm font-semibold ${ch.measured && ch.people ? "text-grey-90" : "text-amber"}`}>{ch.measured && ch.people ? ch.people.toLocaleString() : "?"}</span>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
+                </li>
+              )}
+              {otherRefs.map((r) => (
+                <li key={r.channel + r.utmSource} className="grid grid-cols-[1rem_1fr_5rem_2.5rem] items-center gap-2 py-2 text-sm">
+                  <span />
                   <span className="truncate text-grey-80">{r.channel}{r.utmSource && <span className="text-grey-60"> · {r.utmSource}</span>}</span>
                   <span className="h-1.5 rounded-full bg-grey-30"><span className="block h-full rounded-full bg-rmit-blue-interactive" style={{ width: r.share }} /></span>
                   <span className="text-right font-semibold text-grey-90">{r.share}</span>
@@ -591,30 +668,26 @@ function Panel({ t, onClose, onOpen }: { t: Touchpoint; onClose: () => void; onO
           </>
         )}
 
-        {/* ── Comes from: the hand-offs that land here ── */}
-        {(() => {
-          const incoming = chainsOf(t.id).filter((ch) => ch.to === t.id);
-          if (!incoming.length) return null;
-          return (
-            <>
-              <H>Comes From</H>
-              <ul className="mt-2 divide-y divide-grey-30">
-                {incoming.map((ch) => {
-                  const src = byId.get(ch.from)!;
-                  return (
-                    <li key={ch.from + (ch.cta ?? "")} className="flex items-baseline justify-between gap-3 py-2">
-                      <button type="button" onClick={() => onOpen(src.id)} className={`min-w-0 rounded text-left text-sm hover:underline ${FOCUS_RING}`}>
-                        <span className="text-grey-90">{src.title}</span>
-                        <span className="block text-xs text-grey-70">{[src.team, ch.cta && `${ch.cta} CTA`, ch.via && `“${ch.via}”`, ch.utm === false && "no UTM", !ch.measured && "not measured", ch.resolution === "channel" && "channel only"].filter(Boolean).join(" · ")}</span>
-                      </button>
-                      {ch.measured && ch.people && <span className="shrink-0 text-sm font-semibold text-grey-90">{ch.people.toLocaleString()}</span>}
-                    </li>
-                  );
-                })}
-              </ul>
-            </>
-          );
-        })()}
+        {/* ── Comes from (conversations): the touchpoints that send people here ── */}
+        {!isPage && incoming.length > 0 && (
+          <>
+            <H>Comes From</H>
+            <ul className="mt-2 divide-y divide-grey-30">
+              {incoming.map((ch) => {
+                const src = byId.get(ch.from)!;
+                return (
+                  <li key={ch.fromVariant + (ch.cta ?? "")} className="flex items-baseline justify-between gap-3 py-2">
+                    <button type="button" onClick={() => onOpen(src.id)} className={`min-w-0 rounded text-left text-sm hover:underline ${FOCUS_RING}`}>
+                      <span className="text-grey-90">{src.title}</span>
+                      <span className="block text-xs text-grey-70">{[src.team, ch.via && `“${ch.via}”`, !ch.measured && "not measured"].filter(Boolean).join(" · ")}</span>
+                    </button>
+                    {ch.measured && ch.people && <span className="shrink-0 text-sm font-semibold text-grey-90">{ch.people.toLocaleString()}</span>}
+                  </li>
+                );
+              })}
+            </ul>
+          </>
+        )}
       </div>
     </div>
   );

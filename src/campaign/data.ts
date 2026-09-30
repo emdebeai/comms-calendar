@@ -9,6 +9,7 @@ import valuesRaw from "../../data/dummy/metric-values.csv?raw";
 import referrersRaw from "../../data/dummy/page-referrers.csv?raw";
 import studyDailyRaw from "../../data/dummy/studyat-daily.csv?raw";
 import outcomesRaw from "../../data/dummy/studyat-outcomes-weekly.csv?raw";
+import nextStepsRaw from "../../data/dummy/page-next-steps.csv?raw";
 import { parseCsvRows } from "../lib/csv";
 import { linkedCommIds, stageQuestions } from "../data/studentExperience";
 
@@ -26,6 +27,8 @@ export interface Variant {
   audience: string;
   values: MetricValue[];
   utm?: "yes" | "no";
+  /** each audience can be asked to believe something different */
+  cvp?: string;
 }
 /** One card on the page. Sends that share a title are ONE touchpoint with
  *  several variants (audience splits), not several touchpoints. */
@@ -167,7 +170,7 @@ for (const r of parseCsvRows(touchpointsRaw).filter((r) => r.campaign === CAMPAI
   if (g) {
     g.ids.push(r.id);
     if (r.map_id) g.mapIds.push(r.map_id);
-    g.variants.push({ id: r.id, audience: r.audience, values: own.values, utm });
+    g.variants.push({ id: r.id, audience: r.audience, values: own.values, utm, cvp: r.cvp || undefined });
     if (utm === "no") g.utm = "no";
     continue;
   }
@@ -188,7 +191,7 @@ for (const r of parseCsvRows(touchpointsRaw).filter((r) => r.campaign === CAMPAI
     utm,
     url: r.url || undefined,
     mapIds: r.map_id ? [r.map_id] : [],
-    variants: [{ id: r.id, audience: r.audience, values: own.values, utm }],
+    variants: [{ id: r.id, audience: r.audience, values: own.values, utm, cvp: r.cvp || undefined }],
     values: own.values,
     series: own.series,
   });
@@ -206,7 +209,22 @@ export const KINDS: { kind: Kind; label: string }[] = [
   { kind: "conversation", label: "Events and conversations" },
 ];
 
-// ── chains (variant chains merged onto their card) ────────────────────────
+// ── chains ────────────────────────────────────────────────────────────────
+// RAW keeps each variant's own hand-offs (the panel shows the chosen
+// audience's destinations); CHAINS merges them per card for the arrows.
+export const CHAINS_RAW: (Chain & { fromVariant: string })[] = parseCsvRows(chainsRaw)
+  .filter((r) => ownerOf.has(r.from) && ownerOf.has(r.to))
+  .map((r) => ({
+    fromVariant: r.from,
+    from: ownerOf.get(r.from)!,
+    to: ownerOf.get(r.to)!,
+    cta: r.cta === "primary" || r.cta === "secondary" || r.cta === "tertiary" ? r.cta : undefined,
+    utm: r.utm ? yes(r.utm) : undefined,
+    via: r.via || undefined,
+    resolution: r.resolution === "channel" ? "channel" : "send",
+    measured: yes(r.measured),
+    people: Number(r.people) || undefined,
+  }));
 const merged = new Map<string, Chain & { n: number; unmeasured: number }>();
 for (const r of parseCsvRows(chainsRaw)) {
   const from = ownerOf.get(r.from), to = ownerOf.get(r.to);
@@ -279,6 +297,22 @@ export const QUESTIONS = ["Wait", "Offer"].flatMap((stage) =>
     return { stage, question, answeredBy: TOUCHPOINTS.filter((t) => t.mapIds.some((id) => linked.has(id))) };
   }),
 );
+
+export interface NextStep {
+  action: string;
+  people: number;
+  share: string;
+  to?: Touchpoint;
+}
+const nextById = new Map<string, NextStep[]>();
+for (const r of parseCsvRows(nextStepsRaw)) {
+  const list = nextById.get(r.comm_id) ?? [];
+  list.push({ action: r.action, people: Number(r.people) || 0, share: r.share, to: r.to ? byId.get(r.to) : undefined });
+  nextById.set(r.comm_id, list);
+}
+/** Top 3 things people did next on a page, by volume. */
+export const nextStepsFor = (t: Touchpoint) =>
+  t.ids.flatMap((id) => nextById.get(id) ?? []).sort((a, b) => b.people - a.people).slice(0, 3);
 
 export const OUTCOMES = parseCsvRows(outcomesRaw).map((r) => ({
   week: r.week_of,

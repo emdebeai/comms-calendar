@@ -1,0 +1,19 @@
+comm_id,action,people,share,to
+change-of-preference-page,Click to Find a course by ATAR,2400,33%,find-a-course-by-atar
+change-of-preference-page,Click to Contact Study@RMIT,300,4%,contact-study-rmit
+change-of-preference-page,Register for the COP Q&A,210,3%,change-of-preference-q-a
+find-a-course-by-atar,Search by ATAR,7100,51%,
+find-a-course-by-atar,Click to a course page,4800,34%,
+find-a-course-by-atar,Click to Pathways into RMIT,600,4%,pathways-into-rmit
+pathways-into-rmit,Click to a pathway program page,1300,45%,
+pathways-into-rmit,Click to Apply,400,14%,
+pathways-into-rmit,Click to Contact Study@RMIT,150,5%,contact-study-rmit
+your-guide-to-vtac-and-rmit-terms,Click to Change of Preference,500,24%,change-of-preference-page
+your-guide-to-vtac-and-rmit-terms,Leave the site,1300,62%,
+your-guide-to-vtac-and-rmit-terms,Click to another article,200,10%,
+equity-access-schemes,Download the SNAP guide,300,38%,
+equity-access-schemes,Click to Apply,120,15%,
+equity-access-schemes,Click to Contact Study@RMIT,60,8%,contact-study-rmit
+contact-study-rmit,Submit the contact form,150,9%,
+contact-study-rmit,Start a live chat,500,29%,studyat-chat
+contact-study-rmit,Call the number shown,800,47%,studyat-phone
