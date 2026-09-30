@@ -161,14 +161,21 @@ function Card({ t, dim, active, onHover, onOpen, register }: {
   );
 }
 
-// ── the run sheet: time down the page, teams across ───────────────────────
+// ── the window: beats on top, pulse underneath ────────────────────────────
+// Sends and events are BEATS — they happen on a day, so they sit on the
+// timeline as cards. Pages and Study@ channels are the PULSE — always there,
+// rising and falling — so they're daily bars across the whole window, with
+// the pages/channels themselves listed beside their pulse, not placed in time.
 type Box = { left: number; right: number; top: number; bottom: number };
+const CARD_W = 184, RAIL_W = 288, DAY_MIN = 40;
+const LANES = ["Marketing", "Paid media", "Recruitment and events"];
 
-function RunSheet({ hovered, onHover, onOpen }: { hovered: string | null; onHover: (id: string | null) => void; onOpen: (id: string) => void }) {
+function Window({ hovered, onHover, onOpen }: { hovered: string | null; onHover: (id: string | null) => void; onOpen: (id: string) => void }) {
   const wrap = useRef<HTMLDivElement>(null);
   const els = useRef(new Map<string, HTMLElement>());
   const [boxes, setBoxes] = useState<Map<string, Box>>(new Map());
-  const [size, setSize] = useState({ w: 0, h: 0 });
+  const [width, setWidth] = useState(1000);
+  const [day, setDay] = useState<string | null>(null);
   const register = useCallback((id: string, el: HTMLElement | null) => {
     if (el) els.current.set(id, el);
     else els.current.delete(id);
@@ -183,7 +190,7 @@ function RunSheet({ hovered, onHover, onOpen }: { hovered: string | null; onHove
       next.set(id, { left: r.left - r0.left, right: r.right - r0.left, top: r.top - r0.top, bottom: r.bottom - r0.top });
     }
     setBoxes(next);
-    setSize({ w: root.scrollWidth, h: root.scrollHeight });
+    setWidth(root.clientWidth);
   }, []);
   useLayoutEffect(() => {
     measure();
@@ -193,132 +200,146 @@ function RunSheet({ hovered, onHover, onOpen }: { hovered: string | null; onHove
     return () => ro.disconnect();
   }, [measure]);
 
-  const dated = TOUCHPOINTS.filter((t) => t.date);
-  const live = TOUCHPOINTS.filter((t) => !t.date);
-  const webMax = Math.max(...WEB_BY_DAY.map((d) => d.value));
-  const studyMax = Math.max(...STUDY_BY_DAY.map((d) => d.contacts));
+  const axisW = Math.max(width - RAIL_W, DAYS.length * DAY_MIN);
+  const dayW = axisW / DAYS.length;
+  const x = (date: string) => DAYS.findIndex((d) => d.date === date) * dayW;
+  const beats = TOUCHPOINTS.filter((t) => t.date);
   const connected = useMemo(() => {
     if (!hovered) return null;
     return new Set([hovered, ...chainsOf(hovered).map((ch) => (ch.from === hovered ? ch.to : ch.from))]);
   }, [hovered]);
 
-  // One arrow per send: from the card to that day's website bar. Amber and
-  // dashed when none of its CTAs can be followed.
-  const arrows = useMemo(() =>
-    dated
-      .filter((t) => t.kind === "send")
-      .map((t) => {
-        const chs = CHAINS.filter((ch) => ch.from === t.id && byId.get(ch.to)?.kind === "page");
-        if (!chs.length) return null;
-        const a = boxes.get(t.id), b = boxes.get(`web-${t.date}`);
-        if (!a || !b) return null;
-        const measured = chs.some((ch) => ch.measured);
-        const people = chs.reduce((n, ch) => n + (ch.measured ? ch.people ?? 0 : 0), 0);
-        const y1 = (a.top + a.bottom) / 2, y2 = (b.top + b.bottom) / 2, x1 = a.right, x2 = b.left - 6;
-        const k = Math.max(24, (x2 - x1) / 2);
-        return { id: t.id, d: `M${x1},${y1} C${x1 + k},${y1} ${x2 - k},${y2} ${x2},${y2}`, end: [x2, y2] as const, measured, label: measured ? `${people.toLocaleString()} people via ${chs.length} CTA${chs.length > 1 ? "s" : ""}` : "not measured", mid: [(x1 + x2) / 2, (y1 + y2) / 2 - 6] as const };
-      })
-      .filter((x): x is NonNullable<typeof x> => Boolean(x)),
-  [boxes, dated]);
+  // Pack each lane: a card sits at its day; if it would overlap the card
+  // before it, it drops to the next row.
+  const lanes = LANES.map((team) => {
+    const items = beats.filter((t) => t.team === team).sort((a, b) => a.date!.localeCompare(b.date!));
+    const rows: number[] = [];
+    const placed = items.map((t) => {
+      const left = x(t.date!);
+      let row = 0;
+      while (rows[row] !== undefined && rows[row] > left - 8) row++;
+      rows[row] = left + CARD_W;
+      return { t, left, row };
+    });
+    return { team, placed, rows: rows.length };
+  }).filter((l) => l.placed.length);
 
-  const Live = ({ kind }: { kind: Touchpoint["kind"] }) => (
-    <div className="flex flex-col gap-1.5">
-      {live.filter((t) => t.kind === kind).map((t) => (
-        <Card key={t.id} t={t} register={register} onHover={onHover} onOpen={onOpen} active={hovered === t.id} dim={connected !== null && !connected.has(t.id)} />
-      ))}
-    </div>
-  );
+  const CARD_H = 52, ROW_GAP = 8;
+  const drops = useMemo(() =>
+    beats.filter((t) => t.kind === "send").map((t) => {
+      const chs = CHAINS.filter((ch) => ch.from === t.id && byId.get(ch.to)?.kind === "page");
+      const a = boxes.get(t.id), b = boxes.get("pulse-web");
+      if (!chs.length || !a || !b) return null;
+      const measured = chs.some((ch) => ch.measured);
+      const people = chs.reduce((n, ch) => n + (ch.measured ? ch.people ?? 0 : 0), 0);
+      const cx = (a.left + a.right) / 2;
+      return { id: t.id, x1: cx, y1: a.bottom, y2: b.top + 4, measured, label: measured ? `${people.toLocaleString()} people · ${chs.length} CTA${chs.length > 1 ? "s" : ""}` : "can't be followed" };
+    }).filter((d): d is NonNullable<typeof d> => Boolean(d)),
+  [boxes, beats]);
+
+  const webMax = Math.max(...WEB_BY_DAY.map((d) => d.value));
+  const studyMax = Math.max(...STUDY_BY_DAY.map((d) => d.contacts));
+  const PULSE_H = 96;
+
+  const Pulse = ({ id, title, series, max, unit, rail }: { id: string; title: string; series: { date: string; value: number; overloaded?: boolean; wait?: string }[]; max: number; unit: string; rail: Touchpoint[] }) => {
+    const peak = series.reduce((a, b) => (b.value > a.value ? b : a));
+    return (
+      <div className="grid gap-x-8" style={{ gridTemplateColumns: `${axisW}px ${RAIL_W - 32}px` }}>
+        <div>
+          <p className={`text-grey-70 ${EYEBROW}`}>{title}</p>
+          <div ref={(el) => register(id, el)} className="relative mt-2" style={{ height: PULSE_H }}>
+            <svg width={axisW} height={PULSE_H} className="absolute inset-0" role="img" aria-label={`${title}, per day, peaking at ${peak.value.toLocaleString()} on ${shortDate(peak.date)}`}>
+              {series.map((d) => {
+                const h = (d.value / max) * (PULSE_H - 18);
+                const hot = day === d.date;
+                return (
+                  <rect key={d.date} x={x(d.date) + 2} y={PULSE_H - h} width={Math.max(dayW - 4, 2)} height={h} rx={2}
+                    fill={d.overloaded ? "var(--color-danger)" : BLUE} opacity={hot ? 1 : d.overloaded ? 0.85 : 0.55} />
+                );
+              })}
+              <text x={x(peak.date) + dayW / 2} y={PULSE_H - (peak.value / max) * (PULSE_H - 18) - 6} textAnchor="middle" className="fill-grey-90 text-xs font-semibold">{peak.value.toLocaleString()}</text>
+            </svg>
+            {day && (() => {
+              const d = series.find((s) => s.date === day);
+              if (!d) return null;
+              return (
+                <div className="pointer-events-none absolute z-10 rounded-md bg-tooltip px-2 py-1 text-xs whitespace-nowrap text-white shadow-md" style={{ left: Math.min(x(day) + dayW, axisW - 150), top: 4 }}>
+                  {shortDate(day)} · {d.value.toLocaleString()} {unit}{d.wait ? ` · wait ${d.wait}` : ""}
+                </div>
+              );
+            })()}
+          </div>
+          <table className="sr-only"><caption>{title}</caption><tbody>{series.map((d) => <tr key={d.date}><th>{shortDate(d.date)}</th><td>{d.value}</td></tr>)}</tbody></table>
+        </div>
+        {/* the rail: what's behind this pulse, with its verdict — a list, not
+            a place in time */}
+        <div className="flex flex-col gap-1.5 self-end">
+          {rail.map((t) => (
+            <Card key={t.id} t={t} register={register} onHover={onHover} onOpen={onOpen} active={hovered === t.id} dim={connected !== null && !connected.has(t.id)} />
+          ))}
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="mt-6 overflow-x-auto">
-      <div ref={wrap} className="relative min-w-[66rem]">
-        <svg width={size.w} height={size.h} className="pointer-events-none absolute top-0 left-0 z-0" aria-hidden>
-          {arrows.map((ar) => {
-            const hot = hovered === ar.id;
+      <div ref={wrap} className="relative" onMouseLeave={() => setDay(null)}>
+        {/* drops: send → the website pulse on its day */}
+        <svg className="pointer-events-none absolute top-0 left-0 z-0" width={axisW} height={boxes.get("pulse-web")?.bottom ?? 0} aria-hidden>
+          {drops.map((d) => {
+            const hot = hovered === d.id;
             const faded = hovered !== null && !hot;
-            const stroke = ar.measured ? BLUE : AMBER;
+            const stroke = d.measured ? BLUE : AMBER;
             return (
-              <g key={ar.id} opacity={faded ? 0.08 : hot ? 1 : 0.5} className="transition-opacity duration-200">
-                <path d={ar.d} fill="none" stroke="var(--color-surface)" strokeWidth={5} />
-                <path d={ar.d} fill="none" stroke={stroke} strokeWidth={hot ? 2.5 : 1.5} strokeLinecap="round" strokeDasharray={ar.measured ? undefined : "6 5"} />
-                <path d={`M${ar.end[0] + 7},${ar.end[1]} l-7,-4.5 v9 Z`} fill={stroke} />
-                {hot && <text x={ar.mid[0]} y={ar.mid[1]} textAnchor="middle" className="fill-grey-90 text-xs font-semibold" stroke="var(--color-surface)" strokeWidth={4} paintOrder="stroke">{ar.label}</text>}
+              <g key={d.id} opacity={faded ? 0.08 : hot ? 1 : 0.45}>
+                <line x1={d.x1} x2={d.x1} y1={d.y1} y2={d.y2} stroke={stroke} strokeWidth={hot ? 2.5 : 1.5} strokeDasharray={d.measured ? undefined : "5 4"} />
+                <circle cx={d.x1} cy={d.y2} r={3} fill={stroke} />
+                {hot && <text x={d.x1 + 6} y={(d.y1 + d.y2) / 2} className="fill-grey-90 text-xs font-semibold" stroke="var(--color-surface)" strokeWidth={4} paintOrder="stroke">{d.label}</text>}
               </g>
             );
           })}
         </svg>
 
-        {/* Column heads, with what's live all window under Website and Study@ */}
-        <div className="grid grid-cols-[7rem_20rem_1fr_1fr] gap-x-10 border-b border-grey-30 pb-4">
-          <span />
-          <p className={`text-grey-70 ${EYEBROW}`}>Sent</p>
-          <div>
-            <p className={`text-grey-70 ${EYEBROW}`}>Website · live all window</p>
-            <div className="mt-2"><Live kind="page" /></div>
-          </div>
-          <div>
-            <p className={`text-grey-70 ${EYEBROW}`}>Study@RMIT · live all window</p>
-            <div className="mt-2"><Live kind="conversation" /></div>
-          </div>
+        {/* day axis with countdown */}
+        <div className="relative border-b border-grey-30" style={{ width: axisW, height: 44 }} onMouseMove={(e) => { const r = e.currentTarget.getBoundingClientRect(); setDay(DAYS[Math.min(DAYS.length - 1, Math.max(0, Math.floor((e.clientX - r.left) / dayW)))].date); }}>
+          {DAYS.map((d) => (
+            <div key={d.date} className={`absolute top-0 h-full border-l ${d.core ? "border-rmit-blue-interactive/40" : "border-grey-30/60"}`} style={{ left: x(d.date), width: dayW }}>
+              <p className={`truncate pl-1 text-xs ${d.core ? "font-semibold text-rmit-blue" : "text-grey-90"}`}>{d.label.split(" ")[0]}{(d.date === CAMPAIGN.from || d.label.startsWith("1 ")) && <span className="text-grey-60"> {d.label.split(" ")[1]}</span>}</p>
+              <p className={`truncate pl-1 text-xs ${d.core ? "font-semibold text-rmit-blue" : "text-grey-60"}`}>{d.marker ?? d.countdown}</p>
+            </div>
+          ))}
         </div>
 
-        {/* One row per day */}
-        {DAYS.map((day) => {
-          const sends = dated.filter((t) => t.date === day.date && t.kind !== "conversation").sort((a, b) => a.team.localeCompare(b.team));
-          const events = dated.filter((t) => t.date === day.date && t.kind === "conversation");
-          const web = WEB_BY_DAY.find((d) => d.date === day.date);
-          const st = STUDY_BY_DAY.find((d) => d.date === day.date);
-          const quiet = !sends.length && !events.length;
-          return (
-            <div
-              key={day.date}
-              className={`grid grid-cols-[7rem_20rem_1fr_1fr] items-center gap-x-10 border-b border-grey-30 ${day.core ? "bg-rmit-blue-interactive/6" : day.weekend ? "bg-grey-10" : ""} ${quiet ? "py-1.5" : "py-3"}`}
-            >
-              <div className="pl-2">
-                <p className={`text-sm ${day.core ? "font-semibold text-rmit-blue" : "text-grey-90"}`}>{day.label}</p>
-                <p className={`text-xs ${day.core ? "font-semibold text-rmit-blue" : "text-grey-60"}`}>{day.countdown}</p>
-                {day.marker && <p className="mt-0.5 text-xs font-semibold text-grey-90">{day.marker}</p>}
-              </div>
-              <div className="flex flex-col gap-1.5">
-                {sends.map((t) => (
-                  <Card key={t.id} t={t} register={register} onHover={onHover} onOpen={onOpen} active={hovered === t.id} dim={connected !== null && !connected.has(t.id)} />
-                ))}
-              </div>
-              <div className="flex items-center gap-2">
-                <span
-                  ref={(el) => register(`web-${day.date}`, el)}
-                  className="h-2.5 rounded-r bg-rmit-blue-interactive/70"
-                  style={{ width: `${((web?.value ?? 0) / webMax) * 100}%` }}
-                  title={`${(web?.value ?? 0).toLocaleString()} sessions on ${day.label}`}
-                />
-                <span className="shrink-0 text-xs text-grey-60">{(web?.value ?? 0).toLocaleString()}</span>
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <div className="flex items-center gap-2">
-                  <span
-                    className={`h-2.5 rounded-r ${st?.overloaded ? "bg-danger" : "bg-rmit-blue-interactive/70"}`}
-                    style={{ width: `${((st?.contacts ?? 0) / studyMax) * 100}%` }}
-                    title={`${(st?.contacts ?? 0).toLocaleString()} contacts on ${day.label} · phone wait ${st?.wait}`}
-                  />
-                  <span className={`shrink-0 text-xs ${st?.overloaded ? "font-semibold text-danger" : "text-grey-60"}`}>
-                    {(st?.contacts ?? 0).toLocaleString()}{st?.overloaded && ` · wait ${st.wait}`}
-                  </span>
-                </div>
-                {events.map((t) => (
-                  <Card key={t.id} t={t} register={register} onHover={onHover} onOpen={onOpen} active={hovered === t.id} dim={connected !== null && !connected.has(t.id)} />
-                ))}
-              </div>
-            </div>
-          );
-        })}
+        {/* the COP band, down through everything */}
+        <div aria-hidden className="pointer-events-none absolute top-0 bottom-0 z-0 bg-rmit-blue-interactive/6" style={{ left: x(CAMPAIGN.coreFrom), width: dayW * 3 }} />
+        <div aria-hidden className="pointer-events-none absolute top-0 bottom-0 z-0 border-l-2 border-rmit-blue" style={{ left: x(CAMPAIGN.to) + dayW - 1 }} />
 
-        <ul className="mt-4 flex flex-wrap gap-x-5 gap-y-1 text-xs text-grey-70">
+        {/* beats: one lane per sending team */}
+        {lanes.map((lane) => (
+          <div key={lane.team} className="relative border-b border-grey-30" style={{ width: axisW, height: 28 + lane.rows * (CARD_H + ROW_GAP) }}>
+            <p className={`absolute top-1.5 left-1 text-grey-70 ${EYEBROW}`}>{lane.team}</p>
+            {lane.placed.map(({ t, left, row }) => (
+              <div key={t.id} className="absolute" style={{ left: Math.min(left, axisW - CARD_W), top: 28 + row * (CARD_H + ROW_GAP), width: CARD_W }}>
+                <Card t={t} register={register} onHover={onHover} onOpen={onOpen} active={hovered === t.id} dim={connected !== null && !connected.has(t.id)} />
+              </div>
+            ))}
+          </div>
+        ))}
+
+        {/* pulse: the website, then Study@ */}
+        <div className="mt-8 flex flex-col gap-10">
+          <Pulse id="pulse-web" title="Website · sessions per day" series={WEB_BY_DAY} max={webMax} unit="sessions" rail={TOUCHPOINTS.filter((t) => t.kind === "page")} />
+          <Pulse id="pulse-study" title="Study@RMIT · contacts per day" series={STUDY_BY_DAY.map((d) => ({ date: d.date, value: d.contacts, overloaded: d.overloaded, wait: d.wait }))} max={studyMax} unit="contacts" rail={TOUCHPOINTS.filter((t) => t.kind === "conversation" && !t.date)} />
+        </div>
+
+        <ul className="mt-6 flex flex-wrap gap-x-5 gap-y-1 text-xs text-grey-70">
           <li className="flex items-center gap-1.5"><span className="h-3.5 w-1 rounded-sm bg-success" aria-hidden />Above benchmark</li>
           <li className="flex items-center gap-1.5"><span className="h-3.5 w-1 rounded-sm bg-danger" aria-hidden />Below benchmark</li>
           <li className="flex items-center gap-1.5"><span className="h-3.5 w-1 rounded-sm bg-grey-40" aria-hidden />No benchmark</li>
-          <li className="flex items-center gap-1.5"><svg width="28" height="8" aria-hidden><path d="M0,4 H28" stroke={BLUE} strokeWidth={1.5} /></svg>Send → website that day</li>
-          <li className="flex items-center gap-1.5"><svg width="28" height="8" aria-hidden><path d="M0,4 H28" stroke={AMBER} strokeWidth={1.5} strokeDasharray="6 5" /></svg>Can&rsquo;t be followed</li>
-          <li className="flex items-center gap-1.5"><span className="h-2.5 w-6 rounded-r bg-danger" aria-hidden />Phone wait over twice normal</li>
+          <li className="flex items-center gap-1.5"><svg width="8" height="20" aria-hidden><path d="M4,0 V20" stroke={BLUE} strokeWidth={1.5} /></svg>Send landing on the website that day</li>
+          <li className="flex items-center gap-1.5"><svg width="8" height="20" aria-hidden><path d="M4,0 V20" stroke={AMBER} strokeWidth={1.5} strokeDasharray="5 4" /></svg>Can&rsquo;t be followed</li>
+          <li className="flex items-center gap-1.5"><span className="h-3 w-2.5 rounded-sm bg-danger" aria-hidden />Phone wait over twice normal</li>
           <li className="flex items-center gap-1.5"><span className="size-2.5 rounded-full bg-amber" aria-hidden />Something we can&rsquo;t see — hover for what</li>
         </ul>
       </div>
@@ -670,7 +691,7 @@ function Page() {
       </p>
       <p className="mt-6 max-w-3xl text-xl leading-relaxed text-grey-90">{SUMMARY.story}</p>
 
-      <RunSheet hovered={hovered} onHover={setHovered} onOpen={setOpenId} />
+      <Window hovered={hovered} onHover={setHovered} onOpen={setOpenId} />
 
       <div className="mt-16 max-w-4xl">
         <h2 className="text-base font-semibold text-grey-90">What we can&rsquo;t see</h2>
