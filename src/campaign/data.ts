@@ -10,6 +10,7 @@ import referrersRaw from "../../data/dummy/page-referrers.csv?raw";
 import studyDailyRaw from "../../data/dummy/studyat-daily.csv?raw";
 import outcomesRaw from "../../data/dummy/studyat-outcomes-weekly.csv?raw";
 import nextStepsRaw from "../../data/dummy/page-next-steps.csv?raw";
+import webDailyRaw from "../../data/dummy/web-daily.csv?raw";
 import { parseCsvRows } from "../lib/csv";
 import { linkedCommIds, stageQuestions } from "../data/studentExperience";
 
@@ -342,3 +343,43 @@ export const SUMMARY = {
   story: `${TOUCHPOINTS.length} touchpoints across ${TEAMS.length} teams. ${CHAINS.length - brokenChains} of ${CHAINS.length} hand-offs can be followed; ${brokenChains} go dark. ${unanswered} of ${QUESTIONS.length} student questions have no touchpoint.`,
 };
 
+
+/** Sessions across the campaign's pages per day — the website column's bars. */
+export const WEB_BY_DAY = parseCsvRows(webDailyRaw).map((r) => ({ date: r.date, value: Number(r.sessions) || 0 }));
+
+/** Study@ per day, all channels: contacts, and whether the phone wait that
+ *  day blew past twice the normal-load baseline. */
+export const STUDY_BY_DAY = (() => {
+  const base = daily.filter((r) => r.channel === "phone" && r.date < CAMPAIGN.coreFrom && Number(r.contacts) > 40).map((r) => secs(r.wait_time));
+  const baseline = base.reduce((a, b) => a + b, 0) / Math.max(base.length, 1);
+  return [...new Set(daily.map((r) => r.date))].sort().map((date) => {
+    const rows = daily.filter((r) => r.date === date);
+    const phone = rows.find((r) => r.channel === "phone");
+    const wait = phone ? secs(phone.wait_time) : 0;
+    return {
+      date,
+      contacts: rows.reduce((a, r) => a + Number(r.contacts), 0),
+      wait: clock(wait),
+      overloaded: wait > baseline * 2,
+    };
+  });
+})();
+
+/** Every day in the window with its countdown label. */
+export const DAYS = (() => {
+  const d0 = dayNumber(CAMPAIGN.from), d1 = dayNumber(CAMPAIGN.to), core = dayNumber(CAMPAIGN.coreFrom);
+  return Array.from({ length: d1 - d0 + 1 }, (_, i) => {
+    const n = d0 + i;
+    const date = new Date(n * 86400000).toISOString().slice(0, 10);
+    const marker = CAMPAIGN.markers.find((m) => m.date === date)?.label;
+    const rel = n - core;
+    return {
+      date,
+      label: shortDate(date),
+      weekend: new Date(n * 86400000).getUTCDay() % 6 === 0,
+      core: date >= CAMPAIGN.coreFrom && date <= CAMPAIGN.coreTo,
+      countdown: rel < 0 ? `T−${-rel}` : rel === 0 ? "Results day" : date === CAMPAIGN.to ? "COP closes" : `T+${rel}`,
+      marker: date === CAMPAIGN.to ? "Stage gate" : marker,
+    };
+  });
+})();
