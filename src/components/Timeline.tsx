@@ -1,8 +1,5 @@
 import { Fragment } from "react";
-import { Ban, ChevronDown, ChevronRight, Eye, EyeOff, Flag, Info } from "lucide-react";
-import type { Campaign } from "../data/campaigns";
-import type { Gap } from "../lib/campaignLens";
-import { CHAINS } from "../lib/chains";
+import { Ban, ChevronDown, ChevronRight, Eye, EyeOff, Info } from "lucide-react";
 import { inbound } from "../data/comms";
 import { EMBARGOES, MOMENTS } from "../data/journey";
 import type { Comm, CommType, Team } from "../data/types";
@@ -35,7 +32,6 @@ import { EYEBROW, FOCUS_RING } from "../lib/styles";
 import { COMM_COLORS, COMM_ICONS, COMM_LABELS } from "./icons";
 import { CampaignGantt } from "./CampaignGantt";
 import { CommCard } from "./CommCard";
-import { PageBar } from "./PageBar";
 import { MomentsBand, MonthBand, StageBand, YearBand } from "./HeaderBands";
 import { InboundLane } from "./InboundLane";
 import { StudentJourneyLane, type QuestionRef } from "./StudentJourneyLane";
@@ -103,9 +99,6 @@ interface Props {
   onToggleLane: (laneId: string) => void;
   /** hide a lane entirely (its own eye button; label click restores) */
   onHideLane: (laneId: string) => void;
-  /** campaign lens — window/stage-gate overlay, gap markers, chain lines */
-  campaign: Campaign | null;
-  gapMap: Map<string, Gap[]> | null;
 }
 
 export function Timeline({
@@ -151,8 +144,6 @@ export function Timeline({
   hiddenLanes,
   onToggleLane,
   onHideLane,
-  campaign,
-  gapMap,
 }: Props) {
   // focusSet (question > moment > trigger precedence) is computed in App and
   // passed in, so the auto-expand pass and the per-comm dimming agree on which
@@ -340,7 +331,7 @@ export function Timeline({
       <div className="absolute top-0" style={{ left: LABEL_W, width: TOTAL_W, height: TOTAL_H }}>
         {/* Lane backgrounds — alternate shade per lane so rows are easy to
             track across the full width, skipping the divider lane. */}
-        {LANES.filter((lane) => lane.height > 0).map((lane) => (
+        {LANES.map((lane) => (
           <div
             key={lane.id}
             className={`absolute left-0 w-full border-b border-grey-30 ${laneBg[lane.id]}`}
@@ -379,7 +370,7 @@ export function Timeline({
         {/* Moments that matter — a quiet shaded window (no heavy rules), with
             a faint dashed left edge marking its start. Lights up red while
             focused via hover/click on its label. */}
-        {MOMENTS.filter(() => !campaign).map((mo) => {
+        {MOMENTS.map((mo) => {
           const left = scaleX(mo.from);
           const width = scaleX(mo.to) - scaleX(mo.from);
           const active = mo.id === activeMomentId;
@@ -394,30 +385,10 @@ export function Timeline({
           );
         })}
 
-        {/* Campaign lens — the window (light wash), its core moment (deeper),
-            the stage gate (a solid rule with a flag), possible extensions
-            (dashed outlines after the gate) and the calendar markers that
-            drive it. Sits with the moment bands, above the embargo hatch. */}
-        {campaign && (() => {
-          const band = (from: number, to: number) => ({ left: scaleX(from), width: scaleX(to) - scaleX(from) });
-          return (
-            <Fragment>
-              <div aria-hidden className="pointer-events-none absolute z-10 bg-rmit-blue-interactive/5" style={{ ...band(campaign.from, campaign.to), top: contextTop, height: TOTAL_H - contextTop }} />
-              <div aria-hidden className="pointer-events-none absolute z-10 bg-rmit-blue-interactive/10" style={{ ...band(campaign.coreFrom, campaign.coreTo), top: contextTop, height: TOTAL_H - contextTop }} />
-              <div className="pointer-events-none absolute z-20 border-l-2 border-rmit-blue" style={{ left: scaleX(campaign.stageGate), top: HEADER_H, height: TOTAL_H - HEADER_H }}>
-                <span className="pointer-events-auto sticky ml-1 flex w-fit items-center gap-1 rounded-md bg-rmit-blue px-2 py-0.5 text-xs font-semibold whitespace-nowrap text-on-accent shadow-sm" style={{ top: YEAR_H + MONTH_H + MOMENT_H + 8 }}>
-                  <Flag size={11} strokeWidth={2} aria-hidden />
-                  Stage gate
-                </span>
-              </div>
-            </Fragment>
-          );
-        })()}
-
         {/* Send embargoes — a diagonal-hatched band (reads as "no-go", unlike
             the moment windows) marking periods when outbound comms hold. The
             label sticks under the header so it stays legible down a tall map. */}
-        {EMBARGOES.filter(() => !campaign).map((e) => {
+        {EMBARGOES.map((e) => {
           const left = scaleX(e.from);
           const width = scaleX(e.to) - left;
           return (
@@ -469,7 +440,7 @@ export function Timeline({
             bars, in their own campaigns lane (so both hide when it's
             collapsed). Row indices run FLAT across both schedules, matching the
             row-height list campaignY walks. */}
-        {!collapsedLanes.has("campaigns") && !hiddenLanes.has("campaigns") && (
+        {!collapsedLanes.has("campaigns") && (
           <CampaignGantt
             expanded={expandedCampaigns}
             dimmed={dimBackground}
@@ -495,8 +466,8 @@ export function Timeline({
             (the type icon carries what the card would say), so you can still
             read the cadence in the compact "all lanes" overview. */}
         {comms.map((c) => {
-          // Hidden lanes render nothing; pages are bars with no date dot.
-          if (hiddenLanes.has(c.team) || c.team === "digital") return null;
+          // Hidden lanes render nothing but their gutter label.
+          if (hiddenLanes.has(c.team)) return null;
           const filteredOut =
             !activeTypes.has(c.type) ||
             !matchesSegment(c, segments) ||
@@ -615,7 +586,7 @@ export function Timeline({
 
         {/* Thin stems tying each visible chip back to its date dot */}
         {comms
-          .filter((c) => !hiddenIds.has(c.id) && !collapsedLanes.has(c.team) && !hiddenLanes.has(c.team) && c.team !== "digital")
+          .filter((c) => !hiddenIds.has(c.id) && !collapsedLanes.has(c.team))
           .map((c) => {
             const filteredOut =
             !activeTypes.has(c.type) ||
@@ -644,7 +615,7 @@ export function Timeline({
 
         {/* Comms (collapsed-month overflow is folded into the chips below) */}
         {comms
-          .filter((c) => !hiddenIds.has(c.id) && !collapsedLanes.has(c.team) && !hiddenLanes.has(c.team))
+          .filter((c) => !hiddenIds.has(c.id) && !collapsedLanes.has(c.team))
           .map((c) => {
             const filteredOut =
             !activeTypes.has(c.type) ||
@@ -653,19 +624,6 @@ export function Timeline({
             if (filteredOut) return null; // ghost dot only — see the dot strip
             const inFocus = focusSet ? focusSet.has(c.id) : false;
             const dimmed = focusSet !== null && !inFocus;
-            if (c.team === "digital")
-              return (
-                <PageBar
-                  key={c.id}
-                  comm={c}
-                  toMonth={campaign ? campaign.to : c.month + 1}
-                  dimmed={dimmed}
-                  active={inFocus}
-                  onHover={onHover}
-                  onOpenDetail={onOpenDetail}
-                  gaps={gapMap?.get(c.id)}
-                />
-              );
             return (
               <CommCard
                 key={c.id}
@@ -678,7 +636,6 @@ export function Timeline({
                 onOpenDetail={onOpenDetail}
                 onMeasure={onMeasure}
                 feedbackCount={feedbackCount(c.id)}
-                gaps={gapMap?.get(c.id)}
               />
             );
           })}
@@ -724,8 +681,7 @@ export function Timeline({
           collapsedLanes={collapsedLanes}
           activeId={activeId}
           showAll={showLines}
-          recede={focusSet !== null && activeId === null && !campaign}
-          chains={campaign ? CHAINS : undefined}
+          recede={focusSet !== null && activeId === null}
         />
       </div>
 
@@ -740,12 +696,11 @@ export function Timeline({
         style={{ width: LABEL_W, height: TOTAL_H - HEADER_H }}
       >
         {LANES.map((lane) => {
-          if (lane.height === 0) return null;
           const collapsible = lane.kind === "outbound" || lane.kind === "inbound";
           const collapsed = collapsedLanes.has(lane.id);
           const hidden = hiddenLanes.has(lane.id);
           const isEmpty = lane.kind === "outbound" && !teamsWithComms.has(lane.id as Team);
-          const count = commCountByTeam[lane.kind === "pages" ? "digital" : lane.id] ?? 0;
+          const count = commCountByTeam[lane.id] ?? 0;
 
           const body = (
             <>
@@ -763,7 +718,7 @@ export function Timeline({
                 </span>
                 {/* comm count — the "how much does each team send" number,
                     visible while the lane is open (collapsed shows "N hidden") */}
-                {!collapsed && (lane.kind === "outbound" || lane.kind === "pages") && count > 0 && (
+                {!collapsed && lane.kind === "outbound" && count > 0 && (
                   <span className="text-xs font-normal text-grey-70">· {count}</span>
                 )}
               </span>
@@ -922,7 +877,7 @@ export function Timeline({
             on a blind click-cycle: chevron/label = expand-collapse, eye =
             hide. Sits as a sibling ABOVE the lane buttons (a button can't
             nest a button). */}
-        {LANES.filter((l) => (l.kind === "outbound" || l.kind === "inbound") && l.height > 0).map((lane) => {
+        {LANES.filter((l) => l.kind === "outbound" || l.kind === "inbound").map((lane) => {
           const hidden = hiddenLanes.has(lane.id);
           return (
             <button

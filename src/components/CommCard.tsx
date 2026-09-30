@@ -1,7 +1,5 @@
 import { useLayoutEffect, useRef, useState } from "react";
 import { Link2, MessageCircle, MousePointerClick, TrendingUp, Users } from "lucide-react";
-import { rankGaps, type Gap } from "../lib/campaignLens";
-import { compare, valuesFor } from "../lib/metricValues";
 import type { Comm } from "../data/types";
 import { leadGenFor } from "../data/leadGen";
 import { CARD_W, PILL_H, commPos, monthLabel } from "../lib/scale";
@@ -25,10 +23,7 @@ interface Props {
   /** reports the chip's rendered height so the layout can stack rows tightly */
   onMeasure: (id: string, height: number) => void;
   feedbackCount: number;
-  /** campaign lens — the gaps this touchpoint carries, shown as markers */
-  gaps?: Gap[];
 }
-
 
 /** Chip for a comm. The exact send date is marked by the type-coloured dot
  *  on the lane's baseline (drawn by Timeline); the chip hangs beneath it and
@@ -44,7 +39,6 @@ export function CommCard({
   onOpenDetail,
   onMeasure,
   feedbackCount,
-  gaps,
 }: Props) {
   const { x, y } = commPos(comm);
   const rootRef = useRef<HTMLButtonElement>(null);
@@ -193,46 +187,6 @@ export function CommCard({
         {/* Top lead-gen rank — a solid pill so the five biggest recruiters
             jump out of the events sea. Programme-level figure; the basis
             year/scope lives in the detail panel. */}
-        {/* Campaign lens — the headline number on the card, and the one gap
-            that matters most, in words. Performance on the map, not in a
-            panel. */}
-        {gaps && (() => {
-          const vals = valuesFor(comm.id);
-          const PREFER = ["Traffic rank", "Open rate", "Registrations", "Delivered", "Bounce rate"];
-          const head =
-            PREFER.map((m) => vals.find((v) => !v.cta && v.metric === m)).find(Boolean) ??
-            vals.find((v) => !v.cta && v.benchmark) ??
-            vals.find((v) => !v.cta);
-          const cmp = head ? compare(head) : null;
-          // Only the gaps that cut the story get a chip on the card; benchmark
-          // and CVP gaps live in the panel and the gaps list.
-          const loud = rankGaps(gaps).filter((g) => g.kind === "chain-broken" || g.kind === "no-utm" || g.kind === "not-measured");
-          const top = loud[0];
-          return (
-            <>
-              {head && (
-                <span className="mt-1 flex items-baseline gap-1 text-xs leading-tight">
-                  <span className="font-semibold text-grey-90">{head.value}</span>
-                  <span className="text-grey-70">{head.metric.toLowerCase()}</span>
-                  {head.benchmark && (
-                    <span className={cmp === "above" ? "text-success" : cmp === "below" ? "text-danger" : "text-grey-60"}>
-                      {cmp === "above" ? "↑" : cmp === "below" ? "↓" : "·"} {head.benchmark}
-                    </span>
-                  )}
-                </span>
-              )}
-              {top && (
-                <span
-                  title={gaps.map((g) => `${g.label} — ${g.detail}`).join("\n")}
-                  className="mt-1 inline-flex w-fit items-center gap-1 rounded bg-tint-amber px-1.5 py-0.5 text-[11px] leading-none text-grey-90"
-                >
-                  {top.label}
-                  {loud.length > 1 && <span className="text-grey-70">+{loud.length - 1}</span>}
-                </span>
-              )}
-            </>
-          );
-        })()}
         {leadGen && (
           <span
             className="mt-1 inline-flex w-fit items-center gap-1 rounded-full bg-pink px-1.5 py-0.5 text-[11px] font-semibold leading-none text-on-accent"

@@ -1,14 +1,10 @@
 import { useMemo } from "react";
 import type { Comm } from "../data/types";
-import { CARD_W, MARKER_SIZE, PAGE_ROW_H, TOTAL_H, TOTAL_W, commHeight, commPos, markerPos } from "../lib/scale";
-import { isLaneRef, type Chain } from "../lib/chains";
+import { CARD_W, MARKER_SIZE, TOTAL_H, TOTAL_W, commHeight, commPos, markerPos } from "../lib/scale";
 
 interface Link {
   from: string;
   to: string;
-  /** campaign chains carry a style: send-level solid, channel-level dotted,
-   *  broken (unmeasured) in the warning colour */
-  chain?: Chain;
 }
 
 function buildLinks(comms: Comm[]): Link[] {
@@ -25,11 +21,6 @@ interface Route {
 /** Where a connector attaches to a comm: its card box, or its icon marker
  *  when the comm sits in a collapsed lane (markerPos centres on the date). */
 function anchorOf(comm: Comm, collapsed: Set<string>) {
-  if (comm.team === "digital") {
-    // A page bar: attach at its left end, mid-height.
-    const p = commPos(comm);
-    return { left: p.x, right: p.x + CARD_W, midY: p.y + (PAGE_ROW_H - 8) / 2 };
-  }
   if (collapsed.has(comm.team)) {
     const p = markerPos(comm);
     const left = p.x - MARKER_SIZE / 2;
@@ -94,32 +85,19 @@ interface Props {
   /** a question/moment spotlight is active — the whole map has dimmed, so the
    *  show-all trigger web recedes with it instead of staying bright on top. */
   recede?: boolean;
-  /** campaign lens — chains drawn on top of (and instead of) trigger links.
-   *  A "lane:<team>" source anchors to that lane's latest in-scope comm
-   *  before the target: the channel drove the page, no send is named. */
-  chains?: Chain[];
 }
 
 /** Trigger connectors: all of them when toggled on, otherwise just the
  *  hovered/pinned comm's. Links touching a comm that's folded into a
  *  "+N more" chip are skipped — no lines to invisible cards. */
-export function TriggerLayer({ comms, hiddenIds, collapsedLanes, activeId, showAll, recede, chains }: Props) {
+export function TriggerLayer({ comms, hiddenIds, collapsedLanes, activeId, showAll, recede }: Props) {
+  const links = useMemo(
+    () =>
+      buildLinks(comms).filter((l) => !hiddenIds.has(l.from) && !hiddenIds.has(l.to)),
+    [comms, hiddenIds],
+  );
   const byId = useMemo(() => new Map(comms.map((c) => [c.id, c])), [comms]);
-  const links = useMemo(() => {
-    if (chains) {
-      // Send-level only: a channel-level chain ("the eDM lane drove this
-      // page") is a fact about the page, listed in its panel, not a line.
-      return chains.flatMap((ch) =>
-        !isLaneRef(ch.from) && !hiddenIds.has(ch.from) && !hiddenIds.has(ch.to)
-          ? [{ from: ch.from, to: ch.to, chain: ch }]
-          : [],
-      );
-    }
-    return buildLinks(comms).filter((l) => !hiddenIds.has(l.from) && !hiddenIds.has(l.to));
-  }, [comms, hiddenIds, chains]);
 
-  // Chains draw on hover (both ends are scrolled into view by App), or all
-  // at once under the lines toggle / print.
   const visible = showAll
     ? links
     : links.filter((l) => l.from === activeId || l.to === activeId);
@@ -127,10 +105,7 @@ export function TriggerLayer({ comms, hiddenIds, collapsedLanes, activeId, showA
 
   return (
     <svg
-      // Campaign chains sit BEHIND the cards (z-0): in a three-week window the
-      // cards stack in one column and every line has to cross them, so the
-      // cards keep their text and the lines read in the gaps between.
-      className={`pointer-events-none absolute top-0 left-0 overflow-visible ${chains ? "z-0" : "z-20"}`}
+      className="pointer-events-none absolute top-0 left-0 z-20 overflow-visible"
       width={TOTAL_W}
       height={TOTAL_H}
       aria-hidden="true"
@@ -145,15 +120,12 @@ export function TriggerLayer({ comms, hiddenIds, collapsedLanes, activeId, showA
       {visible.map((l) => {
         const route = routePath(byId, l.from, l.to, collapsedLanes);
         if (!route) return null;
-        const ch = l.chain;
-        const hot = l.from === activeId || l.to === activeId;
-        const emphasised = ch ? activeId === null || hot : !showAll || hot;
-        const drawIn = emphasised && !showAll && !ch; // hover reveal only
+        const emphasised = !showAll || l.from === activeId || l.to === activeId;
+        const drawIn = emphasised && !showAll; // hover reveal only
         // Under a question/moment spotlight the whole map dims — the show-all
         // web recedes with it rather than sitting bright over the dimmed cards.
         const groupOpacity = emphasised ? 1 : recede ? 0.12 : 0.5;
-        const stroke = ch && !ch.measured ? "var(--color-amber)" : "var(--color-rmit-blue-interactive)";
-        const dash = ch ? (ch.resolution === "channel" ? "2 4" : !ch.measured ? "6 4" : undefined) : emphasised ? undefined : "3 5";
+        const stroke = "var(--color-rmit-blue-interactive)";
         return (
           <g key={`${l.from}-${l.to}`} opacity={groupOpacity}>
             {/* casing — separates the line from whatever it crosses */}
@@ -169,9 +141,9 @@ export function TriggerLayer({ comms, hiddenIds, collapsedLanes, activeId, showA
               d={route.d}
               fill="none"
               stroke={stroke}
-              strokeWidth={ch ? 2 : emphasised ? 1.75 : 1.25}
+              strokeWidth={emphasised ? 1.75 : 1.25}
               strokeLinecap="round"
-              strokeDasharray={dash}
+              strokeDasharray={emphasised ? undefined : "3 5"}
               pathLength={drawIn ? 1 : undefined}
               className={drawIn ? "animate-draw-line" : undefined}
             />

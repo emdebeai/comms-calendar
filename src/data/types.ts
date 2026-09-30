@@ -59,19 +59,6 @@ export interface Comm {
   equity?: string;
   /** personas whose journey this comm appears on (default ["domsl"]) */
   personas?: string[];
-  // ── Campaign lens (Phase 2) ────────────────────────────────────────────
-  /** the value proposition this touchpoint makes — terse, one line */
-  cvp?: string;
-  /** how many versions of this touchpoint went out */
-  variants?: number;
-  /** what the variants are based on */
-  variantBasis?: "segmentation" | "personalisation";
-  /** new for the 2026 cycle */
-  new2026?: boolean;
-  /** whether its CTAs carry trackable UTMs; undefined = unknown */
-  utm?: "yes" | "no";
-  /** webpage touchpoints — the page address, the join key for CJA metrics */
-  url?: string;
 }
 
 export type CampaignChannel =

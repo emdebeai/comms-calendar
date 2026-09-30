@@ -11,17 +11,14 @@ copies, never source of truth.
 |---|---|
 | `comms/<team>.csv` | Every touchpoint on the map, ONE FILE PER SENDER TEAM — the filename is the team (no team column), so a file can go to that team's rep and come back without touching anyone else's rows. Column reference: `src/lib/commsSchema.ts` (`FILE_COLUMNS`). Read by the dev API (`server/dataStore.ts`) and baked into the standalone build (`src/lib/loadComms.ts`). |
 | `comms-template.csv` | Blank header row for teams adding sends — same columns as the per-team files (see `docs/data-handover.md`). |
-| `campaigns.csv` | Campaign definitions for the campaign lens — window, core moment, stage gate, possible extensions, calendar markers, outcome metric (definition only), scope rule. First row: Change of Preference 2026. |
-| `chains.csv` | Where a touchpoint sends people next (`from,to,via,resolution,measured`). `resolution` is `send` (the CTA carried its unique UTM, so the page knows the exact eDM and CTA) or `channel` (`lane:<team>` → page — what CJA can say without a UTM naming the send). `measured=no` is a broken chain. |
+| `campaigns.csv` (not yet wired to the map) | Campaign definitions for the campaign lens — window, core moment, stage gate, possible extensions, calendar markers, outcome metric (definition only), scope rule. First row: Change of Preference 2026. |
+| `chains.csv` (not yet wired) | Where a touchpoint sends people next (`from,to,via,resolution,measured`). `resolution` is `send` (the CTA carried its unique UTM, so the page knows the exact eDM and CTA) or `channel` (`lane:<team>` → page — what CJA can say without a UTM naming the send). `measured=no` is a broken chain. |
 | `metrics-catalogue.csv` | Metric names, definitions, benchmark *level*, source system and owner per touchpoint type — never values. Edited on `/metrics`; `scripts/apply-metrics-catalogue.mjs` folds edits back. |
 | `dummy/page-referrers.csv` | **Proxy.** Per page: CJA Marketing Channel × UTM source, sessions and share — channel level only (`comm_id,channel,utm_source,sessions,share`). |
 | `dummy/studyat-daily.csv` | **Proxy.** Study@ by day and channel across the window (`date,channel,contacts,handle_time,wait_time,abandonment_rate,csat,csat_responses`). Daily because COP is a three-day spike a monthly average would hide; CSAT blank where responses are thin. Genesys + Qualtrics. |
 | `dummy/studyat-outcomes-weekly.csv` | **Proxy.** Study@ outcomes by week from Salesforce (`week_of,contacts,next_best_action_recorded,preference_changed,eligibility_increased,converted`). Weekly because outcomes resolve slowly. |
 | `dummy/metric-values.csv` | **Proxy figures only.** Obviously fake round numbers so the campaign lens can be seen working. Real values never enter the repo — a team loads its own export locally with the same columns (`comm_id,cta,metric,value,benchmark,period` — `cta` is `primary` / `secondary` / `tertiary` for a metric of one link inside the send, blank for the send as a whole). |
 
-**Digital pages for COP.** `comms/digital.csv` always carries the six named COP pages (Change of Preference, VTAC and RMIT terms, Pathways, Find a course by ATAR, Equity access schemes, Contact Study@RMIT), each with its `url`. The CJA export's 10 highest-traffic pages for the school-leaver segment over the period are matched on `url`; any top-10 page not already listed is added as a row by the Digital team.
-
-Campaign-lens columns on the per-team files: `cvp` (the value proposition, terse), `variants`, `variant_basis` (`segmentation` / `personalisation`), `new_2026`, `utm` (`yes` / `no`, blank = unknown), `url` (webpages — the CJA join key).
 
 Two rules for the CSVs:
 
