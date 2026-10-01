@@ -106,6 +106,9 @@ interface Props {
   cardExtra?: (comm: Comm) => ReactNode;
   /** campaign mode — ids the New-for-2026 lens hides */
   extraFilteredIds?: Set<string>;
+  /** campaign mode — a line under a lane's label that opens a panel, for
+   *  the things in that lane that aren't events (pages, channels) */
+  laneActions?: { laneId: string; label: string; detail?: string; onClick: () => void }[];
 }
 
 export function Timeline({
@@ -154,6 +157,7 @@ export function Timeline({
   inboundData,
   cardExtra,
   extraFilteredIds,
+  laneActions,
 }: Props) {
   const inbound = inboundData ?? defaultInbound;
   // focusSet (question > moment > trigger precedence) is computed in App and
@@ -879,6 +883,29 @@ export function Timeline({
               style={posStyle}
             >
               {content}
+            </button>
+          );
+        })}
+
+        {/* Campaign mode: what lives in a lane without a date — its pages, its
+            channels — as a line under the lane label. A sibling of the lane
+            button, like the eye control. */}
+        {laneActions?.map((a) => {
+          const lane = LANES.find((l) => l.id === a.laneId);
+          if (!lane || hiddenLanes.has(a.laneId) || collapsedLanes.has(a.laneId)) return null;
+          return (
+            <button
+              key={`action-${a.laneId}`}
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                a.onClick();
+              }}
+              className={`absolute z-10 rounded-md px-2 py-1 text-left hover:bg-grey-20 ${FOCUS_RING}`}
+              style={{ top: lane.top - HEADER_H + 46, left: 10, right: 10 }}
+            >
+              <span className="block text-xs font-medium text-rmit-blue-interactive">{a.label}</span>
+              {a.detail && <span className="block text-xs text-grey-70">{a.detail}</span>}
             </button>
           );
         })}

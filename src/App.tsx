@@ -13,7 +13,9 @@ import {
 import { connectedIds } from "./components/TriggerLayer";
 import { CommDetailPanel } from "./components/CommDetailPanel";
 import { CampaignCardLine, CampaignSections } from "./components/CampaignSections";
-import { CAMPAIGN, CAMPAIGN_MODE, campaignComms, campaignInbound, campaignInfo } from "./lib/campaign";
+import { CAMPAIGN, CAMPAIGN_MODE, campaignAllComms, campaignComms, campaignInbound, campaignInfo, campaignPages, studyChannels } from "./lib/campaign";
+import { CampaignPagesPanel, CampaignStudyPanel } from "./components/CampaignGroupPanel";
+import { compare as compareOf, headline as headlineOf } from "./lib/campaign";
 import { StudentQuestionPanel, questionFeedbackId } from "./components/StudentQuestionPanel";
 import { OffscreenAnswers } from "./components/OffscreenAnswers";
 import { CampaignDetailPanel } from "./components/CampaignDetailPanel";
@@ -721,7 +723,11 @@ export default function App() {
   };
 
   const openComm =
-    layout && openCommId ? layout.comms.find((c) => c.id === openCommId) : undefined;
+    layout && openCommId
+      ? (layout.comms.find((c) => c.id === openCommId) ?? (CAMPAIGN_MODE ? campaignAllComms.find((c) => c.id === openCommId) : undefined))
+      : undefined;
+  // Campaign mode: the lane-gutter panels (pages, channels).
+  const [groupPanel, setGroupPanel] = useState<"pages" | "study" | null>(null);
   const openCampaign = openCampaignId
     ? allCampaignChannels.find((c) => c.id === openCampaignId)
     : undefined;
@@ -978,6 +984,27 @@ export default function App() {
               inboundData={CAMPAIGN_MODE ? campaignInbound : undefined}
               cardExtra={CAMPAIGN_MODE ? (c) => <CampaignCardLine comm={c} /> : undefined}
               extraFilteredIds={newLensIds}
+              laneActions={
+                CAMPAIGN_MODE
+                  ? [
+                      {
+                        laneId: "digital",
+                        label: `${campaignPages.length} campaign pages`,
+                        detail: (() => {
+                          const n = campaignPages.filter((c) => { const i = campaignInfo(c.id); const h = i && headlineOf(c, i); return h && compareOf(h.value) === "worse"; }).length;
+                          return n ? `${n} below benchmark` : "all at or above benchmark";
+                        })(),
+                        onClick: () => { setOpenCommId(null); setGroupPanel("pages"); },
+                      },
+                      {
+                        laneId: "study",
+                        label: `${studyChannels.length} channels`,
+                        detail: `peak phone wait ${studyChannels[0].peakWait}`,
+                        onClick: () => { setOpenCommId(null); setGroupPanel("study"); },
+                      },
+                    ]
+                  : undefined
+              }
             />
             {/* Breathing room under the last lane so bottom cards can scroll
                 clear of the floating control dock instead of hiding behind it. */}
@@ -1144,16 +1171,21 @@ export default function App() {
       {openComm && layout && (
         <CommDetailPanel
           comm={openComm}
-          allComms={layout.comms}
+          allComms={CAMPAIGN_MODE ? campaignAllComms : layout.comms}
           entries={feedback[openComm.id] ?? []}
           onClose={() => setOpenCommId(null)}
           onAdd={(entry) => addFeedback(openComm.id, entry)}
           onDelete={isAdmin ? (entryId) => removeFeedback(openComm.id, entryId) : undefined}
           onEdit={(patch) => editComm(openComm.id, patch)}
           onOpenComm={(id) => setOpenCommId(id)}
-          extraSections={CAMPAIGN_MODE ? <CampaignSections comm={openComm} allComms={layout.comms} onOpenComm={(id) => setOpenCommId(id)} /> : undefined}
+          extraSections={CAMPAIGN_MODE ? <CampaignSections comm={openComm} allComms={campaignAllComms} onOpenComm={(id) => setOpenCommId(id)} /> : undefined}
         />
       )}
+
+      {groupPanel === "pages" && (
+        <CampaignPagesPanel onClose={() => setGroupPanel(null)} onOpenComm={(id) => { setGroupPanel(null); setOpenCommId(id); }} />
+      )}
+      {groupPanel === "study" && <CampaignStudyPanel onClose={() => setGroupPanel(null)} />}
 
       {panelQuestion && layout && (
         <StudentQuestionPanel

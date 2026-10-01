@@ -113,7 +113,8 @@ const TEAM: Record<string, Team> = {
 const TYPE: Record<string, CommType> = { email: "email", sms: "sms", webinar: "webinar", webpage: "webpage" };
 
 const info = new Map<string, CampaignInfo>();
-export const campaignComms: Comm[] = parseCsvRows(touchpointsRaw)
+/** Every campaign touchpoint, pages included — what the panels can open. */
+export const campaignAllComms: Comm[] = parseCsvRows(touchpointsRaw)
   .filter((r) => r.campaign === CAMPAIGN.id && TEAM[r.team] && TYPE[r.type])
   .map((r) => {
     info.set(r.id, {
@@ -149,6 +150,11 @@ export const campaignComms: Comm[] = parseCsvRows(touchpointsRaw)
       personas: ["domsl"],
     };
   });
+
+// Pages aren't events, so they don't sit on the canvas: the Website lane's
+// gutter lists them, and the traffic curve is their time axis.
+export const campaignComms: Comm[] = campaignAllComms.filter((c) => c.type !== "webpage");
+export const campaignPages: Comm[] = campaignAllComms.filter((c) => c.type === "webpage");
 
 // values, chains, referrers, next steps — keyed by comm id
 for (const r of parseCsvRows(valuesRaw)) {
@@ -247,7 +253,7 @@ export function gapsFor(comm: Comm): Gap[] {
   const out: Gap[] = [];
   const add = (kind: GapKind, detail: string) => out.push({ kind, label: GAP_LABEL[kind], detail });
   const broken = i.chainsOut.filter((ch) => !ch.measured && ch.utm !== false);
-  if (broken.length) add("chain-broken", `To ${broken.map((ch) => campaignComms.find((x) => x.id === ch.to)?.title).join(", ")}.`);
+  if (broken.length) add("chain-broken", `To ${broken.map((ch) => campaignAllComms.find((x) => x.id === ch.to)?.title).join(", ")}.`);
   const isSend = kindOf(comm.type) === "send";
   if (isSend && !i.chainsOut.length) add("no-chain", comm.cta ? `CTA “${comm.cta}” has no destination recorded.` : "No CTA and no destination recorded.");
   const untagged = i.chainsOut.filter((ch) => ch.utm === false);
