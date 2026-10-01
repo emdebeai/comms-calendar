@@ -173,12 +173,8 @@ for (const ch of CHAINS) {
   info.get(ch.from)!.chainsOut.push(ch);
   info.get(ch.to)!.chainsIn.push(ch);
 }
-// Hand-offs are the map's trigger links — so the map draws them with its own
-// hover/show-all lines, no second line system.
-for (const comm of campaignComms) {
-  const outs = [...new Set(info.get(comm.id)!.chainsOut.map((ch) => ch.to))];
-  if (outs.length) comm.triggers = outs;
-}
+// No connector lines on the map in campaign mode: the hand-off is a column on
+// the review page and a list in the panel, not a line.
 for (const r of parseCsvRows(referrersRaw)) info.get(r.comm_id)?.referrers.push({ channel: r.channel, utmSource: r.utm_source || undefined, sessions: r.sessions, share: r.share });
 for (const r of parseCsvRows(nextStepsRaw)) info.get(r.comm_id)?.nextSteps.push({ action: r.action, people: Number(r.people) || 0, share: r.share, to: r.to || undefined });
 for (const i of info.values()) i.nextSteps.sort((a, b) => b.people - a.people);
@@ -312,3 +308,8 @@ export const studyChannels = (["phone", "chat", "face-to-face"] as const).map((c
     overloaded: secs(peak.wait_time) > baseline * 2,
   };
 });
+
+/** The daily pulse the review page charts: sessions and contacts per day. */
+export const WEB_BY_DAY = webDaily.map((r) => ({ date: r.date, value: Number(r.sessions) || 0 }));
+export const STUDY_BY_DAY = studyByDay.map((d) => ({ date: d.date, value: d.contacts, wait: d.wait }));
+export const dayNumber = (iso: string) => Math.round(Date.parse(`${iso}T00:00:00Z`) / 86400000);
