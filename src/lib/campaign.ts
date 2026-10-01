@@ -13,6 +13,7 @@ import referrersRaw from "../../data/dummy/page-referrers.csv?raw";
 import nextStepsRaw from "../../data/dummy/page-next-steps.csv?raw";
 import studyDailyRaw from "../../data/dummy/studyat-daily.csv?raw";
 import webDailyRaw from "../../data/dummy/web-daily.csv?raw";
+import webByPageRaw from "../../data/dummy/web-daily-by-page.csv?raw";
 import { parseCsvRows } from "./csv";
 import type { Comm, CommType, InboundLaneData, Team } from "../data/types";
 
@@ -279,19 +280,33 @@ const studyByDay = [...new Set(studyDaily.map((r) => r.date))].sort().map((date)
 });
 const peakStudy = studyByDay.reduce((a, b) => (b.contacts > a.contacts ? b : a));
 const peakWeb = webDaily.reduce((a, b) => (Number(b.sessions) > Number(a.sessions) ? b : a));
+const webByPage = parseCsvRows(webByPageRaw);
+// One colour per page, in traffic order — the hover breakdown's key.
+const PAGE_COLOURS = ["--color-cyan", "--color-rmit-blue-interactive", "--color-teal", "--color-purple", "--color-indigo", "--color-pink"];
 export const campaignInbound: InboundLaneData[] = [
   {
     id: "digital",
     baseline: 0,
     peaks: [{ month: dateToMonth(peakWeb.date), height: 0, label: `Results day · ${Number(peakWeb.sessions).toLocaleString()} sessions` }],
-    series: webDaily.map((r) => ({ month: dateToMonth(r.date), value: Number(r.sessions) })),
-    seriesNote: "Sessions per day across the campaign's pages (proxy)",
+    seriesNote: "Sessions per day by page (proxy)",
+    channelsLabel: "Sessions by page",
+    // One line per page, as the Study@ lane does per channel: the total at
+    // rest, the per-page breakdown on hover.
+    channels: campaignPages
+      .map((p) => ({ p, total: webByPage.filter((r) => r.page_id === p.id).reduce((a, r) => a + Number(r.sessions), 0) }))
+      .sort((a, b) => b.total - a.total)
+      .map(({ p }, n) => ({
+        label: p.title,
+        color: PAGE_COLOURS[n % PAGE_COLOURS.length],
+        points: webByPage.filter((r) => r.page_id === p.id).map((r) => ({ month: dateToMonth(r.date), value: Number(r.sessions) })),
+      })),
   },
   {
     id: "study",
     baseline: 0,
     peaks: [{ month: dateToMonth(peakStudy.date), height: 0, label: `Results day · ${peakStudy.contacts.toLocaleString()} contacts · phone wait ${peakStudy.wait}` }],
     seriesNote: "Contacts per day by channel (proxy)",
+    channelsLabel: "Contacts by channel",
     // One line per channel, as the map's own Study@ lane draws them.
     channels: (["phone", "chat", "face-to-face"] as const).map((channel) => ({
       label: channel === "face-to-face" ? "Face to face" : channel === "chat" ? "Chat" : "Phone",

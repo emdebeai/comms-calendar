@@ -169,6 +169,9 @@ export interface InboundLaneData {
    *  present it replaces the single curve entirely. Lines break across gaps
    *  of more than 1.5 months (e.g. the Feb → Aug hole in an extract). */
   channels?: InboundChannelSeries[];
+  /** What the channel lines are, for the heading and the table caption —
+   *  "Enquiries by channel" (default) or e.g. "Sessions by page". */
+  channelsLabel?: string;
 }
 
 export interface InboundChannelSeries {

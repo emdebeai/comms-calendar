@@ -57,7 +57,7 @@ function Values({ values }: { values: MetricValue[] }) {
 
 /** A tracked webpage as a small badge — the Digital lane's globe and tint,
  *  so a destination reads as "one of the pages on the map". */
-function PageBadge({ c, onOpen }: { c: Comm; onOpen?: (id: string) => void }) {
+export function PageBadge({ c, onOpen }: { c: Comm; onOpen?: (id: string) => void }) {
   const Icon = COMM_ICONS.webpage;
   const colors = COMM_COLORS.webpage;
   return (

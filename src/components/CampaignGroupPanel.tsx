@@ -3,6 +3,7 @@ import { campaignInfo, campaignPages, compare, headline, studyChannels } from ".
 import { EYEBROW, FOCUS_RING } from "../lib/styles";
 import { DetailPanelShell } from "./DetailPanelShell";
 import { COMM_COLORS } from "./icons";
+import { PageBadge } from "./CampaignSections";
 
 // The things in a lane that aren't events — the campaign's pages, Study@'s
 // channels — listed with their judged number. Opened from the lane gutter.
@@ -32,7 +33,7 @@ export function CampaignPagesPanel({ onClose, onOpenComm }: { onClose: () => voi
             <li key={c.id}>
               <button type="button" onClick={() => onOpenComm(c.id)} className={`flex w-full items-baseline justify-between gap-3 rounded py-2.5 text-left hover:bg-grey-10 ${FOCUS_RING}`}>
                 <span className="min-w-0">
-                  <span className="block text-sm text-grey-90">{c.title}</span>
+                  <span className="block"><PageBadge c={c} /></span>
                   <span className="block text-xs text-grey-70">{[i.objective && `${i.objective[0].toUpperCase()}${i.objective.slice(1)}`, i.values.find((v) => v.metric === "Traffic rank")?.value && `${i.values.find((v) => v.metric === "Traffic rank")!.value} by traffic`].filter(Boolean).join(" · ")}</span>
                 </span>
                 {h ? (

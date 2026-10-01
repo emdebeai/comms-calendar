@@ -85,7 +85,7 @@ export function InboundLane({ data, onOpen }: { data: InboundLaneData; onOpen?: 
     // breakdown is a sighted-mouse convenience, never the only route in.
     const channelTable = (
       <table className="sr-only">
-        <caption>{lane.label} inbound enquiries per month, by channel</caption>
+        <caption>{lane.label} — {data.channelsLabel ?? "enquiries by channel"}</caption>
         <thead>
           <tr>
             <th scope="col">Channel</th>
@@ -119,7 +119,7 @@ export function InboundLane({ data, onOpen }: { data: InboundLaneData; onOpen?: 
           height={h}
           role="img"
           onClick={onOpen}
-          aria-label={`${lane.label} inbound enquiries over time — arrow keys step through the monthly breakdown; full per-channel figures in the table above`}
+          aria-label={`${lane.label} — ${data.channelsLabel ?? "enquiries by channel"} over time — arrow keys step through the breakdown; full figures in the table above`}
           // Keyboard route to the hover breakdown (2.1.1): focus the graph,
           // arrows step the crosshair month-by-month, Esc clears it.
           tabIndex={0}
@@ -165,7 +165,7 @@ export function InboundLane({ data, onOpen }: { data: InboundLaneData; onOpen?: 
               y={16}
               className="fill-rmit-blue-interactive text-xs font-medium"
             >
-              Enquiries by channel
+              {data.channelsLabel ?? "Enquiries by channel"}
             </text>
           )}
           {/* No separate legend — the hover tooltip already names every
