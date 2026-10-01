@@ -268,27 +268,61 @@ export function CampaignSections({ comm, allComms, onOpenComm }: { comm: Comm; a
                       </summary>
                       <ul className="mt-2 ml-3 divide-y divide-grey-30 border-l-2 border-grey-30 pl-3">
                         <li className="pb-1 text-xs text-grey-60">Share of the {edmTotal.toLocaleString()} people eDMs delivered here</li>
-                        {edmIn.map((ch) => {
-                          const src = byId(ch.from)!;
-                          const counted = ch.measured && ch.people;
-                          const pct = counted ? Math.round(((ch.people ?? 0) / edmTotal) * 100) : null;
-                          return (
-                            <li key={ch.from + (ch.cta ?? "")} className="grid grid-cols-[1fr_4rem_2.5rem] items-center gap-2 py-1.5">
-                              <button type="button" onClick={() => onOpenComm?.(src.id)} className={`min-w-0 rounded text-left text-sm hover:underline ${FOCUS_RING}`}>
-                                <span className="text-grey-90">{src.title}{src.audience && <span className="text-grey-60"> · {src.audience}</span>}</span>
-                                <span className="block text-xs text-grey-70">{[ch.cta && `${ch.cta} CTA`, ch.via && `“${ch.via}”`, ch.utm === false && "no UTM", !ch.measured && "not measured"].filter(Boolean).join(" · ")}</span>
-                              </button>
-                              {pct !== null ? (
-                                <>
-                                  <span className="h-1.5 rounded-full bg-grey-30"><span className="block h-full rounded-full bg-rmit-blue-interactive" style={{ width: `${pct}%` }} /></span>
-                                  <span className="text-right text-sm font-semibold text-grey-90">{pct}%</span>
-                                </>
-                              ) : (
-                                <span className="col-span-2 text-right text-xs text-amber">not counted</span>
-                              )}
-                            </li>
-                          );
-                        })}
+                        {(() => {
+                          // One row per SEND: the share is the sum over its
+                          // variants, the CTA is quoted once, the variants
+                          // are one compact line beneath.
+                          const bySend = new Map<string, typeof edmIn>();
+                          for (const ch of edmIn) {
+                            const src = byId(ch.from)!;
+                            const key = `${src.title}|${ch.cta ?? ""}`;
+                            bySend.set(key, [...(bySend.get(key) ?? []), ch]);
+                          }
+                          return [...bySend.values()]
+                            .map((chs) => ({ chs, people: chs.reduce((a, ch) => a + (ch.measured ? ch.people ?? 0 : 0), 0), counted: chs.some((ch) => ch.measured && ch.people) }))
+                            .sort((a, b) => (b.counted ? b.people : -1) - (a.counted ? a.people : -1))
+                            .map(({ chs, people, counted }) => {
+                              const first = byId(chs[0].from)!;
+                              const pct = counted ? Math.round((people / edmTotal) * 100) : null;
+                              const ch0 = chs[0];
+                              return (
+                                <li key={first.title + (ch0.cta ?? "")} className="py-2">
+                                  <div className="grid grid-cols-[1fr_4rem_2.5rem] items-center gap-2">
+                                    <button type="button" onClick={() => onOpenComm?.(first.id)} className={`min-w-0 rounded text-left text-sm text-grey-90 hover:underline ${FOCUS_RING}`}>
+                                      {first.title}
+                                    </button>
+                                    {pct !== null ? (
+                                      <>
+                                        <span className="h-1.5 rounded-full bg-grey-30"><span className="block h-full rounded-full bg-rmit-blue-interactive" style={{ width: `${pct}%` }} /></span>
+                                        <span className="text-right text-sm font-semibold text-grey-90">{pct}%</span>
+                                      </>
+                                    ) : (
+                                      <span className="col-span-2 text-right text-xs text-amber">{ch0.utm === false ? "no UTM" : "not measured"}</span>
+                                    )}
+                                  </div>
+                                  <p className="mt-0.5 text-xs text-grey-70">
+                                    {ch0.cta ? `${ch0.cta} CTA` : "CTA"}{ch0.via ? ` “${ch0.via}”` : ""}
+                                  </p>
+                                  {chs.length > 1 && (
+                                    <p className="mt-0.5 text-xs text-grey-70">
+                                      {chs
+                                        .map((ch) => ({ ch, src: byId(ch.from)!, p: ch.measured && ch.people ? Math.round(((ch.people ?? 0) / edmTotal) * 100) : null }))
+                                        .sort((a, b) => (b.p ?? -1) - (a.p ?? -1))
+                                        .map(({ ch, src, p }, n) => (
+                                          <span key={ch.from}>
+                                            {n > 0 && " · "}
+                                            <button type="button" onClick={() => onOpenComm?.(src.id)} className={`rounded hover:underline ${FOCUS_RING}`}>
+                                              {(src.audience ?? "").replace(/^Year 12 · ?/, "") || "Year 12"}
+                                            </button>{" "}
+                                            <span className={p === null ? "text-amber" : "font-semibold text-grey-90"}>{p === null ? "—" : `${p}%`}</span>
+                                          </span>
+                                        ))}
+                                    </p>
+                                  )}
+                                </li>
+                              );
+                            });
+                        })()}
                       </ul>
                     </details>
                   </li>
