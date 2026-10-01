@@ -160,7 +160,7 @@ export function CampaignSections({ comm, allComms, onOpenComm }: { comm: Comm; a
         </>
       )}
 
-      <H>Value Proposition</H>
+      <H>Customer Value Proposition (CVP)</H>
       {i.cvp ? (
         <blockquote className={`mt-3 border-l-4 pl-4 ${COMM_COLORS[comm.type].text.replace("text-", "border-")}`}>
           <p className="text-lg leading-snug font-medium text-grey-90">“{i.cvp}”</p>
@@ -188,9 +188,10 @@ export function CampaignSections({ comm, allComms, onOpenComm }: { comm: Comm; a
       )}
       {VALUES_ARE_PROXY && i.values.length > 0 && <p className="mt-1 text-xs text-grey-60">Proxy figures.</p>}
 
-      {isSend && destinations.length > 0 && (
+      {isSend && (
         <>
           <H>Destinations</H>
+          {destinations.length === 0 && <p className="mt-2 text-sm text-grey-70 italic">None recorded.</p>}
           <ul className="mt-2 divide-y divide-grey-30">
             {destinations.map(({ k, text, ch }, n) => {
               const dest = ch ? byId(ch.to) : undefined;
@@ -232,7 +233,8 @@ export function CampaignSections({ comm, allComms, onOpenComm }: { comm: Comm; a
 
       {isPage && (
         <>
-          <H>Top 3 Actions</H>
+          <H>Destinations</H>
+          <p className="mt-1 text-xs text-grey-70">Top 3 actions people took next</p>
           {i.nextSteps.length ? (
             <ol className="mt-2 divide-y divide-grey-30">
               {i.nextSteps.slice(0, 3).map((st, n) => {
@@ -254,9 +256,36 @@ export function CampaignSections({ comm, allComms, onOpenComm }: { comm: Comm; a
             <p className="mt-2 text-sm text-grey-70 italic">Not measured.</p>
           )}
 
-          {(i.referrers.length > 0 || edmIn.length > 0) && (
-            <>
-              <H>Arrives From</H>
+        </>
+      )}
+
+      {/* ── Destinations for events and conversations ── */}
+      {!isSend && !isPage && (
+        <>
+          <H>Destinations</H>
+          {i.chainsOut.length ? (
+            <ul className="mt-2 flex flex-col gap-1.5">
+              {i.chainsOut.map((ch) => {
+                const dest = byId(ch.to);
+                return dest ? <li key={ch.to + (ch.cta ?? "")}><CommLink c={dest} onOpen={onOpenComm} note={[ch.via && `“${ch.via}”`, ch.measured ? ch.people && `${ch.people.toLocaleString()} people` : "not measured"].filter(Boolean).join(" · ")} /></li> : null;
+              })}
+            </ul>
+          ) : (
+            <p className="mt-2 text-sm text-grey-70 italic">None recorded.</p>
+          )}
+        </>
+      )}
+
+      {/* ── Referrers — the same section on every touchpoint ── */}
+      {isSend ? (
+        <>
+          <H>Referrers</H>
+          <p className="mt-2 text-sm text-grey-70 italic">This type of touchpoint doesn&rsquo;t have traced referrers.</p>
+        </>
+      ) : isPage ? (
+        i.referrers.length > 0 || edmIn.length > 0 ? (
+          <>
+              <H>Referrers</H>
               <ul className="mt-2 divide-y divide-grey-30">
                 {edmIn.length > 0 && (
                   <li className="py-2">
@@ -335,20 +364,26 @@ export function CampaignSections({ comm, allComms, onOpenComm }: { comm: Comm; a
                   </li>
                 ))}
               </ul>
-            </>
-          )}
-        </>
-      )}
-
-      {!isSend && !isPage && i.chainsIn.length > 0 && (
+          </>
+        ) : (
+          <>
+            <H>Referrers</H>
+            <p className="mt-2 text-sm text-grey-70 italic">Not measured.</p>
+          </>
+        )
+      ) : (
         <>
-          <H>Comes From</H>
-          <ul className="mt-2 flex flex-col gap-1.5">
-            {i.chainsIn.map((ch) => {
-              const src = byId(ch.from);
-              return src ? <li key={ch.from + (ch.cta ?? "")}><CommLink c={src} onOpen={onOpenComm} note={[ch.via && `“${ch.via}”`, ch.measured ? ch.people && `${ch.people.toLocaleString()} people` : "not measured"].filter(Boolean).join(" · ")} /></li> : null;
-            })}
-          </ul>
+          <H>Referrers</H>
+          {i.chainsIn.length ? (
+            <ul className="mt-2 flex flex-col gap-1.5">
+              {i.chainsIn.map((ch) => {
+                const src = byId(ch.from);
+                return src ? <li key={ch.from + (ch.cta ?? "")}><CommLink c={src} onOpen={onOpenComm} note={[ch.via && `“${ch.via}”`, ch.measured ? ch.people && `${ch.people.toLocaleString()} people` : "not measured"].filter(Boolean).join(" · ")} /></li> : null;
+              })}
+            </ul>
+          ) : (
+            <p className="mt-2 text-sm text-grey-70 italic">None recorded.</p>
+          )}
         </>
       )}
     </>

@@ -366,10 +366,10 @@ export function CommDetailPanel({ comm, allComms, entries, onClose, onAdd, onDel
         </>
         )}
 
-        <FeedbackThread entries={entries} onDelete={onDelete} />
+        {!extraSections && <FeedbackThread entries={entries} onDelete={onDelete} />}
       </div>
 
-      <FeedbackComposer onAdd={onAdd} />
+      {!extraSections && <FeedbackComposer onAdd={onAdd} />}
     </DetailPanelShell>
   );
 }
