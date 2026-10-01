@@ -198,7 +198,7 @@ const SUCCESS: Record<"send" | "page" | "event", Record<Objective, { metric: Reg
   send: {
     awareness: { metric: /^Open rate$/, label: "open rate" },
     consideration: { metric: /^Click-to-open rate$/, label: "click-to-open rate" },
-    decision: { metric: /^Link — % of people$/, cta: "primary", label: "clicked through to the destination" },
+    decision: { metric: /^Link — % of people$/, cta: "primary", label: "click-through" },
   },
   page: {
     awareness: { metric: /^Sessions$/, label: "sessions" },
@@ -338,3 +338,25 @@ export const studyChannels = (["phone", "chat", "face-to-face"] as const).map((c
 export const WEB_BY_DAY = webDaily.map((r) => ({ date: r.date, value: Number(r.sessions) || 0 }));
 export const STUDY_BY_DAY = studyByDay.map((d) => ({ date: d.date, value: d.contacts, wait: d.wait }));
 export const dayNumber = (iso: string) => Math.round(Date.parse(`${iso}T00:00:00Z`) / 86400000);
+
+/** The gap between a value and its benchmark, as people say it: "+14 pts"
+ *  for rates, "+2:30" for times, "+120" for counts. Positive = above the
+ *  benchmark number, whichever way is good; use compare() for the verdict. */
+export function delta(v: MetricValue): string | null {
+  if (!v.benchmark) return null;
+  if (v.value.includes(":") && v.benchmark.includes(":")) {
+    const d = secs(v.value) - secs(v.benchmark);
+    const sign = d < 0 ? "−" : "+";
+    const a = Math.abs(d);
+    return `${sign}${Math.floor(a / 60)}:${String(Math.round(a % 60)).padStart(2, "0")}`;
+  }
+  const a = num(v.value), b = num(v.benchmark);
+  if (!Number.isFinite(a) || !Number.isFinite(b)) return null;
+  const d = a - b;
+  const sign = d < 0 ? "−" : "+";
+  if (v.value.includes("%")) {
+    const r = Math.round(Math.abs(d) * 10) / 10;
+    return `${sign}${r} ${r === 1 ? "pt" : "pts"}`;
+  }
+  return `${sign}${Math.abs(d).toLocaleString()}`;
+}

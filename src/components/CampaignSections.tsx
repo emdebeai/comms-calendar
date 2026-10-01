@@ -6,8 +6,10 @@ import {
   VALUES_ARE_PROXY,
   campaignInfo,
   compare,
+  delta,
   gapsFor,
   headline,
+  num,
   successMetric,
   variantsOf,
   type Chain,
@@ -436,21 +438,32 @@ export function CampaignCardLine({ comm, grouped }: { comm: Comm; grouped?: bool
   const cmps = heads.map(({ h }) => (h ? compare(h.value) : null));
   const cmp = variants.length === 1 ? cmps[0] : cmps.some((c) => c === "worse") ? "worse" : cmps.every((c) => c === "better") ? "better" : null;
   const tone = cmp === "better" ? "text-success" : cmp === "worse" ? "text-danger" : "text-grey-90";
-  const nums = heads.map(({ h }) => (h ? parseFloat(h.value.value) : NaN)).filter(Number.isFinite);
-  const text = variants.length > 1 && nums.length > 1 && h?.value.value.includes("%") ? `${Math.min(...nums)}–${Math.max(...nums)}%` : h ? fmt(h.value.value) : "";
+  // The number at a glance is the GAP to the benchmark, not the raw rate:
+  // "+14 pts open rate". With variants, the worst and best gap. Without a
+  // benchmark, the raw figure in grey.
+  const deltas = heads.map(({ h }) => (h ? { d: delta(h.value), n: h.value.benchmark ? num(h.value.value) - num(h.value.benchmark) : NaN } : { d: null, n: NaN }));
+  const withBench = deltas.filter((x) => x.d !== null);
+  let text = "", muted = false;
+  if (!h) text = "";
+  else if (variants.length > 1 && withBench.length > 1 && h.value.value.includes("%")) {
+    const ns = withBench.map((x) => x.n);
+    const f = (n: number) => `${n < 0 ? "−" : "+"}${Math.round(Math.abs(n) * 10) / 10}`;
+    text = `${f(Math.min(...ns))} to ${f(Math.max(...ns))} pts`;
+  } else if (deltas[0].d) text = `${deltas[0].d}`;
+  else { text = fmt(h.value.value); muted = true; }
   return (
     <>
-      <span className="mt-1 flex items-baseline gap-1 text-xs leading-tight">
+      <span className="mt-1 flex flex-wrap items-baseline gap-x-1 gap-y-0.5 text-xs leading-tight">
         {h ? (
           <>
-            <span className={`text-sm font-semibold ${tone}`}>{text}</span>
-            <span className="truncate text-grey-70">{h.label}</span>
+            <span className={`whitespace-nowrap text-sm font-semibold ${muted ? "text-grey-70" : tone}`}>{text}</span>
+            <span className="text-grey-70">{h.label}{muted ? "" : " vs benchmark"}</span>
           </>
         ) : (
           <span className="text-grey-70 italic">not measured</span>
         )}
-        {i.new2026 && <span className="ml-auto rounded-sm border border-current px-1 text-[10px] font-semibold tracking-wider text-grey-70 uppercase">New</span>}
       </span>
+      {i.new2026 && <span className="mt-1 inline-block w-fit rounded-sm border border-current px-1 text-[10px] font-semibold tracking-wider text-grey-70 uppercase">New</span>}
       {variants.length > 1 && (
         <span className="mt-1 block">
           {/* the expander is inside the card button, so it has to stop the
