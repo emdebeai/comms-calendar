@@ -270,13 +270,13 @@ function Window({ hovered, onHover, onOpen }: { hovered: string | null; onHover:
           <circle cx={x(peak.date)} cy={y(peak.value)} r={3.5} fill={peak.overloaded ? "var(--color-danger)" : BLUE} stroke="var(--color-card)" strokeWidth={2} />
           {day && <line x1={x(day)} x2={x(day)} y1={0} y2={CURVE_H} stroke="var(--color-grey-60)" strokeDasharray="2 3" />}
         </svg>
-        <span className="pointer-events-none absolute text-xs text-grey-70" style={{ left: x(peak.date) - 120, width: 112, top: y(peak.value) - 9, textAlign: "right" }}>
+        <span className={`pointer-events-none absolute text-xs text-grey-70 ${day ? "opacity-0" : ""}`} style={{ left: x(peak.date) - 120, width: 112, top: y(peak.value) - 9, textAlign: "right" }}>
           <b className={`font-semibold ${peak.overloaded ? "text-danger" : "text-grey-90"}`}>{peak.value.toLocaleString()}</b> {unit}
         </span>
         {at && (
-          <div className="pointer-events-none absolute z-20 rounded-md bg-tooltip px-2 py-1 text-xs whitespace-nowrap text-white shadow-md" style={{ left: Math.min(x(day!) + 10, axisW - 170), top: 4 }}>
-            {shortDate(at.date)} · {at.value.toLocaleString()} {unit}{at.wait ? ` · phone wait ${at.wait}` : ""}
-          </div>
+          <p className="pointer-events-none absolute top-0 right-0 z-20 text-xs text-grey-70" aria-live="polite">
+            {shortDate(at.date)} · <b className="font-semibold text-grey-90">{at.value.toLocaleString()}</b> {unit}{at.wait ? <> · wait <b className={`font-semibold ${at.overloaded ? "text-danger" : "text-grey-90"}`}>{at.wait}</b></> : ""}
+          </p>
         )}
         <table className="sr-only"><tbody>{series.map((d) => <tr key={d.date}><th>{shortDate(d.date)}</th><td>{d.value}</td></tr>)}</tbody></table>
       </div>
@@ -297,9 +297,84 @@ function Window({ hovered, onHover, onOpen }: { hovered: string | null; onHover:
     </Row>
   );
 
+  // One judged strip per pulse lane: each page / channel is a labelled dot
+  // on the metric's scale, the benchmark a tick — the spread is the picture.
+  const Strip = ({ items, metric, parse, format, better, label }: {
+    items: Touchpoint[];
+    metric: RegExp;
+    parse: (s: string) => number;
+    format: (n: number) => string;
+    /** which way is good */
+    better: "low" | "high";
+    label: string;
+  }) => {
+    const pts = items
+      .map((t) => {
+        const v = t.values.find((x) => !x.cta && metric.test(x.metric));
+        return v ? { t, v: parse(v.value), b: v.benchmark ? parse(v.benchmark) : NaN, raw: v.value } : null;
+      })
+      .filter((p): p is NonNullable<typeof p> => Boolean(p));
+    if (!pts.length) return null;
+    const bench = pts.find((p) => Number.isFinite(p.b))?.b ?? NaN;
+    const max = Math.max(...pts.map((p) => p.v), Number.isFinite(bench) ? bench : 0) * 1.15;
+    const W = axisW - 16, H = 140, PAD = 32;
+    const sx = (v: number) => PAD + (v / max) * (W - PAD * 2);
+    // Stagger labels on alternating rows so neighbours don't collide.
+    // Labels take turns: above, below, higher above, lower below — so close
+    // neighbours never overlap.
+    const sorted = [...pts].sort((a, b) => a.v - b.v);
+    const rowOf = new Map(sorted.map((p, i) => [p.t.id, i % 4]));
+    const OFFSET = ["bottom-full mb-1.5", "top-full mt-1.5", "bottom-full mb-7", "top-full mt-7"];
+    return (
+      <div className="relative" style={{ width: W, height: H }}>
+        <p className="absolute top-0 left-0 text-xs text-grey-70">{label}</p>
+        <svg width={W} height={H} className="absolute inset-0" aria-hidden>
+          <line x1={PAD} x2={W - PAD} y1={H / 2} y2={H / 2} stroke="var(--color-grey-30)" strokeWidth={2} strokeLinecap="round" />
+          <text x={W - PAD} y={H / 2 + 62} textAnchor="end" className="fill-grey-60 text-xs">{format(max)}</text>
+          {Number.isFinite(bench) && (
+            <>
+              <line x1={sx(bench)} x2={sx(bench)} y1={H / 2 - 10} y2={H / 2 + 10} stroke="var(--color-grey-90)" strokeWidth={2} />
+              <text x={sx(bench)} y={H / 2 + 62} textAnchor={sx(bench) < 90 ? "start" : "middle"} className="fill-grey-70 text-xs">benchmark {format(bench)}</text>
+            </>
+          )}
+        </svg>
+        {pts.map((p) => {
+          const cmp = Number.isFinite(bench) ? ((p.v > bench) === (better === "high") ? "better" : p.v === bench ? "level" : "worse") : null;
+          const tone = cmp === "better" ? "bg-success" : cmp === "worse" ? "bg-danger" : "bg-grey-60";
+          const textTone = cmp === "better" ? "text-success" : cmp === "worse" ? "text-danger" : "text-grey-90";
+          const row = rowOf.get(p.t.id) ?? 0;
+          const dim = connected !== null && !connected.has(p.t.id);
+          return (
+            <button
+              key={p.t.id}
+              id={`tp-${p.t.id}`}
+              type="button"
+              ref={(el) => register(p.t.id, el)}
+              onMouseEnter={() => onHover(p.t.id)}
+              onMouseLeave={() => onHover(null)}
+              onFocus={() => onHover(p.t.id)}
+              onBlur={() => onHover(null)}
+              onClick={() => onOpen(p.t.id)}
+              aria-label={`${p.t.title}, ${p.raw} ${label.toLowerCase()}`}
+              className={`group absolute -translate-x-1/2 ${dim ? "opacity-[0.1]" : ""} ${FOCUS_RING} rounded`}
+              style={{ left: sx(p.v), top: H / 2 - 7 }}
+            >
+              <span className={`block size-3.5 rounded-full ring-2 ring-card ${tone} ${hovered === p.t.id ? "scale-125" : ""} transition-transform`} />
+              <span
+                className={`absolute left-1/2 -translate-x-1/2 whitespace-nowrap text-xs leading-tight ${OFFSET[row]}`}
+              >
+                <span className={`font-semibold ${textTone}`}>{p.raw}</span>
+                <span className="text-grey-80"> {p.t.title}</span>
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    );
+  };
+
   const pages = TOUCHPOINTS.filter((t) => t.kind === "page");
   const channels = TOUCHPOINTS.filter((t) => t.kind === "conversation" && !t.date);
-  const BAR_H = 34;
 
   return (
     <div className="mt-6 overflow-x-auto rounded-lg border border-grey-30 bg-card">
@@ -373,12 +448,8 @@ function Window({ hovered, onHover, onOpen }: { hovered: string | null; onHover:
         <Lane id="lane-web" label="Website" sub="Sessions per day">
           <div className="pt-8">
             <Curve series={WEB_BY_DAY} max={Math.max(...WEB_BY_DAY.map((d) => d.value))} unit="sessions" />
-            <div className="flex flex-col gap-1.5 px-2 pt-2 pb-3">
-              {pages.map((t) => (
-                <div key={t.id} style={{ height: BAR_H }}>
-                  <Card t={t} bar register={register} onHover={onHover} onOpen={onOpen} active={hovered === t.id} dim={connected !== null && !connected.has(t.id)} />
-                </div>
-              ))}
+            <div className="px-2 pt-4 pb-3">
+              <Strip items={pages} metric={/^Bounce rate$/} parse={num} format={(n) => `${n}%`} better="low" label="Bounce rate by page" />
             </div>
           </div>
         </Lane>
@@ -387,20 +458,23 @@ function Window({ hovered, onHover, onOpen }: { hovered: string | null; onHover:
         <Lane id="lane-study" label="Study@RMIT" sub="Contacts per day">
           <div className="pt-8">
             <Curve series={STUDY_BY_DAY.map((d) => ({ date: d.date, value: d.contacts, overloaded: d.overloaded, wait: d.wait }))} max={Math.max(...STUDY_BY_DAY.map((d) => d.contacts))} unit="contacts" />
-            <div className="flex flex-col gap-1.5 px-2 pt-2 pb-3">
-              {channels.map((t) => (
-                <div key={t.id} style={{ height: BAR_H }}>
-                  <Card t={t} bar register={register} onHover={onHover} onOpen={onOpen} active={hovered === t.id} dim={connected !== null && !connected.has(t.id)} />
-                </div>
-              ))}
+            <div className="px-2 pt-4 pb-3">
+              <Strip
+                items={channels}
+                metric={/peak wait/i}
+                parse={(v) => { const [m, sec] = v.split(":").map(Number); return m * 60 + (sec || 0); }}
+                format={(n) => `${Math.floor(n / 60)}:${String(Math.round(n % 60)).padStart(2, "0")}`}
+                better="low"
+                label="Peak wait by channel, against normal load"
+              />
             </div>
           </div>
         </Lane>
 
         <ul className="flex flex-wrap gap-x-5 gap-y-1 px-3 py-3 text-xs text-grey-70">
-          <li className="flex items-center gap-1.5"><span className="font-semibold text-success">42%</span>above benchmark</li>
-          <li className="flex items-center gap-1.5"><span className="font-semibold text-danger">24%</span>below benchmark</li>
-          <li className="flex items-center gap-1.5"><span className="font-semibold text-grey-90">#2</span>no benchmark</li>
+          <li className="flex items-center gap-1.5"><span className="size-2.5 rounded-full bg-success" aria-hidden />Better than benchmark</li>
+          <li className="flex items-center gap-1.5"><span className="size-2.5 rounded-full bg-danger" aria-hidden />Worse than benchmark</li>
+          <li className="flex items-center gap-1.5"><span className="h-3 w-0.5 bg-grey-90" aria-hidden />Benchmark</li>
           <li className="flex items-center gap-1.5"><svg width="8" height="18" aria-hidden><path d="M4,0 V18" stroke={BLUE} strokeWidth={1.25} /></svg>Send landing on the website that day</li>
           <li className="flex items-center gap-1.5"><svg width="8" height="18" aria-hidden><path d="M4,0 V18" stroke={AMBER} strokeWidth={1.25} strokeDasharray="5 4" /></svg>Can&rsquo;t be followed</li>
           <li className="flex items-center gap-1.5"><span className="size-2.5 rounded-full bg-danger" aria-hidden />Phone wait over twice normal</li>
