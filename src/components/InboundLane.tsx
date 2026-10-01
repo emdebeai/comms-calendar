@@ -41,7 +41,7 @@ function splitRuns<T extends { month: number }>(pts: T[]): T[][] {
   return out;
 }
 
-export function InboundLane({ data }: { data: InboundLaneData }) {
+export function InboundLane({ data, onOpen }: { data: InboundLaneData; onOpen?: () => void }) {
   const lane = laneById(data.id);
   const h = lane.height;
   const yFor = (v: number) => h - 10 - (Math.min(v, 100) / 100) * (h - 34);
@@ -113,16 +113,21 @@ export function InboundLane({ data }: { data: InboundLaneData }) {
       <Fragment>
         {channelTable}
         <svg
-          className={`absolute left-0 z-10 ${FOCUS_RING}`}
+          className={`absolute left-0 z-10 ${FOCUS_RING} ${onOpen ? "cursor-pointer" : ""}`}
           style={{ top: lane.top }}
           width={TOTAL_W}
           height={h}
           role="img"
+          onClick={onOpen}
           aria-label={`${lane.label} inbound enquiries over time — arrow keys step through the monthly breakdown; full per-channel figures in the table above`}
           // Keyboard route to the hover breakdown (2.1.1): focus the graph,
           // arrows step the crosshair month-by-month, Esc clears it.
           tabIndex={0}
           onKeyDown={(e) => {
+            if (e.key === "Enter" && onOpen) {
+              onOpen();
+              return;
+            }
             if (e.key === "Escape") {
               setHoverX(null);
               return;
@@ -359,11 +364,12 @@ export function InboundLane({ data }: { data: InboundLaneData }) {
         </table>
       )}
       <svg
-        className={`absolute left-0 z-10 ${series ? FOCUS_RING : ""}`}
+        className={`absolute left-0 z-10 ${series ? FOCUS_RING : ""} ${onOpen ? "cursor-pointer" : ""}`}
         style={{ top: lane.top }}
         width={TOTAL_W}
         height={h}
         role={series ? "img" : undefined}
+        onClick={onOpen}
         aria-label={
           series
             ? `${lane.label} weekly visitors over time — arrow keys step through the readings; full figures in the adjacent table`

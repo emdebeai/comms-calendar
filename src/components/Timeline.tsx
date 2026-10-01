@@ -469,7 +469,7 @@ export function Timeline({
         {inbound
           .filter((d) => !hiddenLanes.has(d.id))
           .map((d) => (
-            <InboundLane key={d.id} data={d} />
+            <InboundLane key={d.id} data={d} onOpen={laneActions?.find((a) => a.laneId === d.id)?.onClick} />
           ))}
 
         {/* Date dots — every comm's exact send date on its lane's baseline
