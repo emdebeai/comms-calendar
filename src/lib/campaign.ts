@@ -16,8 +16,8 @@ import webDailyRaw from "../../data/dummy/web-daily.csv?raw";
 import { parseCsvRows } from "./csv";
 import type { Comm, CommType, InboundLaneData, Team } from "../data/types";
 
-export const CAMPAIGN_ID = new URLSearchParams(window.location.search).get("campaign");
-export const CAMPAIGN_MODE = CAMPAIGN_ID !== null;
+import { CAMPAIGN_ID, CAMPAIGN_MODE } from "./campaignFlag";
+export { CAMPAIGN_ID, CAMPAIGN_MODE };
 export const VALUES_ARE_PROXY = true;
 
 export type Objective = "awareness" | "consideration" | "decision";
@@ -285,8 +285,13 @@ export const campaignInbound: InboundLaneData[] = [
     id: "study",
     baseline: 0,
     peaks: [{ month: dateToMonth(peakStudy.date), height: 0, label: `Results day · ${peakStudy.contacts.toLocaleString()} contacts · phone wait ${peakStudy.wait}` }],
-    series: studyByDay.map((d) => ({ month: dateToMonth(d.date), value: d.contacts })),
-    seriesNote: "Contacts per day, all channels (proxy)",
+    seriesNote: "Contacts per day by channel (proxy)",
+    // One line per channel, as the map's own Study@ lane draws them.
+    channels: (["phone", "chat", "face-to-face"] as const).map((channel) => ({
+      label: channel === "face-to-face" ? "Face to face" : channel === "chat" ? "Chat" : "Phone",
+      color: channel === "phone" ? "--color-indigo" : channel === "chat" ? "--color-teal" : "--color-pink",
+      points: studyDaily.filter((r) => r.channel === channel).map((r) => ({ month: dateToMonth(r.date), value: Number(r.contacts) })),
+    })),
   },
 ];
 

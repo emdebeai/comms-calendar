@@ -1,4 +1,5 @@
 import type { CampaignGroup, InboundLaneData } from "./types";
+import { CAMPAIGN_ID } from "../lib/campaignFlag";
 
 // Individual comms now live in data/comms/<team>.csv, loaded at runtime by
 // src/lib/loadComms.ts — see that file for the column schema. That's the
@@ -400,6 +401,16 @@ export interface CampaignRow {
 
 /** Rows of the campaigns lane for the current expansion state (row ids). */
 export function buildCampaignRows(expanded: Set<string>): CampaignRow[] {
+  const rows = buildAllCampaignRows(expanded);
+  // Campaign mode: only the media bar that belongs to this campaign (its id
+  // matches the moment), on a single track.
+  if (CAMPAIGN_ID) {
+    const moment = CAMPAIGN_ID.split("-")[0];
+    return rows.filter((r) => r.id === moment).map((r) => ({ ...r, line: 0 }));
+  }
+  return rows;
+}
+function buildAllCampaignRows(expanded: Set<string>): CampaignRow[] {
   // Line 0: always-on (all year). Line 1: the four dated campaigns — they
   // don't overlap in time, so they share one track to save vertical space.
   const rows: CampaignRow[] = [

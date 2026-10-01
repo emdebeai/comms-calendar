@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { EyeOff, FileDown, Home, Info, Link2, MoreHorizontal, Moon, Rows3, Shield, ShieldCheck, Sun } from "lucide-react";
+import { EyeOff, FileDown, Home, Info, Link2, MoreHorizontal, Moon, Rows3, Shield, ShieldCheck, Sparkles, Sun } from "lucide-react";
 import type { CommType } from "../data/types";
 import { FOCUS_RING } from "../lib/styles";
 import { HoverTip } from "./HoverTip";
@@ -23,6 +23,8 @@ interface Props {
   onGoHome: () => void;
   /** hide the floating chrome (presentation mode) */
   onHideUi: () => void;
+  /** campaign mode — show only what's new this cycle */
+  newLens?: { active: boolean; onToggle: () => void };
 }
 
 /** Sleek floating control dock — pinned bottom-centre, frosted, always in
@@ -44,6 +46,7 @@ export function ControlDock({
   onToggleAdmin,
   onGoHome,
   onHideUi,
+  newLens,
 }: Props) {
   const allActive = activeTypes.size === ALL_TYPES.length;
   const [legendOpen, setLegendOpen] = useState(false);
@@ -169,6 +172,19 @@ export function ControlDock({
           <Rows3 size={15} strokeWidth={1.75} aria-hidden />
           <HoverTip label="Overview — all lanes as rows" />
         </button>
+
+        {newLens && (
+          <button
+            type="button"
+            onClick={newLens.onToggle}
+            aria-pressed={newLens.active}
+            aria-label={newLens.active ? "Show everything" : "Show only what's new for 2026"}
+            className={`${iconBtn} ${newLens.active ? "bg-rmit-blue-interactive text-on-accent" : "text-grey-70 hover:bg-grey-20"}`}
+          >
+            <Sparkles size={15} strokeWidth={1.75} aria-hidden />
+            <HoverTip label="New for 2026" />
+          </button>
+        )}
 
         {/* Trigger lines */}
         <button

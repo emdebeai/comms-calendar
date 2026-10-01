@@ -236,7 +236,9 @@ export const DIVIDER_H = 32;
 
 // VTAC is included so its comms pack + lay out like the RMIT lanes, but it's
 // kept last and rendered in its own "External sender" section (see buildLanes).
-const OUTBOUND_TEAMS: Team[] = ["recruitment", "marketing-events", "marketing", "admissions", "conversion", "vtac"];
+// Digital packs too: webpage cards sit over the traffic curve, stacked when
+// several share a date (one page on the persona map, six in a campaign).
+const OUTBOUND_TEAMS: Team[] = ["recruitment", "marketing-events", "marketing", "admissions", "conversion", "vtac", "digital"];
 
 // Campaign bars shown in the Marketing lane, in draw order: every media
 // schedule contributes a (taller) summary bar, plus one bar per placement
@@ -319,9 +321,11 @@ function buildLanes(
       ? // Collapsed inbound keeps a compact GRAPH (the curve IS the lane's
         // summary — a bare label strip would hide the data entirely).
         INBOUND_COLLAPSED_H
-      : inboundData.find((d) => d.id === id)?.channels?.length
-        ? INBOUND_CHANNELS_H
-        : INBOUND_H,
+      : Math.max(
+          inboundData.find((d) => d.id === id)?.channels?.length ? INBOUND_CHANNELS_H : INBOUND_H,
+          // …but never shorter than the webpage cards stacked in it.
+          id === "digital" ? DOT_STRIP_H + LANE_PAD + cardAreaPerTeam.digital + LANE_PAD : 0,
+        ),
   });
 
   const defs: Array<Omit<LaneDef, "top">> = [

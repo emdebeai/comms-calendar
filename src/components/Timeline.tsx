@@ -104,6 +104,8 @@ interface Props {
   inboundData?: InboundLaneData[];
   /** campaign mode — an extra line on each card */
   cardExtra?: (comm: Comm) => ReactNode;
+  /** campaign mode — ids the New-for-2026 lens hides */
+  extraFilteredIds?: Set<string>;
 }
 
 export function Timeline({
@@ -151,6 +153,7 @@ export function Timeline({
   onHideLane,
   inboundData,
   cardExtra,
+  extraFilteredIds,
 }: Props) {
   const inbound = inboundData ?? defaultInbound;
   // focusSet (question > moment > trigger precedence) is computed in App and
@@ -479,7 +482,8 @@ export function Timeline({
           const filteredOut =
             !activeTypes.has(c.type) ||
             !matchesSegment(c, segments) ||
-            (equity !== null && c.equity !== equity);
+            (equity !== null && c.equity !== equity) ||
+            (extraFilteredIds?.has(c.id) ?? false);
           const inFocus = focusSet ? focusSet.has(c.id) : false;
           const dotDimmed = filteredOut || (focusSet !== null && !inFocus);
           const folded = hiddenIds.has(c.id);
@@ -597,7 +601,8 @@ export function Timeline({
             const filteredOut =
             !activeTypes.has(c.type) ||
             !matchesSegment(c, segments) ||
-            (equity !== null && c.equity !== equity);
+            (equity !== null && c.equity !== equity) ||
+            (extraFilteredIds?.has(c.id) ?? false);
             if (filteredOut) return null; // ghost dot only — no card, no stem
             const inFocus = focusSet ? focusSet.has(c.id) : false;
             const stemDimmed = focusSet !== null && !inFocus;
@@ -623,7 +628,8 @@ export function Timeline({
             const filteredOut =
             !activeTypes.has(c.type) ||
             !matchesSegment(c, segments) ||
-            (equity !== null && c.equity !== equity);
+            (equity !== null && c.equity !== equity) ||
+            (extraFilteredIds?.has(c.id) ?? false);
             if (filteredOut) return null; // ghost dot only — see the dot strip
             const inFocus = focusSet ? focusSet.has(c.id) : false;
             const dimmed = focusSet !== null && !inFocus;

@@ -13,7 +13,7 @@ import {
 import { connectedIds } from "./components/TriggerLayer";
 import { CommDetailPanel } from "./components/CommDetailPanel";
 import { CampaignCardLine, CampaignSections } from "./components/CampaignSections";
-import { CAMPAIGN, CAMPAIGN_MODE, campaignComms, campaignInbound } from "./lib/campaign";
+import { CAMPAIGN, CAMPAIGN_MODE, campaignComms, campaignInbound, campaignInfo } from "./lib/campaign";
 import { StudentQuestionPanel, questionFeedbackId } from "./components/StudentQuestionPanel";
 import { OffscreenAnswers } from "./components/OffscreenAnswers";
 import { CampaignDetailPanel } from "./components/CampaignDetailPanel";
@@ -403,12 +403,19 @@ export default function App() {
   // so a match is never trapped inside a folded chip. The RENDERED layout is
   // Whether a comm is hidden by the persistent type/segment/equity lenses
   // (independent of the transient hover/moment focus).
+  // Campaign mode: the New-for-2026 lens.
+  const [newOnly, setNewOnly] = useState(false);
+  const newLensIds = useMemo(
+    () => (CAMPAIGN_MODE && newOnly && comms ? new Set(comms.filter((c) => !campaignInfo(c.id)?.new2026).map((c) => c.id)) : undefined),
+    [newOnly, comms],
+  );
   const isFilteredOut = useCallback(
     (c: Comm) =>
       !activeTypes.has(c.type) ||
       !matchesSegment(c, segments) ||
-      (equity !== null && c.equity !== equity),
-    [activeTypes, segments, equity],
+      (equity !== null && c.equity !== equity) ||
+      (newLensIds?.has(c.id) ?? false),
+    [activeTypes, segments, equity, newLensIds],
   );
   // Comm ids hidden by the persistent lenses — excluded from card packing.
   const filteredIds = useMemo(
@@ -970,6 +977,7 @@ export default function App() {
               onHideLane={hideLane}
               inboundData={CAMPAIGN_MODE ? campaignInbound : undefined}
               cardExtra={CAMPAIGN_MODE ? (c) => <CampaignCardLine comm={c} /> : undefined}
+              extraFilteredIds={newLensIds}
             />
             {/* Breathing room under the last lane so bottom cards can scroll
                 clear of the floating control dock instead of hiding behind it. */}
@@ -1097,6 +1105,7 @@ export default function App() {
         isAdmin={isAdmin}
         onToggleAdmin={toggleAdmin}
         onGoHome={goHome}
+        newLens={CAMPAIGN_MODE ? { active: newOnly, onToggle: () => setNewOnly((v) => !v) } : undefined}
       />
       )}
 
