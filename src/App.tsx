@@ -13,7 +13,7 @@ import {
 import { connectedIds } from "./components/TriggerLayer";
 import { CommDetailPanel } from "./components/CommDetailPanel";
 import { CampaignCardLine, CampaignSections } from "./components/CampaignSections";
-import { CAMPAIGN, CAMPAIGN_MODE, campaignAllComms, campaignComms, campaignInbound, campaignInfo, campaignPages, studyChannels } from "./lib/campaign";
+import { CAMPAIGN, CAMPAIGN_MODE, campaignAllComms, campaignComms, campaignCommsCollapsed, campaignInbound, campaignInfo, campaignPages, studyChannels } from "./lib/campaign";
 import { CampaignPagesPanel, CampaignStudyPanel } from "./components/CampaignGroupPanel";
 import { compare as compareOf, headline as headlineOf } from "./lib/campaign";
 import { StudentQuestionPanel, questionFeedbackId } from "./components/StudentQuestionPanel";
@@ -374,7 +374,7 @@ export default function App() {
     // Campaign mode: the campaign's own touchpoints, not the persona's comms.
     if (CAMPAIGN_MODE) {
       document.title = CAMPAIGN.name;
-      setRawComms(campaignComms);
+      setRawComms(campaignCommsCollapsed);
       setImportIssues([]);
     }
     (CAMPAIGN_MODE ? Promise.resolve(null) : loadComms())
@@ -405,6 +405,11 @@ export default function App() {
   // so a match is never trapped inside a folded chip. The RENDERED layout is
   // Whether a comm is hidden by the persistent type/segment/equity lenses
   // (independent of the transient hover/moment focus).
+  // Campaign mode: one card per send, or one per audience variant.
+  const [splitVariants, setSplitVariants] = useState(false);
+  useEffect(() => {
+    if (CAMPAIGN_MODE) setRawComms(splitVariants ? campaignComms : campaignCommsCollapsed);
+  }, [splitVariants]);
   // Campaign mode: the New-for-2026 lens.
   const [newOnly, setNewOnly] = useState(false);
   const newLensIds = useMemo(
@@ -982,7 +987,7 @@ export default function App() {
               onToggleLane={cycleLane}
               onHideLane={hideLane}
               inboundData={CAMPAIGN_MODE ? campaignInbound : undefined}
-              cardExtra={CAMPAIGN_MODE ? (c) => <CampaignCardLine comm={c} /> : undefined}
+              cardExtra={CAMPAIGN_MODE ? (c) => <CampaignCardLine comm={c} grouped={!splitVariants} /> : undefined}
               extraFilteredIds={newLensIds}
               laneActions={
                 CAMPAIGN_MODE
@@ -1133,6 +1138,7 @@ export default function App() {
         onToggleAdmin={toggleAdmin}
         onGoHome={goHome}
         newLens={CAMPAIGN_MODE ? { active: newOnly, onToggle: () => setNewOnly((v) => !v) } : undefined}
+        variantLens={CAMPAIGN_MODE ? { active: splitVariants, onToggle: () => setSplitVariants((v) => !v) } : undefined}
       />
       )}
 

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { EyeOff, FileDown, Home, Info, Link2, MoreHorizontal, Moon, Rows3, Shield, ShieldCheck, Sparkles, Sun } from "lucide-react";
+import { EyeOff, FileDown, Home, Info, Link2, MoreHorizontal, Moon, Rows3, Shield, ShieldCheck, Sparkles, Sun, Users } from "lucide-react";
 import type { CommType } from "../data/types";
 import { FOCUS_RING } from "../lib/styles";
 import { HoverTip } from "./HoverTip";
@@ -25,6 +25,8 @@ interface Props {
   onHideUi: () => void;
   /** campaign mode — show only what's new this cycle */
   newLens?: { active: boolean; onToggle: () => void };
+  /** campaign mode — split every audience variant into its own card */
+  variantLens?: { active: boolean; onToggle: () => void };
 }
 
 /** Sleek floating control dock — pinned bottom-centre, frosted, always in
@@ -47,6 +49,7 @@ export function ControlDock({
   onGoHome,
   onHideUi,
   newLens,
+  variantLens,
 }: Props) {
   const allActive = activeTypes.size === ALL_TYPES.length;
   const [legendOpen, setLegendOpen] = useState(false);
@@ -183,6 +186,19 @@ export function ControlDock({
           >
             <Sparkles size={15} strokeWidth={1.75} aria-hidden />
             <HoverTip label="New for 2026" />
+          </button>
+        )}
+
+        {variantLens && (
+          <button
+            type="button"
+            onClick={variantLens.onToggle}
+            aria-pressed={variantLens.active}
+            aria-label={variantLens.active ? "One card per send" : "One card per audience variant"}
+            className={`${iconBtn} ${variantLens.active ? "bg-rmit-blue-interactive text-on-accent" : "text-grey-70 hover:bg-grey-20"}`}
+          >
+            <Users size={15} strokeWidth={1.75} aria-hidden />
+            <HoverTip label="Split variants" />
           </button>
         )}
 

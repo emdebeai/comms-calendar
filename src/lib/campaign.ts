@@ -154,6 +154,10 @@ export const campaignAllComms: Comm[] = parseCsvRows(touchpointsRaw)
 // Pages aren't events, so they don't sit on the canvas: the Website lane's
 // gutter lists them, and the traffic curve is their time axis.
 export const campaignComms: Comm[] = campaignAllComms.filter((c) => c.type !== "webpage");
+/** Variants of a send: the comms sharing its team and title (itself first). */
+export const variantsOf = (c: Comm): Comm[] => campaignAllComms.filter((x) => x.team === c.team && x.title === c.title);
+/** One card per send: the first variant stands for the rest. */
+export const campaignCommsCollapsed: Comm[] = campaignComms.filter((c) => variantsOf(c)[0].id === c.id);
 export const campaignPages: Comm[] = campaignAllComms.filter((c) => c.type === "webpage");
 
 // values, chains, referrers, next steps — keyed by comm id

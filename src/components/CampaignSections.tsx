@@ -1,4 +1,5 @@
-import { ArrowDownRight, ArrowUpRight, Minus } from "lucide-react";
+import { useState } from "react";
+import { ArrowDownRight, ArrowUpRight, ChevronDown, ChevronRight, Minus, Users } from "lucide-react";
 import type { Comm } from "../data/types";
 import {
   OBJECTIVE_LABEL,
@@ -8,6 +9,7 @@ import {
   gapsFor,
   headline,
   successMetric,
+  variantsOf,
   type Chain,
   type MetricValue,
 } from "../lib/campaign";
@@ -71,8 +73,15 @@ function PageBadge({ c, onOpen }: { c: Comm; onOpen?: (id: string) => void }) {
   );
 }
 
-const H = ({ children }: { children: string }) => (
-  <h3 className={`mt-6 border-t border-grey-30 pt-6 text-grey-70 ${EYEBROW}`}>{children}</h3>
+/** A panel section: collapsible, open by default, the heading is the toggle. */
+const Sec = ({ title, children }: { title: string; children: React.ReactNode }) => (
+  <details open className="group mt-6 border-t border-grey-30 pt-5">
+    <summary className={`flex cursor-pointer list-none items-center gap-1.5 rounded text-grey-70 ${EYEBROW} ${FOCUS_RING}`}>
+      <ChevronRight size={13} strokeWidth={2} aria-hidden className="transition-transform group-open:rotate-90" />
+      {title}
+    </summary>
+    {children}
+  </details>
 );
 
 /** The same clickable comm card the panel uses for related comms. */
@@ -161,8 +170,7 @@ export function CampaignSections({ comm, allComms, onOpenComm }: { comm: Comm; a
       )}
 
       {isSend && siblings.length > 0 && (
-        <>
-          <H>Other Audiences</H>
+        <Sec title="Other Audiences">
           <p className="mt-1 text-xs text-grey-70">{siblings.length + 1} variants{i.variantBasis ? ` by ${i.variantBasis}` : ""}</p>
           <ul className="mt-2 flex flex-col gap-1.5">
             {siblings.map((c) => {
@@ -175,10 +183,10 @@ export function CampaignSections({ comm, allComms, onOpenComm }: { comm: Comm; a
               );
             })}
           </ul>
-        </>
+        </Sec>
       )}
 
-      <H>Customer Value Proposition (CVP)</H>
+      <Sec title="Customer Value Proposition (CVP)">
       {i.cvp ? (
         <blockquote className={`mt-3 border-l-4 pl-4 ${COMM_COLORS[comm.type].text.replace("text-", "border-")}`}>
           <p className="text-lg leading-snug font-medium text-grey-90">“{i.cvp}”</p>
@@ -186,8 +194,9 @@ export function CampaignSections({ comm, allComms, onOpenComm }: { comm: Comm; a
       ) : (
         <p className="mt-2 text-sm text-grey-70 italic">None recorded.</p>
       )}
+      </Sec>
 
-      <H>Performance</H>
+      <Sec title="Performance">
       {sm && (
         <div className="mt-2 flex items-baseline justify-between gap-3 rounded-md bg-grey-10 px-3 py-2">
           <span className="text-sm font-semibold text-grey-90">
@@ -205,10 +214,11 @@ export function CampaignSections({ comm, allComms, onOpenComm }: { comm: Comm; a
         <p className="mt-2 text-sm text-grey-70 italic">Not measured{head ? "" : " — no metrics loaded"}.</p>
       )}
       {VALUES_ARE_PROXY && i.values.length > 0 && <p className="mt-1 text-xs text-grey-60">Proxy figures.</p>}
+      </Sec>
+
 
       {isSend && (
-        <>
-          <H>Destinations</H>
+        <Sec title="Destinations">
           {destinations.length === 0 && <p className="mt-2 text-sm text-grey-70 italic">None recorded.</p>}
           <ul className="mt-2 divide-y divide-grey-30">
             {destinations.map(({ k, text, ch }, n) => {
@@ -248,12 +258,11 @@ export function CampaignSections({ comm, allComms, onOpenComm }: { comm: Comm; a
               );
             })}
           </ul>
-        </>
+        </Sec>
       )}
 
       {isPage && (
-        <>
-          <H>Destinations</H>
+        <Sec title="Destinations">
           <p className="mt-1 text-xs text-grey-70">Top 3 actions people took next</p>
           {i.nextSteps.length ? (
             <ol className="mt-2 divide-y divide-grey-30">
@@ -278,13 +287,12 @@ export function CampaignSections({ comm, allComms, onOpenComm }: { comm: Comm; a
             <p className="mt-2 text-sm text-grey-70 italic">Not measured.</p>
           )}
 
-        </>
+        </Sec>
       )}
 
       {/* ── Destinations for events and conversations ── */}
       {!isSend && !isPage && (
-        <>
-          <H>Destinations</H>
+        <Sec title="Destinations">
           {i.chainsOut.length ? (
             <ul className="mt-2 flex flex-col gap-1.5">
               {i.chainsOut.map((ch) => {
@@ -301,19 +309,17 @@ export function CampaignSections({ comm, allComms, onOpenComm }: { comm: Comm; a
           ) : (
             <p className="mt-2 text-sm text-grey-70 italic">None recorded.</p>
           )}
-        </>
+        </Sec>
       )}
 
       {/* ── Referrers — the same section on every touchpoint ── */}
       {isSend ? (
-        <>
-          <H>Referrers</H>
+        <Sec title="Referrers">
           <p className="mt-2 text-sm text-grey-70 italic">This type of touchpoint doesn&rsquo;t have traced referrers.</p>
-        </>
+        </Sec>
       ) : isPage ? (
         i.referrers.length > 0 || edmIn.length > 0 ? (
-          <>
-              <H>Referrers</H>
+          <Sec title="Referrers">
               <ul className="mt-2 divide-y divide-grey-30">
                 {edmIn.length > 0 && (
                   <li className="py-2">
@@ -392,16 +398,14 @@ export function CampaignSections({ comm, allComms, onOpenComm }: { comm: Comm; a
                   </li>
                 ))}
               </ul>
-          </>
+          </Sec>
         ) : (
-          <>
-            <H>Referrers</H>
+          <Sec title="Referrers">
             <p className="mt-2 text-sm text-grey-70 italic">Not measured.</p>
-          </>
+          </Sec>
         )
       ) : (
-        <>
-          <H>Referrers</H>
+        <Sec title="Referrers">
           {i.chainsIn.length ? (
             <ul className="mt-2 flex flex-col gap-1.5">
               {i.chainsIn.map((ch) => {
@@ -412,26 +416,34 @@ export function CampaignSections({ comm, allComms, onOpenComm }: { comm: Comm; a
           ) : (
             <p className="mt-2 text-sm text-grey-70 italic">None recorded.</p>
           )}
-        </>
+        </Sec>
       )}
     </>
   );
 }
 
-/** The one line a card carries in campaign mode: the success measure, judged. */
-export function CampaignCardLine({ comm }: { comm: Comm }) {
+/** The one line a card carries in campaign mode: the success measure, judged.
+ *  When the card stands for several variants (`grouped`), the line is the
+ *  range across them and a small expander lists each audience's number. */
+export function CampaignCardLine({ comm, grouped }: { comm: Comm; grouped?: boolean }) {
+  const [open, setOpen] = useState(false);
   const i = campaignInfo(comm.id);
   if (!i) return null;
-  const h = headline(comm, i);
+  const variants = grouped ? variantsOf(comm) : [comm];
+  const heads = variants.map((v) => ({ v, h: headline(v, campaignInfo(v.id)!) }));
+  const h = heads[0].h;
   const gaps = gapsFor(comm).filter((g) => g.kind === "chain-broken" || g.kind === "no-chain" || g.kind === "no-utm" || g.kind === "not-measured");
-  const cmp = h ? compare(h.value) : null;
+  const cmps = heads.map(({ h }) => (h ? compare(h.value) : null));
+  const cmp = variants.length === 1 ? cmps[0] : cmps.some((c) => c === "worse") ? "worse" : cmps.every((c) => c === "better") ? "better" : null;
   const tone = cmp === "better" ? "text-success" : cmp === "worse" ? "text-danger" : "text-grey-90";
+  const nums = heads.map(({ h }) => (h ? parseFloat(h.value.value) : NaN)).filter(Number.isFinite);
+  const text = variants.length > 1 && nums.length > 1 && h?.value.value.includes("%") ? `${Math.min(...nums)}–${Math.max(...nums)}%` : h ? fmt(h.value.value) : "";
   return (
     <>
       <span className="mt-1 flex items-baseline gap-1 text-xs leading-tight">
         {h ? (
           <>
-            <span className={`text-sm font-semibold ${tone}`}>{fmt(h.value.value)}</span>
+            <span className={`text-sm font-semibold ${tone}`}>{text}</span>
             <span className="truncate text-grey-70">{h.label}</span>
           </>
         ) : (
@@ -439,6 +451,37 @@ export function CampaignCardLine({ comm }: { comm: Comm }) {
         )}
         {i.new2026 && <span className="ml-auto rounded-sm border border-current px-1 text-[10px] font-semibold tracking-wider text-grey-70 uppercase">New</span>}
       </span>
+      {variants.length > 1 && (
+        <span className="mt-1 block">
+          {/* the expander is inside the card button, so it has to stop the
+              click reaching it; keyboard users get Enter/Space the same way */}
+          <span
+            role="button"
+            tabIndex={0}
+            aria-expanded={open}
+            onClick={(e) => { e.stopPropagation(); setOpen((o) => !o); }}
+            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.stopPropagation(); setOpen((o) => !o); } }}
+            className={`inline-flex items-center gap-1 rounded text-xs text-grey-80 hover:text-grey-90 ${FOCUS_RING}`}
+          >
+            <Users size={10} strokeWidth={2} aria-hidden />
+            {variants.length} variants
+            {open ? <ChevronDown size={11} strokeWidth={2} aria-hidden /> : <ChevronRight size={11} strokeWidth={2} aria-hidden />}
+          </span>
+          {open && (
+            <span className="mt-1 block divide-y divide-grey-30/60 border-t border-grey-30/60">
+              {heads.map(({ v, h }) => {
+                const c = h ? compare(h.value) : null;
+                return (
+                  <span key={v.id} className="flex items-baseline justify-between gap-2 py-0.5 text-xs">
+                    <span className="truncate text-grey-80">{(v.audience ?? "").replace(/^Year 12 · ?/, "") || "Year 12"}</span>
+                    <span className={`shrink-0 font-semibold ${c === "better" ? "text-success" : c === "worse" ? "text-danger" : "text-grey-90"}`}>{h ? fmt(h.value.value) : "—"}</span>
+                  </span>
+                );
+              })}
+            </span>
+          )}
+        </span>
+      )}
       {gaps[0] && (
         <span title={gaps.map((g) => `${g.label} — ${g.detail}`).join("\n")} className="absolute -top-1 -right-1 size-2.5 rounded-full bg-amber ring-2 ring-card" aria-hidden />
       )}
