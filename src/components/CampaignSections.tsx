@@ -53,6 +53,24 @@ function Values({ values }: { values: MetricValue[] }) {
   );
 }
 
+/** A tracked webpage as a small badge — the Digital lane's globe and tint,
+ *  so a destination reads as "one of the pages on the map". */
+function PageBadge({ c, onOpen }: { c: Comm; onOpen?: (id: string) => void }) {
+  const Icon = COMM_ICONS.webpage;
+  const colors = COMM_COLORS.webpage;
+  return (
+    <button
+      type="button"
+      onClick={() => onOpen?.(c.id)}
+      disabled={!onOpen}
+      className={`inline-flex max-w-full items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${colors.chip} ${colors.text} ${onOpen ? "hover:ring-1 hover:ring-cyan/40" : ""} ${FOCUS_RING}`}
+    >
+      <Icon size={11} strokeWidth={2} aria-hidden />
+      <span className="truncate">{c.title}</span>
+    </button>
+  );
+}
+
 const H = ({ children }: { children: string }) => (
   <h3 className={`mt-6 border-t border-grey-30 pt-6 text-grey-70 ${EYEBROW}`}>{children}</h3>
 );
@@ -204,7 +222,9 @@ export function CampaignSections({ comm, allComms, onOpenComm }: { comm: Comm; a
                     <p className="text-sm font-semibold text-grey-90">“{text}”</p>
                     <p className="mt-0.5 flex items-center gap-1 text-sm">
                       <span className="text-grey-60">→</span>
-                      {dest ? (
+                      {dest?.type === "webpage" ? (
+                        <PageBadge c={dest} onOpen={onOpenComm} />
+                      ) : dest ? (
                         <button type="button" onClick={() => onOpenComm?.(dest.id)} className={`rounded text-rmit-blue-interactive hover:underline ${FOCUS_RING}`}>
                           {dest.title}
                         </button>
@@ -243,7 +263,9 @@ export function CampaignSections({ comm, allComms, onOpenComm }: { comm: Comm; a
                   <li key={st.action} className="flex items-baseline gap-3 py-2">
                     <span className="w-4 shrink-0 text-sm text-grey-60">{n + 1}</span>
                     <span className="min-w-0 flex-1 text-sm text-grey-90">
-                      {to ? (
+                      {to?.type === "webpage" ? (
+                        <span className="inline-flex flex-wrap items-center gap-1.5">{st.action.replace(/^Click to .*/, "Click to")} <PageBadge c={to} onOpen={onOpenComm} /></span>
+                      ) : to ? (
                         <button type="button" onClick={() => onOpenComm?.(to.id)} className={`rounded text-left hover:underline ${FOCUS_RING}`}>{st.action}</button>
                       ) : st.action}
                     </span>
@@ -267,7 +289,13 @@ export function CampaignSections({ comm, allComms, onOpenComm }: { comm: Comm; a
             <ul className="mt-2 flex flex-col gap-1.5">
               {i.chainsOut.map((ch) => {
                 const dest = byId(ch.to);
-                return dest ? <li key={ch.to + (ch.cta ?? "")}><CommLink c={dest} onOpen={onOpenComm} note={[ch.via && `“${ch.via}”`, ch.measured ? ch.people && `${ch.people.toLocaleString()} people` : "not measured"].filter(Boolean).join(" · ")} /></li> : null;
+                if (!dest) return null;
+                const note = [ch.via && `“${ch.via}”`, ch.measured ? ch.people && `${ch.people.toLocaleString()} people` : "not measured"].filter(Boolean).join(" · ");
+                return dest.type === "webpage" ? (
+                  <li key={ch.to + (ch.cta ?? "")} className="flex flex-wrap items-center gap-2 py-1 text-sm"><PageBadge c={dest} onOpen={onOpenComm} /><span className="text-xs text-grey-70">{note}</span></li>
+                ) : (
+                  <li key={ch.to + (ch.cta ?? "")}><CommLink c={dest} onOpen={onOpenComm} note={note} /></li>
+                );
               })}
             </ul>
           ) : (
