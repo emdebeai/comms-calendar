@@ -289,7 +289,7 @@ export function CommDetailPanel({ comm, allComms, entries, onClose, onAdd, onDel
             The raw audience label is the messy source of truth (verbatim from
             the planner); the chips are what the segment lens parsed out of it,
             so this section doubles as a key for the persona-dock toggles. */}
-        {(comm.audience || comm.campaign || comm.theme || tailoringChips.length > 0) && (
+        {!extraSections && (comm.audience || comm.campaign || comm.theme || tailoringChips.length > 0) && (
           <>
             <h3 className={`mt-6 border-t border-grey-30 pt-6 text-grey-70 ${EYEBROW}`}>Audience &amp; Tailoring</h3>
             <dl className="mt-2">

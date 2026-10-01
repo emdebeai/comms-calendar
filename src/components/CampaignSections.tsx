@@ -171,20 +171,41 @@ export function CampaignSections({ comm, allComms, onOpenComm }: { comm: Comm; a
         </a>
       )}
 
-      {isSend && siblings.length > 0 && (
-        <Sec title="Other Audiences">
-          <p className="mt-1 text-xs text-grey-70">{siblings.length + 1} variants{i.variantBasis ? ` by ${i.variantBasis}` : ""}</p>
-          <ul className="mt-2 flex flex-col gap-1.5">
-            {siblings.map((c) => {
-              const ci = campaignInfo(c.id);
-              const h = ci ? headline(c, ci) : undefined;
-              return (
-                <li key={c.id}>
-                  <CommLink c={c} onOpen={onOpenComm} note={`${c.audience ?? ""}${h ? ` · ${h.value.value} ${h.label}` : ""}`} />
-                </li>
-              );
-            })}
-          </ul>
+      {/* ── Audience — one section: the variants as chips (this one selected,
+          the others one tap away, each with its gap to benchmark), then how
+          the send is cut. Replaces the map's Audience & Tailoring here. ── */}
+      {isSend && (
+        <Sec title={`Audience${siblings.length ? ` · ${siblings.length + 1} variants` : ""}`}>
+          {siblings.length > 0 ? (
+            <>
+              <div role="group" aria-label="Audience variant" className="mt-2 flex flex-wrap gap-1.5">
+                {variantsOf(comm).map((v) => {
+                  const ci = campaignInfo(v.id);
+                  const hv = ci ? headline(v, ci) : undefined;
+                  const on = v.id === comm.id;
+                  const c = hv ? compare(hv.value) : null;
+                  const d = hv ? delta(hv.value) : null;
+                  return (
+                    <button
+                      key={v.id}
+                      type="button"
+                      aria-pressed={on}
+                      onClick={() => !on && onOpenComm?.(v.id)}
+                      className={`flex items-baseline gap-1.5 rounded-full border px-2.5 py-1 text-xs transition-colors ${
+                        on ? "border-grey-90 bg-grey-90 text-on-accent" : "border-grey-30 bg-card text-grey-80 hover:bg-grey-10"
+                      } ${FOCUS_RING}`}
+                    >
+                      {(v.audience ?? "").replace(/^Year 12 · ?/, "") || "Year 12"}
+                      {hv && <span className={`font-semibold ${on ? "" : c === "worse" ? "text-danger" : c === "better" ? "text-success" : "text-grey-90"}`}>{d ?? fmt(hv.value.value)}</span>}
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="mt-2 text-xs text-grey-70">{i.variantBasis ? `Variants by ${i.variantBasis}` : "Variants"} · each chip shows its gap to the benchmark</p>
+            </>
+          ) : (
+            <p className="mt-2 text-sm text-grey-90">{comm.audience ?? "—"}</p>
+          )}
         </Sec>
       )}
 
