@@ -1,8 +1,8 @@
-import { Fragment } from "react";
+import { Fragment, type ReactNode } from "react";
 import { Ban, ChevronDown, ChevronRight, Eye, EyeOff, Info } from "lucide-react";
-import { inbound } from "../data/comms";
+import { inbound as defaultInbound } from "../data/comms";
 import { EMBARGOES, MOMENTS } from "../data/journey";
-import type { Comm, CommType, Team } from "../data/types";
+import type { Comm, CommType, InboundLaneData, Team } from "../data/types";
 import { matchesSegment, type SegmentSelection } from "../lib/segments";
 import {
   CHIP_H,
@@ -100,6 +100,10 @@ interface Props {
   onToggleLane: (laneId: string) => void;
   /** hide a lane entirely (its own eye button; label click restores) */
   onHideLane: (laneId: string) => void;
+  /** campaign mode — the campaign's own inbound series instead of the map's */
+  inboundData?: InboundLaneData[];
+  /** campaign mode — an extra line on each card */
+  cardExtra?: (comm: Comm) => ReactNode;
 }
 
 export function Timeline({
@@ -145,7 +149,10 @@ export function Timeline({
   hiddenLanes,
   onToggleLane,
   onHideLane,
+  inboundData,
+  cardExtra,
 }: Props) {
+  const inbound = inboundData ?? defaultInbound;
   // focusSet (question > moment > trigger precedence) is computed in App and
   // passed in, so the auto-expand pass and the per-comm dimming agree on which
   // comms are lit.
@@ -632,6 +639,7 @@ export function Timeline({
                 onOpenDetail={onOpenDetail}
                 onMeasure={onMeasure}
                 feedbackCount={feedbackCount(c.id)}
+                extra={cardExtra?.(c)}
               />
             );
           })}

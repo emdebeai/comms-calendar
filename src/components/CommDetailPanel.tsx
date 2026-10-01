@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { Check, Pencil } from "lucide-react";
 import { MOMENTS, STAGES } from "../data/journey";
 import { linkedQuestions } from "../data/studentExperience";
@@ -26,6 +26,8 @@ interface Props {
   onEdit?: (patch: Partial<Comm>) => void;
   /** open another comm's panel (related-comm cards) */
   onOpenComm?: (commId: string) => void;
+  /** campaign mode — the campaign's sections, replacing the send-performance block */
+  extraSections?: ReactNode;
 }
 
 const FIELD =
@@ -129,7 +131,7 @@ function AttributeRow({ label, value }: { label: string; value?: string | null }
   );
 }
 
-export function CommDetailPanel({ comm, allComms, entries, onClose, onAdd, onDelete, onEdit, onOpenComm }: Props) {
+export function CommDetailPanel({ comm, allComms, entries, onClose, onAdd, onDelete, onEdit, onOpenComm, extraSections }: Props) {
   const [editing, setEditing] = useState(false);
   const Icon = COMM_ICONS[comm.type];
   const colors = COMM_COLORS[comm.type];
@@ -237,6 +239,8 @@ export function CommDetailPanel({ comm, allComms, entries, onClose, onAdd, onDel
           {comm.platform === "marketo" && <AttributeRow label="Marketo ID" value={comm.marketoId} />}
         </dl>
 
+        {extraSections}
+
         {/* ── Related comms — trigger links in both directions, as the same
             clickable comm cards the student-question panel uses. ── */}
         {related.length > 0 && (
@@ -333,7 +337,7 @@ export function CommDetailPanel({ comm, allComms, entries, onClose, onAdd, onDel
           })()}
 
         {/* ── Send performance — plain stats, whitespace does the work ── */}
-        {comm.type !== "event" && (
+        {comm.type !== "event" && !extraSections && (
           <>
             <h3 className={`mt-6 border-t border-grey-30 pt-6 text-grey-70 ${EYEBROW}`}>Performance</h3>
             {comm.openRate || comm.clickRate ? (

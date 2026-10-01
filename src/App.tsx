@@ -12,6 +12,8 @@ import {
 } from "./lib/segments";
 import { connectedIds } from "./components/TriggerLayer";
 import { CommDetailPanel } from "./components/CommDetailPanel";
+import { CampaignCardLine, CampaignSections } from "./components/CampaignSections";
+import { CAMPAIGN, CAMPAIGN_MODE, campaignComms, campaignInbound } from "./lib/campaign";
 import { StudentQuestionPanel, questionFeedbackId } from "./components/StudentQuestionPanel";
 import { OffscreenAnswers } from "./components/OffscreenAnswers";
 import { CampaignDetailPanel } from "./components/CampaignDetailPanel";
@@ -111,6 +113,10 @@ export default function App() {
     setEntered(true);
   }, []);
   const goHome = useCallback(() => {
+    if (CAMPAIGN_MODE) {
+      window.location.assign("/");
+      return;
+    }
     window.location.hash = "/";
     setEntered(false);
   }, []);
@@ -221,7 +227,14 @@ export default function App() {
   );
   // Fully-hidden lanes (a subset of collapsed): just the label strip, no
   // marker stack. Set from each lane's hide button; the label click restores.
-  const [hiddenLanes, setHiddenLanes] = useState<Set<string>>(new Set());
+  const [hiddenLanesUser, setHiddenLanes] = useState<Set<string>>(new Set());
+  // Campaign mode: lanes with nothing in the campaign aren't on the map.
+  const hiddenLanes = useMemo(() => {
+    if (!CAMPAIGN_MODE || !rawComms) return hiddenLanesUser;
+    const teams = new Set<string>(rawComms.map((c) => c.team));
+    const empty = ["recruitment", "marketing-events", "marketing", "admissions", "conversion", "vtac"].filter((t) => !teams.has(t));
+    return new Set([...hiddenLanesUser, ...empty]);
+  }, [hiddenLanesUser, rawComms]);
   const allLanesCollapsed = OVERVIEW_LANES.every((id) => collapsedLanes.has(id));
   const toggleAllLanes = () => {
     if (allLanesCollapsed) {
@@ -356,8 +369,16 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    loadComms()
-      .then(({ comms, issues }) => {
+    // Campaign mode: the campaign's own touchpoints, not the persona's comms.
+    if (CAMPAIGN_MODE) {
+      document.title = CAMPAIGN.name;
+      setRawComms(campaignComms);
+      setImportIssues([]);
+    }
+    (CAMPAIGN_MODE ? Promise.resolve(null) : loadComms())
+      .then((loaded) => {
+        if (!loaded) return;
+        const { comms, issues } = loaded;
         setRawComms(comms);
         setImportIssues(issues);
       })
@@ -624,6 +645,24 @@ export default function App() {
   }, [comms]);
 
   // Stage names in the header band double as jump links.
+  // Campaign mode: open on the window, every day of it visible.
+  const campaignJumped = useRef(false);
+  useEffect(() => {
+    if (!CAMPAIGN_MODE || !layout || campaignJumped.current || !scrollerRef.current) return;
+    campaignJumped.current = true;
+    const first = Math.floor(CAMPAIGN.fromMonth), last = Math.floor(CAMPAIGN.toMonth);
+    setExpandedMonths(new Map(Array.from({ length: last - first + 1 }, (_, i) => [first + i, 2 as const])));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [layout]);
+  // …and scroll to it once the zoomed layout is on screen.
+  const campaignScrolled = useRef(false);
+  useLayoutEffect(() => {
+    if (!CAMPAIGN_MODE || campaignScrolled.current || !layout || !scrollerRef.current) return;
+    if (effectiveExpanded.get(Math.floor(CAMPAIGN.fromMonth)) !== 2) return;
+    campaignScrolled.current = true;
+    scrollerRef.current.scrollTo({ left: Math.max(0, scaleX(CAMPAIGN.fromMonth) - 24) });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [layout, effectiveExpanded]);
   const jumpToStage = (from: number) =>
     scrollerRef.current?.scrollTo({ left: Math.max(0, scaleX(from) - 40), behavior: scrollBehavior() });
 
@@ -929,6 +968,8 @@ export default function App() {
               hiddenLanes={hiddenLanes}
               onToggleLane={cycleLane}
               onHideLane={hideLane}
+              inboundData={CAMPAIGN_MODE ? campaignInbound : undefined}
+              cardExtra={CAMPAIGN_MODE ? (c) => <CampaignCardLine comm={c} /> : undefined}
             />
             {/* Breathing room under the last lane so bottom cards can scroll
                 clear of the floating control dock instead of hiding behind it. */}
@@ -1101,6 +1142,7 @@ export default function App() {
           onDelete={isAdmin ? (entryId) => removeFeedback(openComm.id, entryId) : undefined}
           onEdit={(patch) => editComm(openComm.id, patch)}
           onOpenComm={(id) => setOpenCommId(id)}
+          extraSections={CAMPAIGN_MODE ? <CampaignSections comm={openComm} allComms={layout.comms} onOpenComm={(id) => setOpenCommId(id)} /> : undefined}
         />
       )}
 

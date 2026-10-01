@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { Link2, MessageCircle, TrendingUp } from "lucide-react";
 import { ChipBody, chipClasses } from "./CommChip";
 import type { Comm } from "../data/types";
@@ -23,6 +23,8 @@ interface Props {
   /** reports the chip's rendered height so the layout can stack rows tightly */
   onMeasure: (id: string, height: number) => void;
   feedbackCount: number;
+  /** campaign mode — one extra line (the judged number) under the CTA */
+  extra?: ReactNode;
 }
 
 /** Chip for a comm. The exact send date is marked by the type-coloured dot
@@ -39,6 +41,7 @@ export function CommCard({
   onOpenDetail,
   onMeasure,
   feedbackCount,
+  extra,
 }: Props) {
   const { x, y } = commPos(comm);
   const rootRef = useRef<HTMLButtonElement>(null);
@@ -186,6 +189,7 @@ export function CommCard({
             #{leadGen.rank} · {leadGen.leads.toLocaleString()} leads
           </span>
         )}
+        {extra}
       </ChipBody>
     </button>
   );
