@@ -46,6 +46,9 @@ import {
   compare,
   headline,
   nextStepsFor,
+  successMetric,
+  successLabel,
+  OBJECTIVE_LABEL,
   num,
   referrersFor,
   shortDate,
@@ -99,6 +102,7 @@ function Card({ t, dim, active, onHover, onOpen, register, bar }: {
   const gaps = (GAPS.get(t.id) ?? []).filter((g) => g.kind === "chain-broken" || g.kind === "no-chain" || g.kind === "no-utm" || g.kind === "not-measured");
   const JUDGE = ["Open rate", "Bounce rate", "Attendance rate", "Click-through rate"];
   const judged = (vals: MetricValue[]) =>
+    successMetric(t, vals) ??
     JUDGE.map((m) => vals.find((v) => !v.cta && v.benchmark && v.metric === m)).find(Boolean) ??
     vals.find((v) => !v.cta && v.benchmark && /peak wait/i.test(v.metric)) ??
     vals.find((v) => !v.cta && v.benchmark) ??
@@ -110,10 +114,10 @@ function Card({ t, dim, active, onHover, onOpen, register, bar }: {
   if (t.variants.length > 1 && heads.length > 1 && heads.every((h) => h.value.includes("%"))) {
     const ns = heads.map((h) => num(h.value));
     number = `${Math.min(...ns)}–${Math.max(...ns)}%`;
-    unit = heads[0].metric.toLowerCase();
+    unit = successLabel(t) ?? heads[0].metric.toLowerCase();
   } else if (head) {
     number = /^\d+$/.test(head.value) ? Number(head.value).toLocaleString() : head.value;
-    unit = head.metric.replace(/\s*\(.*\)/, "").toLowerCase();
+    unit = head === successMetric(t, t.values) ? (successLabel(t) ?? head.metric.toLowerCase()) : head.metric.replace(/\s*\(.*\)/, "").toLowerCase();
     if (context && context !== head) unit += ` · ${/^\d+$/.test(context.value) ? Number(context.value).toLocaleString() : context.value} ${context.metric.toLowerCase()}`;
   }
   const verdicts = t.variants.map((v) => { const h = judged(v.values); return h ? compare(h) : null; });
@@ -146,7 +150,7 @@ function Card({ t, dim, active, onHover, onOpen, register, bar }: {
       <ChipBody
         Icon={T.Icon}
         colors={T}
-        title={t.title}
+        title={<>{t.title}{t.new2026 && <span className="ml-1.5 rounded-sm border border-current px-1 text-[10px] font-semibold uppercase tracking-wider align-middle">New</span>}</>}
         cta={t.cta}
         bar={bar}
         trailing={
@@ -609,6 +613,15 @@ function Panel({ t, onClose, onOpen }: { t: Touchpoint; onClose: () => void; onO
           </>
         )}
 
+        {/* ── Objective — what it's for, and so which number is success ── */}
+        {t.objective && (
+          <p className={`${isSend ? "mt-4" : gaps.length ? "mt-6" : ""} text-sm text-grey-90`}>
+            <span className="text-grey-70">Objective </span>{OBJECTIVE_LABEL[t.objective]}
+            <span className="text-grey-70"> · success is </span>{successLabel(t)}
+            {t.new2026 && <span className="text-grey-70"> · new for 2026</span>}
+          </p>
+        )}
+
         {/* ── Value proposition — the one line the touchpoint asks the student
             to believe. Styled as the thing itself, not a data row. ── */}
         {(isSend || isPage) && (
@@ -625,11 +638,41 @@ function Panel({ t, onClose, onOpen }: { t: Touchpoint; onClose: () => void; onO
         )}
 
         <H>Performance</H>
+        {(() => {
+          const sm = successMetric(t, shown);
+          return sm ? (
+            <div className="mt-2 flex items-baseline justify-between gap-3 rounded-md bg-grey-10 px-3 py-2">
+              <span className="text-sm font-semibold text-grey-90">{sm.cta ? `Primary CTA · ${sm.metric.replace(/^Link — /, "")}` : sm.metric} <span className="font-normal text-grey-70">· success measure</span></span>
+              <span className="flex items-baseline gap-2">
+                <span className={`text-lg font-semibold ${compare(sm) === "better" ? "text-success" : compare(sm) === "worse" ? "text-danger" : "text-grey-90"}`}>{sm.value}</span>
+                {sm.benchmark ? <Versus v={sm} /> : <span className="text-xs text-grey-60 italic">no benchmark</span>}
+              </span>
+            </div>
+          ) : null;
+        })()}
         {shown.filter((x) => !x.cta).length ? (
           <div className="mt-2"><Values values={shown.filter((x) => !x.cta)} /></div>
         ) : (
           <p className="mt-2 text-sm text-grey-70 italic">Not measured.</p>
         )}
+
+        {/* ── The student questions this touchpoint answers ── */}
+        {(() => {
+          const qs = QUESTIONS.filter((q) => q.answeredBy.some((a) => a.id === t.id));
+          if (!qs.length && t.kind === "conversation") return null;
+          return (
+            <>
+              <H>Questions It Answers</H>
+              {qs.length ? (
+                <ul className="mt-2 flex flex-col gap-1.5">
+                  {qs.map((q) => <li key={q.question} className="text-sm text-grey-90">“{q.question}” <span className="text-xs text-grey-60">· {q.stage}</span></li>)}
+                </ul>
+              ) : (
+                <p className="mt-2 text-sm text-grey-70 italic">None linked.</p>
+              )}
+            </>
+          );
+        })()}
 
         {/* ── Destinations (sends): one row per CTA ── */}
         {isSend && destinations.length > 0 && (

@@ -1,23 +1,23 @@
-id,campaign,team,kind,type,title,date,audience,primary_cta,secondary_cta,cvp,variants,variant_basis,new_2026,utm,url,map_id
-cop-explained,cop-2026,Marketing,send,email,COP Explained,2026-11-19,Year 12,Key dates COP,,Know exactly how COP works before results land,2,segmentation,,no,,cop-explained
-cop-explained-2,cop-2026,Marketing,send,email,COP Explained,2026-11-19,Year 12 SNAP,Key dates COP,,Know exactly how COP works before results land,2,segmentation,,no,,cop-explained-2
-preference-rmit-first-guaranteed-pathway,cop-2026,Marketing,send,email,Preference RMIT first,2026-11-24,Year 12 · #2–8 preference,See your pathway options,Book a chat,A guaranteed pathway if your ATAR falls short,3,personalisation,yes,yes,,
-thanks-for-preferencing-rmit,cop-2026,Marketing,send,email,Thanks for preferencing RMIT,2026-11-30,Year 12 · #1 preference,What happens next,,You're first with us — here's what happens next,1,segmentation,,yes,,thanks-for-preferencing-rmit
-explore-a-future-with-rmit,cop-2026,Marketing,send,email,Explore a future with RMIT,2026-11-30,Year 12 · COBL #2–8,It's not too late to make a course your #1,Explore courses,Make RMIT your #1,4,personalisation,yes,yes,,explore-a-future-with-rmit
-explore-a-future-with-rmit-2,cop-2026,Marketing,send,email,Explore a future with RMIT,2026-11-30,Year 12 · STEM #2–8,It's not too late to make a course your #1,,Make RMIT your #1,4,personalisation,yes,yes,,explore-a-future-with-rmit-2
-explore-a-future-with-rmit-3,cop-2026,Marketing,send,email,Explore a future with RMIT,2026-11-30,Year 12 · DSC #2–8,It's not too late to make a course your #1,,Make RMIT your #1,4,personalisation,yes,yes,,explore-a-future-with-rmit-3
-explore-a-future-with-rmit-4,cop-2026,Marketing,send,email,Explore a future with RMIT,2026-11-30,Year 12 · no preference,It's not too late to make a course your #1,,Make RMIT your #1,4,personalisation,yes,yes,,explore-a-future-with-rmit-4
-vtac-results-are-released-today,cop-2026,Marketing,send,email,VTAC results are released today,2026-12-10,Year 12,COP hotline until 12pm,,Results are out — we're open for questions today,1,,,yes,,vtac-results-are-released-today
-change-of-preference-closes-today,cop-2026,Marketing,send,email,Change of preference closes today,2026-12-12,Year 12,COP closes 12pm,,,1,,,yes,,change-of-preference-closes-today
-cop-paid-social,cop-2026,Paid media,send,paid,COP paid social and search,2026-11-19,Year 12 · Victoria,Change your preference,,,3,segmentation,,yes,,
-results-are-out-talk-to-us,cop-2026,Recruitment and events,send,sms,Results are out — talk to us,2026-12-10,Year 12,Call Study@RMIT,,,1,,,no,,
-change-of-preference-q-a,cop-2026,Recruitment and events,conversation,webinar,Change of Preference Q&A,2026-12-11,Year 12,Register,,Ask an advisor before preferences close,1,,yes,yes,,
-change-of-preference-page,cop-2026,Digital,page,webpage,Change of Preference,,,Explore courses by ATAR,Talk to Study@RMIT,Everything COP in one place,2,personalisation,,,https://www.rmit.edu.au/change-of-preference,
-find-a-course-by-atar,cop-2026,Digital,page,webpage,Find a course by ATAR,,,Search by ATAR,,See every course your ATAR gets you into,,,,,https://www.rmit.edu.au/study-with-us/find-a-course-by-atar,
-pathways-into-rmit,cop-2026,Digital,page,webpage,Pathways into RMIT,,,Explore pathways,,There's a way in even if your ATAR falls short,,,,,https://www.rmit.edu.au/study-with-us/pathways,
-your-guide-to-vtac-and-rmit-terms,cop-2026,Digital,page,webpage,Your guide to VTAC and RMIT terms,,,,,Know what the jargon means before you preference,,,,,https://www.rmit.edu.au/school-leaver/discover-articles-for-high-school-students/jargon,
-equity-access-schemes,cop-2026,Digital,page,webpage,Equity access schemes,,,Check your eligibility,,,,,,,https://www.rmit.edu.au/study-with-us/applying-to-rmit/local-student-applications/equity-access-schemes,
-contact-study-rmit,cop-2026,Digital,page,webpage,Contact Study@RMIT,,,"Call, chat or visit",,Talk to a person before preferences close,,,,,https://www.rmit.edu.au/contact/contact-us,
-studyat-phone,cop-2026,Study@RMIT,conversation,call,Phone,,,,,,,,,,,
-studyat-chat,cop-2026,Study@RMIT,conversation,chat,Live chat,,,,,,,,,,,
-studyat-face-to-face,cop-2026,Study@RMIT,conversation,inperson,Face to face,,,,,,,,,,,
+id,campaign,team,kind,objective,type,title,date,audience,primary_cta,secondary_cta,cvp,variants,variant_basis,new_2026,utm,url,map_id
+cop-explained,cop-2026,Marketing,send,awareness,email,COP Explained,2026-11-19,Year 12,Key dates COP,,Know exactly how COP works before results land,2,segmentation,,no,,cop-explained
+cop-explained-2,cop-2026,Marketing,send,awareness,email,COP Explained,2026-11-19,Year 12 SNAP,Key dates COP,,Know exactly how COP works before results land,2,segmentation,,no,,cop-explained-2
+preference-rmit-first-guaranteed-pathway,cop-2026,Marketing,send,decision,email,Preference RMIT first,2026-11-24,Year 12 · #2–8 preference,See your pathway options,Book a chat,A guaranteed pathway if your ATAR falls short,3,personalisation,yes,yes,,
+thanks-for-preferencing-rmit,cop-2026,Marketing,send,awareness,email,Thanks for preferencing RMIT,2026-11-30,Year 12 · #1 preference,What happens next,,You're first with us — here's what happens next,1,segmentation,,yes,,thanks-for-preferencing-rmit
+explore-a-future-with-rmit,cop-2026,Marketing,send,consideration,email,Explore a future with RMIT,2026-11-30,Year 12 · COBL #2–8,It's not too late to make a course your #1,Explore courses,Make RMIT your #1,4,personalisation,yes,yes,,explore-a-future-with-rmit
+explore-a-future-with-rmit-2,cop-2026,Marketing,send,consideration,email,Explore a future with RMIT,2026-11-30,Year 12 · STEM #2–8,It's not too late to make a course your #1,,Make RMIT your #1,4,personalisation,yes,yes,,explore-a-future-with-rmit-2
+explore-a-future-with-rmit-3,cop-2026,Marketing,send,consideration,email,Explore a future with RMIT,2026-11-30,Year 12 · DSC #2–8,It's not too late to make a course your #1,,Make RMIT your #1,4,personalisation,yes,yes,,explore-a-future-with-rmit-3
+explore-a-future-with-rmit-4,cop-2026,Marketing,send,consideration,email,Explore a future with RMIT,2026-11-30,Year 12 · no preference,It's not too late to make a course your #1,,Make RMIT your #1,4,personalisation,yes,yes,,explore-a-future-with-rmit-4
+vtac-results-are-released-today,cop-2026,Marketing,send,decision,email,VTAC results are released today,2026-12-10,Year 12,COP hotline until 12pm,,Results are out — we're open for questions today,1,,,yes,,vtac-results-are-released-today
+change-of-preference-closes-today,cop-2026,Marketing,send,decision,email,Change of preference closes today,2026-12-12,Year 12,COP closes 12pm,,,1,,,yes,,change-of-preference-closes-today
+cop-paid-social,cop-2026,Paid media,send,awareness,paid,COP paid social and search,2026-11-19,Year 12 · Victoria,Change your preference,,,3,segmentation,,yes,,
+results-are-out-talk-to-us,cop-2026,Recruitment and events,send,decision,sms,Results are out — talk to us,2026-12-10,Year 12,Call Study@RMIT,,,1,,,no,,
+change-of-preference-q-a,cop-2026,Recruitment and events,conversation,consideration,webinar,Change of Preference Q&A,2026-12-11,Year 12,Register,,Ask an advisor before preferences close,1,,yes,yes,,
+change-of-preference-page,cop-2026,Digital,page,consideration,webpage,Change of Preference,,,Explore courses by ATAR,Talk to Study@RMIT,Everything COP in one place,2,personalisation,,,https://www.rmit.edu.au/change-of-preference,
+find-a-course-by-atar,cop-2026,Digital,page,decision,webpage,Find a course by ATAR,,,Search by ATAR,,See every course your ATAR gets you into,,,,,https://www.rmit.edu.au/study-with-us/find-a-course-by-atar,
+pathways-into-rmit,cop-2026,Digital,page,consideration,webpage,Pathways into RMIT,,,Explore pathways,,There's a way in even if your ATAR falls short,,,,,https://www.rmit.edu.au/study-with-us/pathways,
+your-guide-to-vtac-and-rmit-terms,cop-2026,Digital,page,awareness,webpage,Your guide to VTAC and RMIT terms,,,,,Know what the jargon means before you preference,,,,,https://www.rmit.edu.au/school-leaver/discover-articles-for-high-school-students/jargon,
+equity-access-schemes,cop-2026,Digital,page,consideration,webpage,Equity access schemes,,,Check your eligibility,,,,,,,https://www.rmit.edu.au/study-with-us/applying-to-rmit/local-student-applications/equity-access-schemes,
+contact-study-rmit,cop-2026,Digital,page,decision,webpage,Contact Study@RMIT,,,"Call, chat or visit",,Talk to a person before preferences close,,,,,https://www.rmit.edu.au/contact/contact-us,
+studyat-phone,cop-2026,Study@RMIT,conversation,decision,call,Phone,,,,,,,,,,,
+studyat-chat,cop-2026,Study@RMIT,conversation,decision,chat,Live chat,,,,,,,,,,,
+studyat-face-to-face,cop-2026,Study@RMIT,conversation,decision,inperson,Face to face,,,,,,,,,,,

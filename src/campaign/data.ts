@@ -15,6 +15,8 @@ import { parseCsvRows } from "../lib/csv";
 import { linkedCommIds, stageQuestions } from "../data/studentExperience";
 
 export type Kind = "send" | "page" | "conversation";
+/** What the touchpoint is for — and so which metric counts as success. */
+export type Objective = "awareness" | "consideration" | "decision";
 export type TouchType = "email" | "sms" | "paid" | "webinar" | "webpage" | "call" | "chat" | "inperson";
 
 export interface MetricValue {
@@ -38,6 +40,7 @@ export interface Touchpoint {
   ids: string[];
   team: string;
   kind: Kind;
+  objective?: Objective;
   type: TouchType;
   title: string;
   date?: string;
@@ -180,6 +183,7 @@ for (const r of parseCsvRows(touchpointsRaw).filter((r) => r.campaign === CAMPAI
     ids: [r.id],
     team: r.team,
     kind: r.kind as Kind,
+    objective: r.objective === "awareness" || r.objective === "consideration" || r.objective === "decision" ? r.objective : undefined,
     type: r.type as TouchType,
     title: r.title,
     date: r.date || undefined,
@@ -245,6 +249,33 @@ for (const r of parseCsvRows(chainsRaw)) {
 }
 export const CHAINS: Chain[] = [...merged.values()].map(({ n: _n, unmeasured: _u, ...ch }) => ({ ...ch, people: ch.people || undefined }));
 export const chainsOf = (id: string) => CHAINS.filter((ch) => ch.from === id || ch.to === id);
+
+// ── success measure: the objective picks the metric ───────────────────────
+export const OBJECTIVE_LABEL: Record<Objective, string> = { awareness: "Awareness", consideration: "Consideration", decision: "Decision" };
+/** The metric that counts as success for an objective, by kind. */
+export const SUCCESS_METRIC: Record<Kind, Record<Objective, { metric: RegExp; cta?: "primary"; label: string }>> = {
+  send: {
+    awareness: { metric: /^Open rate$/, label: "open rate" },
+    consideration: { metric: /^Click-to-open rate$/, label: "click-to-open rate" },
+    decision: { metric: /^Link — % of people$/, cta: "primary", label: "clicked through to the destination" },
+  },
+  page: {
+    awareness: { metric: /^Sessions$/, label: "sessions" },
+    consideration: { metric: /^Bounce rate$/, label: "bounce rate" },
+    decision: { metric: /^Form submits$/, label: "form submits" },
+  },
+  conversation: {
+    awareness: { metric: /^Registrations$|^Contacts$/, label: "registrations" },
+    consideration: { metric: /^Attendance rate$|^CSAT/, label: "attendance rate" },
+    decision: { metric: /^Attendance rate$|Peak wait/, label: "attendance rate" },
+  },
+};
+export function successMetric(t: Pick<Touchpoint, "kind" | "objective">, values: MetricValue[]): MetricValue | undefined {
+  if (!t.objective) return undefined;
+  const rule = SUCCESS_METRIC[t.kind][t.objective];
+  return values.find((v) => (rule.cta ? v.cta === rule.cta : !v.cta) && rule.metric.test(v.metric));
+}
+export const successLabel = (t: Pick<Touchpoint, "kind" | "objective">) => (t.objective ? SUCCESS_METRIC[t.kind][t.objective].label : undefined);
 
 // ── headline + comparison ─────────────────────────────────────────────────
 const HEADLINE = ["Open rate", "Click-through rate", "Traffic rank", "Registrations", "Delivered", "Contacts"];

@@ -5,21 +5,21 @@ cop-explained,,Click-to-open rate,9%,14%,COP 2025
 cop-explained,,Unsubscribe rate,0.4%,0.3%,COP 2025
 cop-explained,,Bounce rate (email),1.2%,1.5%,COP 2025
 cop-explained,primary,Link — people,60,,COP 2025
-cop-explained,primary,Link — % of people,1.0%,,COP 2025
+cop-explained,primary,Link — % of people,1.0%,4%,COP 2025
 cop-explained-2,,Total delivered,800,,COP 2025
 cop-explained-2,,Open rate,41%,38%,COP 2025
 cop-explained-2,,Click-to-open rate,12%,14%,COP 2025
 cop-explained-2,,Unsubscribe rate,0.2%,0.3%,COP 2025
 cop-explained-2,,Bounce rate (email),1.2%,1.5%,COP 2025
 cop-explained-2,primary,Link — people,30,,COP 2025
-cop-explained-2,primary,Link — % of people,3.8%,,COP 2025
+cop-explained-2,primary,Link — % of people,3.8%,4%,COP 2025
 preference-rmit-first-guaranteed-pathway,,Total delivered,3100,,COP 2025
 preference-rmit-first-guaranteed-pathway,,Open rate,52%,38%,COP 2025
 preference-rmit-first-guaranteed-pathway,,Click-to-open rate,21%,14%,COP 2025
 preference-rmit-first-guaranteed-pathway,,Unsubscribe rate,0.3%,0.3%,COP 2025
 preference-rmit-first-guaranteed-pathway,,Bounce rate (email),1.2%,1.5%,COP 2025
 preference-rmit-first-guaranteed-pathway,primary,Link — people,160,,COP 2025
-preference-rmit-first-guaranteed-pathway,primary,Link — % of people,5.2%,,COP 2025
+preference-rmit-first-guaranteed-pathway,primary,Link — % of people,5.2%,4%,COP 2025
 preference-rmit-first-guaranteed-pathway,secondary,Link — people,45,,COP 2025
 preference-rmit-first-guaranteed-pathway,secondary,Link — % of people,1.5%,,COP 2025
 thanks-for-preferencing-rmit,,Total delivered,1400,,COP 2025
@@ -28,14 +28,14 @@ thanks-for-preferencing-rmit,,Click-to-open rate,18%,14%,COP 2025
 thanks-for-preferencing-rmit,,Unsubscribe rate,0.1%,0.3%,COP 2025
 thanks-for-preferencing-rmit,,Bounce rate (email),1.2%,1.5%,COP 2025
 thanks-for-preferencing-rmit,primary,Link — people,90,,COP 2025
-thanks-for-preferencing-rmit,primary,Link — % of people,6.4%,,COP 2025
+thanks-for-preferencing-rmit,primary,Link — % of people,6.4%,4%,COP 2025
 explore-a-future-with-rmit,,Total delivered,1200,,COP 2025
 explore-a-future-with-rmit,,Open rate,42%,38%,COP 2025
 explore-a-future-with-rmit,,Click-to-open rate,11%,14%,COP 2025
 explore-a-future-with-rmit,,Unsubscribe rate,0.3%,0.3%,COP 2025
 explore-a-future-with-rmit,,Bounce rate (email),1.2%,1.5%,COP 2025
 explore-a-future-with-rmit,primary,Link — people,120,,COP 2025
-explore-a-future-with-rmit,primary,Link — % of people,10.0%,,COP 2025
+explore-a-future-with-rmit,primary,Link — % of people,10.0%,4%,COP 2025
 explore-a-future-with-rmit,secondary,Link — people,40,,COP 2025
 explore-a-future-with-rmit,secondary,Link — % of people,3.3%,,COP 2025
 explore-a-future-with-rmit-2,,Total delivered,1500,,COP 2025
@@ -44,35 +44,35 @@ explore-a-future-with-rmit-2,,Click-to-open rate,13%,14%,COP 2025
 explore-a-future-with-rmit-2,,Unsubscribe rate,0.3%,0.3%,COP 2025
 explore-a-future-with-rmit-2,,Bounce rate (email),1.2%,1.5%,COP 2025
 explore-a-future-with-rmit-2,primary,Link — people,150,,COP 2025
-explore-a-future-with-rmit-2,primary,Link — % of people,10.0%,,COP 2025
+explore-a-future-with-rmit-2,primary,Link — % of people,10.0%,4%,COP 2025
 explore-a-future-with-rmit-3,,Total delivered,900,,COP 2025
 explore-a-future-with-rmit-3,,Open rate,39%,38%,COP 2025
 explore-a-future-with-rmit-3,,Click-to-open rate,10%,14%,COP 2025
 explore-a-future-with-rmit-3,,Unsubscribe rate,0.4%,0.3%,COP 2025
 explore-a-future-with-rmit-3,,Bounce rate (email),1.2%,1.5%,COP 2025
 explore-a-future-with-rmit-3,primary,Link — people,70,,COP 2025
-explore-a-future-with-rmit-3,primary,Link — % of people,7.8%,,COP 2025
+explore-a-future-with-rmit-3,primary,Link — % of people,7.8%,4%,COP 2025
 explore-a-future-with-rmit-4,,Total delivered,2600,,COP 2025
 explore-a-future-with-rmit-4,,Open rate,24%,38%,COP 2025
 explore-a-future-with-rmit-4,,Click-to-open rate,4%,14%,COP 2025
 explore-a-future-with-rmit-4,,Unsubscribe rate,1.4%,0.3%,COP 2025
 explore-a-future-with-rmit-4,,Bounce rate (email),1.2%,1.5%,COP 2025
 explore-a-future-with-rmit-4,primary,Link — people,30,,COP 2025
-explore-a-future-with-rmit-4,primary,Link — % of people,1.2%,,COP 2025
+explore-a-future-with-rmit-4,primary,Link — % of people,1.2%,4%,COP 2025
 vtac-results-are-released-today,,Total delivered,8400,,COP 2025
 vtac-results-are-released-today,,Open rate,58%,38%,COP 2025
 vtac-results-are-released-today,,Click-to-open rate,15%,14%,COP 2025
 vtac-results-are-released-today,,Unsubscribe rate,0.2%,0.3%,COP 2025
 vtac-results-are-released-today,,Bounce rate (email),1.2%,1.5%,COP 2025
 vtac-results-are-released-today,primary,Link — people,700,,COP 2025
-vtac-results-are-released-today,primary,Link — % of people,8.3%,,COP 2025
+vtac-results-are-released-today,primary,Link — % of people,8.3%,4%,COP 2025
 change-of-preference-closes-today,,Total delivered,8300,,COP 2025
 change-of-preference-closes-today,,Open rate,49%,38%,COP 2025
 change-of-preference-closes-today,,Click-to-open rate,12%,14%,COP 2025
 change-of-preference-closes-today,,Unsubscribe rate,0.5%,0.3%,COP 2025
 change-of-preference-closes-today,,Bounce rate (email),1.2%,1.5%,COP 2025
 change-of-preference-closes-today,primary,Link — people,420,,COP 2025
-change-of-preference-closes-today,primary,Link — % of people,5.1%,,COP 2025
+change-of-preference-closes-today,primary,Link — % of people,5.1%,4%,COP 2025
 results-are-out-talk-to-us,,Delivered,5100,,COP 2025
 results-are-out-talk-to-us,,Delivery rate,97%,98%,COP 2025
 change-of-preference-q-a,,Registrations,210,,COP 2025
