@@ -12,9 +12,10 @@ import {
 } from "./lib/segments";
 import { connectedIds } from "./components/TriggerLayer";
 import { CommDetailPanel } from "./components/CommDetailPanel";
-import { CampaignCardLine, CampaignSections } from "./components/CampaignSections";
-import { CAMPAIGN, CAMPAIGN_MODE, campaignAllComms, campaignComms, campaignCommsCollapsed, campaignInbound, campaignInfo, campaignPages, studyChannels } from "./lib/campaign";
-import { CampaignPagesPanel, CampaignStudyPanel } from "./components/CampaignGroupPanel";
+import { CampaignSections } from "./components/CampaignSections";
+import { CampaignCardFooter, CampaignCardLine } from "./components/CampaignCardLine";
+import { CAMPAIGN, CAMPAIGN_MODE, campaignAllComms, campaignComms, campaignCommsCollapsed, campaignInbound, campaignInfo, campaignPages, campaignPaid, studyChannels } from "./lib/campaign";
+import { CampaignPagesPanel, CampaignPaidPanel, CampaignStudyPanel } from "./components/CampaignGroupPanel";
 import { compare as compareOf, headline as headlineOf } from "./lib/campaign";
 import { StudentQuestionPanel, questionFeedbackId } from "./components/StudentQuestionPanel";
 import { OffscreenAnswers } from "./components/OffscreenAnswers";
@@ -135,7 +136,7 @@ export default function App() {
   // First visit to the map in this browser: introduce the persona. Print
   // and deep-linked exports skip it.
   const [introOpen, setIntroOpen] = useState(
-    () => !PRINT_MODE && localStorage.getItem("cc-persona-intro-domsl") !== "1",
+    () => !PRINT_MODE && !CAMPAIGN_MODE && localStorage.getItem("cc-persona-intro-domsl") !== "1",
   );
   const closeIntro = useCallback(() => {
     localStorage.setItem("cc-persona-intro-domsl", "1");
@@ -147,7 +148,7 @@ export default function App() {
   // The comms the whole app renders: base data with any overrides applied.
   const comms = useMemo<Comm[] | null>(() => {
     if (!rawComms) return null;
-    if (Object.keys(commEdits).length === 0) return rawComms;
+    if (CAMPAIGN_MODE || Object.keys(commEdits).length === 0) return rawComms;
     return rawComms.map((c) => (commEdits[c.id] ? { ...c, ...commEdits[c.id] } : c));
   }, [rawComms, commEdits]);
   const editComm = useCallback((commId: string, patch: CommPatch) => {
@@ -203,7 +204,7 @@ export default function App() {
   const [studentCollapsed, setStudentCollapsed] = useState(false);
   // Segment lens — opened from the persona dock. Focuses the map on comms
   // tailored to a chosen segment (college, campus, preference, event stage).
-  const [segments, setSegments] = useState<SegmentSelection>(SEG_FROM_URL);
+  const [segments, setSegments] = useState<SegmentSelection>(CAMPAIGN_MODE ? {} : SEG_FROM_URL);
   // Equity cohort focus (e.g. SNAP) — exclusive: dims everything except comms
   // tailored to it, and jumps the map to the match.
   const [equity, setEquity] = useState<string | null>(null);
@@ -732,7 +733,9 @@ export default function App() {
       ? (layout.comms.find((c) => c.id === openCommId) ?? (CAMPAIGN_MODE ? campaignAllComms.find((c) => c.id === openCommId) : undefined))
       : undefined;
   // Campaign mode: the lane-gutter panels (pages, channels).
-  const [groupPanel, setGroupPanel] = useState<"pages" | "study" | null>(null);
+  const [groupPanel, setGroupPanel] = useState<"pages" | "study" | "paid" | null>(null);
+  // Campaign mode: which grouped cards have their variants list open.
+  const [openVariants, setOpenVariants] = useState<Set<string>>(new Set());
   const openCampaign = openCampaignId
     ? allCampaignChannels.find((c) => c.id === openCampaignId)
     : undefined;
@@ -913,7 +916,7 @@ export default function App() {
               chips={layout.chips}
               expandedMonths={effectiveExpanded}
               onSetMonthLevel={setMonthLevel}
-              canResetZoom={effectiveExpanded.size > 0}
+              canResetZoom={!CAMPAIGN_MODE && effectiveExpanded.size > 0}
               onResetZoom={() =>
                 setExpandedMonths(
         new Map(autoExpandMonths ? [...autoExpandMonths].map((m) => [m, 0 as const]) : []),
@@ -987,7 +990,26 @@ export default function App() {
               onToggleLane={cycleLane}
               onHideLane={hideLane}
               inboundData={CAMPAIGN_MODE ? campaignInbound : undefined}
-              cardExtra={CAMPAIGN_MODE ? (c) => <CampaignCardLine comm={c} grouped={!splitVariants} /> : undefined}
+              cardExtra={CAMPAIGN_MODE ? (c) => <CampaignCardLine comm={c} grouped={!splitVariants} open={openVariants.has(c.id)} /> : undefined}
+              cardFooter={
+                CAMPAIGN_MODE && !splitVariants
+                  ? (c) => (
+                      <CampaignCardFooter
+                        comm={c}
+                        open={openVariants.has(c.id)}
+                        onToggle={() =>
+                          setOpenVariants((prev) => {
+                            const next = new Set(prev);
+                            if (next.has(c.id)) next.delete(c.id);
+                            else next.add(c.id);
+                            return next;
+                          })
+                        }
+                      />
+                    )
+                  : undefined
+              }
+              campaignWindow={CAMPAIGN_MODE ? { from: CAMPAIGN.fromMonth, to: CAMPAIGN.toMonth, gate: CAMPAIGN.gateMonth } : undefined}
               extraFilteredIds={newLensIds}
               laneActions={
                 CAMPAIGN_MODE
@@ -1001,6 +1023,14 @@ export default function App() {
                         })(),
                         onClick: () => { setOpenCommId(null); setGroupPanel("pages"); },
                       },
+                      ...(campaignPaid.length
+                        ? [{
+                            laneId: "campaigns",
+                            label: campaignPaid.length === 1 ? campaignPaid[0].title : `${campaignPaid.length} paid placements`,
+                            offset: 62,
+                            onClick: () => { setOpenCommId(null); setGroupPanel("paid"); },
+                          }]
+                        : []),
                       {
                         laneId: "study",
                         label: `${studyChannels.length} channels`,
@@ -1137,6 +1167,8 @@ export default function App() {
         isAdmin={isAdmin}
         onToggleAdmin={toggleAdmin}
         onGoHome={goHome}
+        types={CAMPAIGN_MODE ? ALL_TYPES.filter((t) => (comms ?? []).some((c) => c.type === t)) : undefined}
+        hideLines={CAMPAIGN_MODE}
         newLens={CAMPAIGN_MODE ? { active: newOnly, onToggle: () => setNewOnly((v) => !v) } : undefined}
         variantLens={CAMPAIGN_MODE ? { active: splitVariants, onToggle: () => setSplitVariants((v) => !v) } : undefined}
       />
@@ -1144,7 +1176,7 @@ export default function App() {
 
       {/* Persona dock — bottom-left, names the persona and opens the segment
           toggles as a popover. */}
-      {!PRINT_MODE && !uiHidden && (
+      {!PRINT_MODE && !uiHidden && !CAMPAIGN_MODE && (
       <PersonaDock
         onAboutPersona={() => setIntroOpen(true)}
         axes={segmentAxes}
@@ -1182,7 +1214,7 @@ export default function App() {
           onClose={() => setOpenCommId(null)}
           onAdd={(entry) => addFeedback(openComm.id, entry)}
           onDelete={isAdmin ? (entryId) => removeFeedback(openComm.id, entryId) : undefined}
-          onEdit={(patch) => editComm(openComm.id, patch)}
+          onEdit={CAMPAIGN_MODE ? undefined : (patch) => editComm(openComm.id, patch)}
           onOpenComm={(id) => setOpenCommId(id)}
           extraSections={CAMPAIGN_MODE ? <CampaignSections comm={openComm} allComms={campaignAllComms} onOpenComm={(id) => setOpenCommId(id)} /> : undefined}
         />
@@ -1192,6 +1224,22 @@ export default function App() {
         <CampaignPagesPanel onClose={() => setGroupPanel(null)} onOpenComm={(id) => { setGroupPanel(null); setOpenCommId(id); }} />
       )}
       {groupPanel === "study" && <CampaignStudyPanel onClose={() => setGroupPanel(null)} />}
+      {groupPanel === "paid" && (
+        <CampaignPaidPanel onClose={() => setGroupPanel(null)} onOpenComm={(id) => { setGroupPanel(null); setOpenCommId(id); }} />
+      )}
+
+      {/* Campaign mode: say so, on screen, with the way out. */}
+      {CAMPAIGN_MODE && !PRINT_MODE && !uiHidden && (
+        <div className="fixed top-2 right-3 z-50 flex items-center gap-3 rounded-full border border-grey-30 bg-card/90 py-1.5 pr-1.5 pl-4 text-sm shadow-md backdrop-blur-md">
+          <span>
+            <span className="font-semibold text-grey-90">{CAMPAIGN.name}</span>
+            <span className="text-grey-70" title="Numbers on the cards are the gap to benchmark, in points"> · {CAMPAIGN.dates} · stage gate {CAMPAIGN.gateLabel} · proxy data</span>
+          </span>
+          <a href="/" className={`rounded-full bg-grey-10 px-3 py-1 text-xs font-medium text-grey-90 hover:bg-grey-20 ${FOCUS_RING}`}>
+            Exit campaign
+          </a>
+        </div>
+      )}
 
       {panelQuestion && layout && (
         <StudentQuestionPanel

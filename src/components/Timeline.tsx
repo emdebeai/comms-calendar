@@ -18,6 +18,7 @@ import {
   TOTAL_W,
   YEAR_H,
   chipY,
+  commHeight,
   commPos,
   dotY,
   markerPos,
@@ -106,9 +107,14 @@ interface Props {
   cardExtra?: (comm: Comm) => ReactNode;
   /** campaign mode — ids the New-for-2026 lens hides */
   extraFilteredIds?: Set<string>;
+  /** campaign mode — the campaign's window (washed) and its stage gate */
+  campaignWindow?: { from: number; to: number; gate: number };
+  /** campaign mode — a real control under a card (a sibling of the card's
+   *  button, not inside it), e.g. the variants toggle */
+  cardFooter?: (comm: Comm) => ReactNode;
   /** campaign mode — a line under a lane's label that opens a panel, for
    *  the things in that lane that aren't events (pages, channels) */
-  laneActions?: { laneId: string; label: string; detail?: string; onClick: () => void }[];
+  laneActions?: { laneId: string; label: string; detail?: string; /** px below the lane top (default 46) */ offset?: number; onClick: () => void }[];
 }
 
 export function Timeline({
@@ -158,6 +164,8 @@ export function Timeline({
   cardExtra,
   extraFilteredIds,
   laneActions,
+  campaignWindow,
+  cardFooter,
 }: Props) {
   const inbound = inboundData ?? defaultInbound;
   // focusSet (question > moment > trigger precedence) is computed in App and
@@ -346,7 +354,7 @@ export function Timeline({
       <div className="absolute top-0" style={{ left: LABEL_W, width: TOTAL_W, height: TOTAL_H }}>
         {/* Lane backgrounds — alternate shade per lane so rows are easy to
             track across the full width, skipping the divider lane. */}
-        {LANES.map((lane) => (
+        {LANES.filter((lane) => lane.height > 0).map((lane) => (
           <div
             key={lane.id}
             className={`absolute left-0 w-full border-b border-grey-30 ${laneBg[lane.id]}`}
@@ -400,10 +408,22 @@ export function Timeline({
           );
         })}
 
+        {/* Campaign mode: the window, and the stage gate at its end. */}
+        {campaignWindow && (
+          <Fragment>
+            <div
+              aria-hidden
+              className="pointer-events-none absolute z-0 bg-rmit-blue-interactive/5"
+              style={{ left: scaleX(campaignWindow.from), width: scaleX(campaignWindow.to) - scaleX(campaignWindow.from), top: contextTop, height: TOTAL_H - contextTop }}
+            />
+            <div aria-hidden className="pointer-events-none absolute z-0 border-l-2 border-rmit-blue" style={{ left: scaleX(campaignWindow.gate), top: contextTop, height: TOTAL_H - contextTop }} />
+          </Fragment>
+        )}
+
         {/* Send embargoes — a diagonal-hatched band (reads as "no-go", unlike
             the moment windows) marking periods when outbound comms hold. The
             label sticks under the header so it stays legible down a tall map. */}
-        {EMBARGOES.map((e) => {
+        {EMBARGOES.filter(() => !campaignWindow).map((e) => {
           const left = scaleX(e.from);
           const width = scaleX(e.to) - left;
           return (
@@ -654,6 +674,22 @@ export function Timeline({
             );
           })}
 
+        {/* Card footers — controls that belong to a card but can't live inside
+            its button: positioned over the card's reserved bottom line. */}
+        {cardFooter &&
+          comms
+            .filter((c) => !hiddenIds.has(c.id) && !collapsedLanes.has(c.team) && !hiddenLanes.has(c.team))
+            .map((c) => {
+              const node = cardFooter(c);
+              if (!node) return null;
+              const { x, y } = commPos(c);
+              return (
+                <div key={`footer-${c.id}`} className="absolute z-30" style={{ left: x + 27, top: y + commHeight(c.id) - 22 }}>
+                  {node}
+                </div>
+              );
+            })}
+
         {/* "+N more" overflow chips — clicking one expands that month to
             day view, which shows everything it holds. While a lens is dimming
             the map, any lit comm folded inside a chip has already forced its
@@ -710,6 +746,7 @@ export function Timeline({
         style={{ width: LABEL_W, height: TOTAL_H - HEADER_H }}
       >
         {LANES.map((lane) => {
+          if (lane.height === 0) return null;
           const collapsible = lane.kind === "outbound" || lane.kind === "inbound";
           const collapsed = collapsedLanes.has(lane.id);
           const hidden = hiddenLanes.has(lane.id);
@@ -902,7 +939,7 @@ export function Timeline({
                 a.onClick();
               }}
               className={`absolute z-10 rounded-md px-2 py-1 text-left hover:bg-grey-20 ${FOCUS_RING}`}
-              style={{ top: lane.top - HEADER_H + 46, left: 10, right: 10 }}
+              style={{ top: lane.top - HEADER_H + (a.offset ?? 46), left: 10, right: 10 }}
             >
               <span className="block text-xs font-medium text-rmit-blue-interactive">{a.label}</span>
               {a.detail && <span className="block text-xs text-grey-70">{a.detail}</span>}
@@ -914,7 +951,7 @@ export function Timeline({
             on a blind click-cycle: chevron/label = expand-collapse, eye =
             hide. Sits as a sibling ABOVE the lane buttons (a button can't
             nest a button). */}
-        {LANES.filter((l) => l.kind === "outbound" || l.kind === "inbound").map((lane) => {
+        {LANES.filter((l) => (l.kind === "outbound" || l.kind === "inbound") && l.height > 0).map((lane) => {
           const hidden = hiddenLanes.has(lane.id);
           return (
             <button

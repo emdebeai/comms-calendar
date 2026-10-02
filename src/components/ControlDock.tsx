@@ -23,6 +23,9 @@ interface Props {
   onGoHome: () => void;
   /** hide the floating chrome (presentation mode) */
   onHideUi: () => void;
+  /** campaign mode — only these type filters exist; and no trigger lines */
+  types?: CommType[];
+  hideLines?: boolean;
   /** campaign mode — show only what's new this cycle */
   newLens?: { active: boolean; onToggle: () => void };
   /** campaign mode — split every audience variant into its own card */
@@ -50,6 +53,8 @@ export function ControlDock({
   onHideUi,
   newLens,
   variantLens,
+  types,
+  hideLines,
 }: Props) {
   const allActive = activeTypes.size === ALL_TYPES.length;
   const [legendOpen, setLegendOpen] = useState(false);
@@ -136,7 +141,7 @@ export function ControlDock({
 
         {/* Type filters — icon-only, tinted when selected; icon colour is the
             type key. */}
-        {ALL_TYPES.map((t) => {
+        {(types ?? ALL_TYPES).map((t) => {
           const Icon = COMM_ICONS[t];
           const c = COMM_COLORS[t];
           const on = activeTypes.has(t);
@@ -203,6 +208,7 @@ export function ControlDock({
         )}
 
         {/* Trigger lines */}
+        {!hideLines && (
         <button
           type="button"
           onClick={onToggleLines}
@@ -215,6 +221,7 @@ export function ControlDock({
           <Link2 size={15} strokeWidth={1.75} aria-hidden />
           <HoverTip label="Trigger lines" />
         </button>
+        )}
 
         {/* Legend & tips */}
         <div className="relative" ref={legendRef}>

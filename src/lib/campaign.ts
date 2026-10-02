@@ -5,7 +5,6 @@
 // Sources (all in data/, see data/README.md): campaigns.csv (the window),
 // campaign-touchpoints.csv (the touchpoints, one row per audience variant),
 // chains.csv (one row per CTA), and the PROXY figures in data/dummy/.
-import campaignsRaw from "../../data/campaigns.csv?raw";
 import touchpointsRaw from "../../data/campaign-touchpoints.csv?raw";
 import chainsRaw from "../../data/chains.csv?raw";
 import valuesRaw from "../../data/dummy/metric-values.csv?raw";
@@ -17,8 +16,8 @@ import webByPageRaw from "../../data/dummy/web-daily-by-page.csv?raw";
 import { parseCsvRows } from "./csv";
 import type { Comm, CommType, InboundLaneData, Team } from "../data/types";
 
-import { CAMPAIGN_ID, CAMPAIGN_MODE } from "./campaignFlag";
-export { CAMPAIGN_ID, CAMPAIGN_MODE };
+import { CAMPAIGN_MODE, CAMPAIGN_MOMENT, CAMPAIGN_ROW } from "./campaignFlag";
+export { CAMPAIGN_MODE };
 export const VALUES_ARE_PROXY = true;
 
 export type Objective = "awareness" | "consideration" | "decision";
@@ -80,16 +79,17 @@ const secs = (t: string) => {
   const [m, s] = t.split(":").map(Number);
   return m * 60 + (s || 0);
 };
-// Year 12 is the current calendar year on the map (see journey.ts YEARS):
-// month float = 24 + months since January of this year, day as a fraction.
-const THIS_YEAR = new Date().getFullYear();
+// The map's Year 12 band is months 24–35. The campaign's own start year IS
+// its Year 12, whatever today's date is — so a 2026 campaign still lands in
+// the band when it's reviewed in 2027.
+const BASE_YEAR = Number((CAMPAIGN_ROW?.window_from ?? "").slice(0, 4)) || new Date().getFullYear();
 export function dateToMonth(iso: string): number {
   const [y, m, d] = iso.split("-").map(Number);
-  return (y - THIS_YEAR) * 12 + 24 + (m - 1) + Math.min((d - 1) / 30, 0.97);
+  return (y - BASE_YEAR) * 12 + 24 + (m - 1) + Math.min((d - 1) / 30, 0.97);
 }
 
 // ── the campaign ──────────────────────────────────────────────────────────
-const c = parseCsvRows(campaignsRaw).find((r) => r.id === CAMPAIGN_ID) ?? parseCsvRows(campaignsRaw)[0];
+const c = CAMPAIGN_ROW;
 export const CAMPAIGN = {
   id: c.id,
   name: c.name,
@@ -98,6 +98,9 @@ export const CAMPAIGN = {
   coreFrom: c.core_from,
   coreTo: c.core_to,
   stageGate: c.stage_gate,
+  momentId: CAMPAIGN_MOMENT,
+  gateLabel: shortDate(c.stage_gate),
+  gateMonth: dateToMonth(c.stage_gate) + 1 / 30,
   fromMonth: dateToMonth(c.window_from),
   toMonth: dateToMonth(c.window_to) + 1 / 30,
   dates: `${shortDate(c.window_from)} – ${shortDate(c.window_to)}`,
@@ -113,10 +116,11 @@ const TEAM: Record<string, Team> = {
 };
 const TYPE: Record<string, CommType> = { email: "email", sms: "sms", webinar: "webinar", webpage: "webpage" };
 
+const allRows = parseCsvRows(touchpointsRaw).filter((r) => r.campaign === c.id);
 const info = new Map<string, CampaignInfo>();
 /** Every campaign touchpoint, pages included — what the panels can open. */
-export const campaignAllComms: Comm[] = parseCsvRows(touchpointsRaw)
-  .filter((r) => r.campaign === CAMPAIGN.id && TEAM[r.team] && TYPE[r.type])
+export const campaignAllComms: Comm[] = allRows
+  .filter((r) => TEAM[r.team] && TYPE[r.type])
   .map((r) => {
     info.set(r.id, {
       objective: r.objective === "awareness" || r.objective === "consideration" || r.objective === "decision" ? r.objective : undefined,
@@ -144,7 +148,8 @@ export const campaignAllComms: Comm[] = parseCsvRows(touchpointsRaw)
       // the window's start. Their panel says "live all window".
       month: r.date ? dateToMonth(r.date) : CAMPAIGN.fromMonth,
       row: 0,
-      momentId: "cop",
+      // Tied to the moment only when it falls inside it (the 3-day core).
+      momentId: r.date && r.date >= c.core_from && r.date <= c.core_to ? CAMPAIGN_MOMENT : undefined,
       platform: type === "email" ? "marketo" : type === "sms" ? "clicksend" : undefined,
       audience: r.audience || undefined,
       campaign: "COP",
@@ -161,8 +166,21 @@ export const variantsOf = (c: Comm): Comm[] => campaignAllComms.filter((x) => x.
 export const campaignCommsCollapsed: Comm[] = campaignComms.filter((c) => variantsOf(c)[0].id === c.id);
 export const campaignPages: Comm[] = campaignAllComms.filter((c) => c.type === "webpage");
 
+// Paid media has no card lane on the map — its rows are summarised from the
+// campaigns lane. Anything else the map can't place is reported, not dropped.
+const paidRows = allRows.filter((r) => r.type === "paid");
+for (const r of allRows) {
+  if (!(TEAM[r.team] && TYPE[r.type]) && r.type !== "paid")
+    console.warn(`[campaign] "${r.title}" (${r.team} · ${r.type}) has no lane on the map and isn't shown.`);
+}
+
 // values, chains, referrers, next steps — keyed by comm id
+const paidValues = new Map<string, MetricValue[]>();
 for (const r of parseCsvRows(valuesRaw)) {
+  if (paidRows.some((p) => p.id === r.comm_id)) {
+    paidValues.set(r.comm_id, [...(paidValues.get(r.comm_id) ?? []), { metric: r.metric, value: r.value, benchmark: r.benchmark || undefined }]);
+    continue;
+  }
   const i = info.get(r.comm_id);
   if (!i) continue;
   const cta = r.cta?.toLowerCase();
@@ -192,6 +210,16 @@ for (const i of info.values()) i.nextSteps.sort((a, b) => b.people - a.people);
 
 export const campaignInfo = (id: string): CampaignInfo | undefined => info.get(id);
 
+/** Paid media in the campaign: what ran, how it did, which page it fed. */
+export const campaignPaid = paidRows.map((r) => ({
+  id: r.id,
+  title: r.title,
+  audience: r.audience,
+  cta: r.primary_cta,
+  values: paidValues.get(r.id) ?? [],
+  landsOn: parseCsvRows(chainsRaw).filter((ch) => ch.from === r.id).map((ch) => ({ to: ch.to, people: Number(ch.people) || undefined })),
+}));
+
 // ── success measure: the objective picks the metric ───────────────────────
 export const OBJECTIVE_LABEL: Record<Objective, string> = { awareness: "Awareness", consideration: "Consideration", decision: "Decision" };
 const SUCCESS: Record<"send" | "page" | "event", Record<Objective, { metric: RegExp; cta?: "primary"; label: string }>> = {
@@ -211,7 +239,7 @@ const SUCCESS: Record<"send" | "page" | "event", Record<Objective, { metric: Reg
     decision: { metric: /^Attendance rate$/, label: "attendance rate" },
   },
 };
-const kindOf = (type: CommType) => (type === "webpage" ? "page" : type === "webinar" || type === "event" ? "event" : "send");
+export const kindOf = (type: CommType) => (type === "webpage" ? "page" : type === "webinar" || type === "event" ? "event" : "send");
 export function successMetric(comm: Pick<Comm, "type">, i: CampaignInfo): { value: MetricValue; label: string } | undefined {
   if (!i.objective) return undefined;
   const rule = SUCCESS[kindOf(comm.type)][i.objective];
@@ -243,7 +271,7 @@ export function compare(v: MetricValue): "better" | "worse" | "level" | null {
 // ── gaps, ranked by what stops the story first ────────────────────────────
 export type GapKind = "chain-broken" | "no-chain" | "no-utm" | "not-measured" | "no-benchmark" | "no-cvp";
 export interface Gap { kind: GapKind; label: string; detail: string }
-export const GAP_ORDER: GapKind[] = ["chain-broken", "no-chain", "no-utm", "not-measured", "no-benchmark", "no-cvp"];
+const GAP_ORDER: GapKind[] = ["chain-broken", "no-chain", "no-utm", "not-measured", "no-benchmark", "no-cvp"];
 const GAP_LABEL: Record<GapKind, string> = {
   "chain-broken": "Next step not measured",
   "no-chain": "No next step recorded",
@@ -333,11 +361,6 @@ export const studyChannels = (["phone", "chat", "face-to-face"] as const).map((c
     overloaded: secs(peak.wait_time) > baseline * 2,
   };
 });
-
-/** The daily pulse the review page charts: sessions and contacts per day. */
-export const WEB_BY_DAY = webDaily.map((r) => ({ date: r.date, value: Number(r.sessions) || 0 }));
-export const STUDY_BY_DAY = studyByDay.map((d) => ({ date: d.date, value: d.contacts, wait: d.wait }));
-export const dayNumber = (iso: string) => Math.round(Date.parse(`${iso}T00:00:00Z`) / 86400000);
 
 /** The gap between a value and its benchmark, as people say it: "+14 pts"
  *  for rates, "+2:30" for times, "+120" for counts. Positive = above the

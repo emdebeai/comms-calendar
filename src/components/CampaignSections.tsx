@@ -1,5 +1,4 @@
-import { useState } from "react";
-import { ArrowDownRight, ArrowUpRight, ChevronDown, ChevronRight, Minus, Users } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import type { Comm } from "../data/types";
 import {
   OBJECTIVE_LABEL,
@@ -9,13 +8,13 @@ import {
   delta,
   gapsFor,
   headline,
-  num,
   successMetric,
   variantsOf,
   type Chain,
   type MetricValue,
 } from "../lib/campaign";
 import { EYEBROW, FOCUS_RING } from "../lib/styles";
+import { PageBadge, Versus, fmt } from "./CampaignUi";
 import { COMM_COLORS, COMM_ICONS, COMM_LABELS } from "./icons";
 import { TokenText } from "./TokenText";
 
@@ -25,21 +24,6 @@ import { TokenText } from "./TokenText";
 // Performance · Destinations. Page: Value Proposition · Performance ·
 // Top 3 Actions · Arrives From.
 
-function Versus({ v }: { v: MetricValue }) {
-  const cmp = compare(v);
-  if (!v.benchmark) return <span className="text-xs text-grey-60 italic">no benchmark</span>;
-  const Arrow = cmp === "better" ? ArrowUpRight : cmp === "worse" ? ArrowDownRight : Minus;
-  const tone = cmp === "better" ? "text-success" : cmp === "worse" ? "text-danger" : "text-grey-60";
-  return (
-    <span className={`inline-flex items-center gap-0.5 text-xs ${tone}`}>
-      <Arrow size={12} strokeWidth={2} aria-hidden />
-      <span className="sr-only">{cmp === "better" ? "better than" : cmp === "worse" ? "worse than" : "level with"} benchmark</span>
-      {v.benchmark}
-    </span>
-  );
-}
-
-const fmt = (s: string) => (/^\d+$/.test(s) ? Number(s).toLocaleString() : s);
 
 function Values({ values }: { values: MetricValue[] }) {
   return (
@@ -54,24 +38,6 @@ function Values({ values }: { values: MetricValue[] }) {
         </li>
       ))}
     </ul>
-  );
-}
-
-/** A tracked webpage as a small badge — the Digital lane's globe and tint,
- *  so a destination reads as "one of the pages on the map". */
-export function PageBadge({ c, onOpen }: { c: Comm; onOpen?: (id: string) => void }) {
-  const Icon = COMM_ICONS.webpage;
-  const colors = COMM_COLORS.webpage;
-  return (
-    <button
-      type="button"
-      onClick={() => onOpen?.(c.id)}
-      disabled={!onOpen}
-      className={`inline-flex max-w-full items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${colors.chip} ${colors.text} ${onOpen ? "hover:ring-1 hover:ring-cyan/40" : ""} ${FOCUS_RING}`}
-    >
-      <Icon size={11} strokeWidth={2} aria-hidden />
-      <span className="truncate">{c.title}</span>
-    </button>
   );
 }
 
@@ -231,8 +197,8 @@ export function CampaignSections({ comm, allComms, onOpenComm }: { comm: Comm; a
           </span>
         </div>
       )}
-      {i.values.filter((x) => !x.cta).length ? (
-        <div className="mt-2"><Values values={i.values.filter((x) => !x.cta)} /></div>
+      {i.values.filter((x) => !x.cta && x !== sm?.value).length ? (
+        <div className="mt-2"><Values values={i.values.filter((x) => !x.cta && x !== sm?.value)} /></div>
       ) : (
         <p className="mt-2 text-sm text-grey-70 italic">Not measured{head ? "" : " — no metrics loaded"}.</p>
       )}
@@ -440,84 +406,6 @@ export function CampaignSections({ comm, allComms, onOpenComm }: { comm: Comm; a
             <p className="mt-2 text-sm text-grey-70 italic">None recorded.</p>
           )}
         </Sec>
-      )}
-    </>
-  );
-}
-
-/** The one line a card carries in campaign mode: the success measure, judged.
- *  When the card stands for several variants (`grouped`), the line is the
- *  range across them and a small expander lists each audience's number. */
-export function CampaignCardLine({ comm, grouped }: { comm: Comm; grouped?: boolean }) {
-  const [open, setOpen] = useState(false);
-  const i = campaignInfo(comm.id);
-  if (!i) return null;
-  const variants = grouped ? variantsOf(comm) : [comm];
-  const heads = variants.map((v) => ({ v, h: headline(v, campaignInfo(v.id)!) }));
-  const h = heads[0].h;
-  const gaps = gapsFor(comm).filter((g) => g.kind === "chain-broken" || g.kind === "no-chain" || g.kind === "no-utm" || g.kind === "not-measured");
-  const cmps = heads.map(({ h }) => (h ? compare(h.value) : null));
-  const cmp = variants.length === 1 ? cmps[0] : cmps.some((c) => c === "worse") ? "worse" : cmps.every((c) => c === "better") ? "better" : null;
-  const tone = cmp === "better" ? "text-success" : cmp === "worse" ? "text-danger" : "text-grey-90";
-  // The number at a glance is the GAP to the benchmark, not the raw rate:
-  // "+14 pts open rate". With variants, the worst and best gap. Without a
-  // benchmark, the raw figure in grey.
-  const deltas = heads.map(({ h }) => (h ? { d: delta(h.value), n: h.value.benchmark ? num(h.value.value) - num(h.value.benchmark) : NaN } : { d: null, n: NaN }));
-  const withBench = deltas.filter((x) => x.d !== null);
-  let text = "", muted = false;
-  if (!h) text = "";
-  else if (variants.length > 1 && withBench.length > 1 && h.value.value.includes("%")) {
-    const ns = withBench.map((x) => x.n);
-    const f = (n: number) => `${n < 0 ? "−" : "+"}${Math.round(Math.abs(n) * 10) / 10}`;
-    text = `${f(Math.min(...ns))} to ${f(Math.max(...ns))} pts`;
-  } else if (deltas[0].d) text = `${deltas[0].d}`;
-  else { text = fmt(h.value.value); muted = true; }
-  return (
-    <>
-      <span className="mt-1 flex flex-wrap items-baseline gap-x-1 gap-y-0.5 text-xs leading-tight">
-        {h ? (
-          <>
-            <span className={`whitespace-nowrap text-sm font-semibold ${muted ? "text-grey-70" : tone}`}>{text}</span>
-            <span className="text-grey-70">{h.label}{muted ? "" : " vs benchmark"}</span>
-          </>
-        ) : (
-          <span className="text-grey-70 italic">not measured</span>
-        )}
-      </span>
-      {i.new2026 && <span className="mt-1 inline-block w-fit rounded-sm border border-current px-1 text-[10px] font-semibold tracking-wider text-grey-70 uppercase">New</span>}
-      {variants.length > 1 && (
-        <span className="mt-1 block">
-          {/* the expander is inside the card button, so it has to stop the
-              click reaching it; keyboard users get Enter/Space the same way */}
-          <span
-            role="button"
-            tabIndex={0}
-            aria-expanded={open}
-            onClick={(e) => { e.stopPropagation(); setOpen((o) => !o); }}
-            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.stopPropagation(); setOpen((o) => !o); } }}
-            className={`inline-flex items-center gap-1 rounded text-xs text-grey-80 hover:text-grey-90 ${FOCUS_RING}`}
-          >
-            <Users size={10} strokeWidth={2} aria-hidden />
-            {variants.length} variants
-            {open ? <ChevronDown size={11} strokeWidth={2} aria-hidden /> : <ChevronRight size={11} strokeWidth={2} aria-hidden />}
-          </span>
-          {open && (
-            <span className="mt-1 block divide-y divide-grey-30/60 border-t border-grey-30/60">
-              {heads.map(({ v, h }) => {
-                const c = h ? compare(h.value) : null;
-                return (
-                  <span key={v.id} className="flex items-baseline justify-between gap-2 py-0.5 text-xs">
-                    <span className="truncate text-grey-80">{(v.audience ?? "").replace(/^Year 12 · ?/, "") || "Year 12"}</span>
-                    <span className={`shrink-0 font-semibold ${c === "better" ? "text-success" : c === "worse" ? "text-danger" : "text-grey-90"}`}>{h ? fmt(h.value.value) : "—"}</span>
-                  </span>
-                );
-              })}
-            </span>
-          )}
-        </span>
-      )}
-      {gaps[0] && (
-        <span title={gaps.map((g) => `${g.label} — ${g.detail}`).join("\n")} className="absolute -top-1 -right-1 size-2.5 rounded-full bg-amber ring-2 ring-card" aria-hidden />
       )}
     </>
   );

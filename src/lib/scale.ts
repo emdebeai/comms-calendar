@@ -8,6 +8,7 @@
 // without a permanently distorted, over-weighted Year-12 season.
 
 import { buildCampaignRows, inbound as inboundData } from "../data/comms";
+import { CAMPAIGN_MODE } from "./campaignFlag";
 import { STAGES, YEARS } from "../data/journey";
 import { linkedCommIds } from "../data/studentExperience";
 import { stageDisplayQuestions } from "../data/studentView";
@@ -298,6 +299,8 @@ function buildLanes(
   cardAreaPerTeam: Record<Team, number>,
   chipTeams: Set<Team>,
   collapsed: Set<string>,
+  /** campaign mode: lanes with nothing in the campaign aren't on the map */
+  absent: Set<string> = new Set(),
 ): LaneDef[] {
   const outbound = (id: Team, label: string, sub: string): Omit<LaneDef, "top"> => ({
     id,
@@ -339,12 +342,13 @@ function buildLanes(
     {
       id: "campaigns",
       label: "Digital and out-of-home campaigns",
-      sub: "Paid + always-on",
+      sub: CAMPAIGN_MODE ? "Paid media" : "Paid + always-on",
       kind: "outbound",
       chipStrip: false,
       height: collapsed.has("campaigns")
         ? labelStripH("Digital and out-of-home campaigns")
-        : campaignsLaneHeight(),
+        : // campaign mode: room for the paid-media line under the label
+          Math.max(campaignsLaneHeight(), CAMPAIGN_MODE ? 96 : 0),
     },
     // VTAC — a third party, not an RMIT team: its own section, sending the
     // student the newsletter cadence directly.
@@ -356,6 +360,8 @@ function buildLanes(
   ];
   let top = HEADER_H;
   return defs.map((d) => {
+    // VTAC's divider goes with its lane.
+    if (absent.has(d.id) || (d.id === "divider-vtac" && absent.has("vtac"))) d = { ...d, height: 0 };
     const lane = { ...d, top };
     top += d.height;
     return lane;
@@ -605,7 +611,7 @@ export function layoutTimeline(
     const [team, mi] = key.split(":");
     return { team: team as Team, monthIndex: Number(mi), count };
   });
-  LANES = buildLanes(nextCardArea, new Set(chips.map((c) => c.team)), collapsedLanes);
+  LANES = buildLanes(nextCardArea, new Set(chips.map((c) => c.team)), collapsedLanes, CAMPAIGN_MODE ? hiddenLanes : undefined);
   TOTAL_H = LANES[LANES.length - 1].top + LANES[LANES.length - 1].height;
 
   return {

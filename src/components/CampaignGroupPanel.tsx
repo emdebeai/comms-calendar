@@ -1,15 +1,13 @@
-import { Globe, Headset } from "lucide-react";
-import { campaignInfo, campaignPages, compare, headline, studyChannels } from "../lib/campaign";
+import { Globe, Headset, Megaphone } from "lucide-react";
+import { campaignAllComms, campaignInfo, campaignPages, campaignPaid, compare, headline, shortDate, studyChannels } from "../lib/campaign";
 import { EYEBROW, FOCUS_RING } from "../lib/styles";
 import { DetailPanelShell } from "./DetailPanelShell";
 import { COMM_COLORS } from "./icons";
-import { PageBadge } from "./CampaignSections";
+import { PageBadge, Versus, fmt, verdictText as tone } from "./CampaignUi";
 
 // The things in a lane that aren't events — the campaign's pages, Study@'s
 // channels — listed with their judged number. Opened from the lane gutter.
 
-const fmt = (s: string) => (/^\d+$/.test(s) ? Number(s).toLocaleString() : s);
-const tone = (c: ReturnType<typeof compare>) => (c === "better" ? "text-success" : c === "worse" ? "text-danger" : "text-grey-90");
 
 export function CampaignPagesPanel({ onClose, onOpenComm }: { onClose: () => void; onOpenComm: (id: string) => void }) {
   const rows = campaignPages
@@ -74,12 +72,57 @@ export function CampaignStudyPanel({ onClose }: { onClose: () => void }) {
               </span>
               <span className="shrink-0 text-right">
                 <span className={`block text-sm font-semibold ${ch.overloaded ? "text-danger" : "text-grey-90"}`}>{ch.peakWait}</span>
-                <span className="block text-xs text-grey-70">peak wait · {ch.peakDate.slice(8)} Dec</span>
+                <span className="block text-xs text-grey-70">peak wait · {shortDate(ch.peakDate)}</span>
               </span>
             </li>
           ))}
         </ul>
         <p className="mt-4 text-xs text-grey-60">Proxy figures. Source: Genesys by day and channel.</p>
+      </div>
+    </DetailPanelShell>
+  );
+}
+
+/** Paid media in the campaign — it has no card lane, so it's reached from the
+ *  campaigns lane: what ran, how it did, and the page it fed. */
+export function CampaignPaidPanel({ onClose, onOpenComm }: { onClose: () => void; onOpenComm: (id: string) => void }) {
+  return (
+    <DetailPanelShell
+      overline="Paid media"
+      title={campaignPaid.length === 1 ? campaignPaid[0].title : "Paid media in the campaign"}
+      iconChipClass={`${COMM_COLORS.event.chip} ${COMM_COLORS.event.text}`}
+      icon={<Megaphone size={16} strokeWidth={1.75} aria-hidden />}
+      onClose={onClose}
+    >
+      <div className="flex-1 overflow-y-auto p-6">
+        {campaignPaid.map((p) => (
+          <div key={p.id}>
+            {campaignPaid.length > 1 && <p className="text-sm font-semibold text-grey-90">{p.title}</p>}
+            <p className="text-sm text-grey-80">{[p.audience, p.cta && `CTA “${p.cta}”`].filter(Boolean).join(" · ")}</p>
+            <h3 className={`mt-5 text-grey-70 ${EYEBROW}`}>Performance</h3>
+            <ul className="mt-2 divide-y divide-grey-30">
+              {p.values.map((v) => (
+                <li key={v.metric} className="flex items-baseline justify-between gap-3 py-1.5">
+                  <span className="text-sm text-grey-80">{v.metric}</span>
+                  <span className="flex items-baseline gap-2"><span className="text-sm font-semibold text-grey-90">{fmt(v.value)}</span><Versus v={v} /></span>
+                </li>
+              ))}
+            </ul>
+            <h3 className={`mt-5 text-grey-70 ${EYEBROW}`}>Destinations</h3>
+            <ul className="mt-2 flex flex-col gap-2">
+              {p.landsOn.map((d) => {
+                const page = campaignAllComms.find((c) => c.id === d.to);
+                return page ? (
+                  <li key={d.to} className="flex flex-wrap items-center gap-2 text-sm">
+                    <PageBadge c={page} onOpen={onOpenComm} />
+                    {d.people && <span className="text-xs text-grey-70">{d.people.toLocaleString()} people · known by channel only</span>}
+                  </li>
+                ) : null;
+              })}
+            </ul>
+          </div>
+        ))}
+        <p className="mt-4 text-xs text-grey-60">Proxy figures.</p>
       </div>
     </DetailPanelShell>
   );

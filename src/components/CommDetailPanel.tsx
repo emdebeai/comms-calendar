@@ -229,7 +229,7 @@ export function CommDetailPanel({ comm, allComms, entries, onClose, onAdd, onDel
           <AttributeRow
             label="Student question"
             value={
-              linkedQuestions(comm.id)
+              extraSections ? undefined : linkedQuestions(comm.id)
                 .map((lq) => `“${lq.question}” (${lq.stage})`)
                 .join("; ") || undefined
             }
