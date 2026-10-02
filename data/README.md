@@ -76,3 +76,10 @@ them from disk when it's run or built there.
 | `studyat-daily.csv` | Per day per channel: contacts, handle time, wait time, abandonment, CSAT | Genesys + Qualtrics |
 
 The campaign itself (window, moment, stage gate) stays in `data/campaigns.csv`.
+
+**Or load them on the page.** In campaign mode, "Load data" on the campaign
+pill takes the same CSVs — picked or pasted — and reads them in the browser.
+A file is recognised by its column headers, so the name doesn't matter. They
+are held in that tab (gone when it closes) unless "Keep on this device" is
+ticked, and they win over `local/` and the proxy files. Nothing is sent
+anywhere: campaign mode makes no API calls at all.

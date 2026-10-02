@@ -14,7 +14,8 @@ import { connectedIds } from "./components/TriggerLayer";
 import { CommDetailPanel } from "./components/CommDetailPanel";
 import { CampaignSections } from "./components/CampaignSections";
 import { CampaignCardFooter, CampaignCardLine } from "./components/CampaignCardLine";
-import { VALUES_ARE_PROXY } from "./lib/campaign";
+import { DATA_LABEL } from "./lib/campaign";
+import { CampaignDataLoader } from "./components/CampaignDataLoader";
 import { CAMPAIGN, CAMPAIGN_MODE, campaignAllComms, campaignComms, campaignCommsCollapsed, campaignInbound, campaignInfo, campaignPages, campaignPaid, studyChannels } from "./lib/campaign";
 import { CampaignPagesPanel, CampaignPaidPanel, CampaignStudyPanel } from "./components/CampaignGroupPanel";
 import { compare as compareOf, headline as headlineOf } from "./lib/campaign";
@@ -392,6 +393,9 @@ export default function App() {
         console.error("Failed to load comms data:", err);
         setLoadError(err.message);
       });
+    // Campaign mode talks to no server: comments are hidden and edits are
+    // off there, so there is nothing to fetch — and nothing can be sent.
+    if (CAMPAIGN_MODE) return;
     loadFeedback()
       .then(setFeedback)
       .catch(() => setFeedback({}));
@@ -734,7 +738,7 @@ export default function App() {
       ? (layout.comms.find((c) => c.id === openCommId) ?? (CAMPAIGN_MODE ? campaignAllComms.find((c) => c.id === openCommId) : undefined))
       : undefined;
   // Campaign mode: the lane-gutter panels (pages, channels).
-  const [groupPanel, setGroupPanel] = useState<"pages" | "study" | "paid" | null>(null);
+  const [groupPanel, setGroupPanel] = useState<"pages" | "study" | "paid" | "data" | null>(null);
   // Campaign mode: which grouped cards have their variants list open.
   const [openVariants, setOpenVariants] = useState<Set<string>>(new Set());
   const openCampaign = openCampaignId
@@ -1225,6 +1229,7 @@ export default function App() {
         <CampaignPagesPanel onClose={() => setGroupPanel(null)} onOpenComm={(id) => { setGroupPanel(null); setOpenCommId(id); }} />
       )}
       {groupPanel === "study" && <CampaignStudyPanel onClose={() => setGroupPanel(null)} />}
+      {groupPanel === "data" && <CampaignDataLoader onClose={() => setGroupPanel(null)} />}
       {groupPanel === "paid" && (
         <CampaignPaidPanel onClose={() => setGroupPanel(null)} onOpenComm={(id) => { setGroupPanel(null); setOpenCommId(id); }} />
       )}
@@ -1236,8 +1241,11 @@ export default function App() {
         <div className="fixed right-5 bottom-5 z-40 flex items-center gap-3 rounded-full border border-grey-30 bg-card/70 py-1.5 pr-1.5 pl-4 shadow-xl backdrop-blur-md">
           <span className="leading-tight" title={`Stage gate ${CAMPAIGN.gateLabel}. Numbers on the cards are the gap to benchmark, in points.`}>
             <span className="block text-sm font-semibold text-grey-90">{CAMPAIGN.name}</span>
-            <span className="block text-xs text-grey-70">{CAMPAIGN.dates} · {VALUES_ARE_PROXY ? "proxy data" : "local data"}</span>
+            <span className="block text-xs text-grey-70">{CAMPAIGN.dates} · {DATA_LABEL}</span>
           </span>
+          <button type="button" onClick={() => { setOpenCommId(null); setGroupPanel("data"); }} className={`rounded-full bg-grey-10 px-3 py-1.5 text-xs font-medium text-grey-90 hover:bg-grey-20 ${FOCUS_RING}`}>
+            Load data
+          </button>
           <a href={window.location.pathname} className={`rounded-full bg-rmit-blue px-3 py-1.5 text-xs font-medium text-on-accent hover:opacity-90 ${FOCUS_RING}`}>
             Exit
           </a>

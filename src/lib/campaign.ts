@@ -13,6 +13,7 @@ import proxyNextSteps from "../../data/dummy/page-next-steps.csv?raw";
 import proxyStudyDaily from "../../data/dummy/studyat-daily.csv?raw";
 import proxyWebByPage from "../../data/dummy/web-daily-by-page.csv?raw";
 import { parseCsvRows } from "./csv";
+import { readLoaded } from "./campaignLoaded";
 import type { Comm, CommType, InboundLaneData, Team } from "../data/types";
 
 import { CAMPAIGN_MODE, CAMPAIGN_MOMENT, CAMPAIGN_ROW } from "./campaignFlag";
@@ -27,16 +28,35 @@ const local = (name: string): string | undefined => {
   // header only = not supplied yet
   return text && text.trim().split("\n").length > 1 ? text : undefined;
 };
-const touchpointsRaw = local("touchpoints.csv") ?? proxyTouchpoints;
-const chainsRaw = local("chains.csv") ?? proxyChains;
-const valuesRaw = local("metric-values.csv") ?? proxyValues;
-const referrersRaw = local("page-referrers.csv") ?? proxyReferrers;
-const nextStepsRaw = local("page-next-steps.csv") ?? proxyNextSteps;
-const studyDailyRaw = local("studyat-daily.csv") ?? proxyStudyDaily;
-const webByPageRaw = local("web-daily-by-page.csv") ?? proxyWebByPage;
-/** Which of the campaign's files are coming from local/campaign/. */
-export const LOCAL_FILES = Object.keys(localFiles).map((p) => p.split("/").pop()!).filter((n) => local(n));
-export const VALUES_ARE_PROXY = !local("metric-values.csv");
+// LOADED IN THE BROWSER. Files picked or pasted on the page (see
+// campaignLoaded.ts) win over both — they exist only in this browser.
+const loaded = readLoaded().files;
+const pick = (name: string, proxy: string) => loaded[name] ?? local(name) ?? proxy;
+/** The files the campaign reads, with the proxy each falls back to. Their
+ *  header rows are how a picked or pasted file is recognised. */
+export const CAMPAIGN_FILES: { name: string; what: string; header: string[] }[] = [
+  ["touchpoints.csv", "Touchpoints, one row per audience variant", proxyTouchpoints],
+  ["chains.csv", "Where each CTA lands", proxyChains],
+  ["metric-values.csv", "Metrics and benchmarks", proxyValues],
+  ["page-referrers.csv", "Where each page's traffic came from", proxyReferrers],
+  ["page-next-steps.csv", "What people did next on each page", proxyNextSteps],
+  ["web-daily-by-page.csv", "Sessions per page per day", proxyWebByPage],
+  ["studyat-daily.csv", "Study@ contacts per channel per day", proxyStudyDaily],
+].map(([name, what, proxy]) => ({ name, what, header: proxy.split("\n")[0].trim().split(",") }));
+const touchpointsRaw = pick("touchpoints.csv", proxyTouchpoints);
+const chainsRaw = pick("chains.csv", proxyChains);
+const valuesRaw = pick("metric-values.csv", proxyValues);
+const referrersRaw = pick("page-referrers.csv", proxyReferrers);
+const nextStepsRaw = pick("page-next-steps.csv", proxyNextSteps);
+const studyDailyRaw = pick("studyat-daily.csv", proxyStudyDaily);
+const webByPageRaw = pick("web-daily-by-page.csv", proxyWebByPage);
+/** Where each file is coming from right now. */
+export const FILE_SOURCE: Record<string, "loaded" | "local" | "proxy"> = Object.fromEntries(
+  CAMPAIGN_FILES.map((f) => [f.name, loaded[f.name] ? "loaded" : local(f.name) ? "local" : "proxy"]),
+);
+/** "proxy data" until real metrics are supplied, by either route. */
+export const DATA_LABEL = loaded["metric-values.csv"] ? "loaded in this browser" : local("metric-values.csv") ? "local data" : "proxy data";
+export const VALUES_ARE_PROXY = DATA_LABEL === "proxy data";
 
 export type Objective = "awareness" | "consideration" | "decision";
 export interface MetricValue {
