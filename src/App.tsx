@@ -1230,13 +1230,15 @@ export default function App() {
 
       {/* Campaign mode: say so, on screen, with the way out. */}
       {CAMPAIGN_MODE && !PRINT_MODE && !uiHidden && (
-        <div className="fixed top-2 right-3 z-50 flex items-center gap-3 rounded-full border border-grey-30 bg-card/90 py-1.5 pr-1.5 pl-4 text-sm shadow-md backdrop-blur-md">
-          <span>
-            <span className="font-semibold text-grey-90">{CAMPAIGN.name}</span>
-            <span className="text-grey-70" title="Numbers on the cards are the gap to benchmark, in points"> · {CAMPAIGN.dates} · stage gate {CAMPAIGN.gateLabel} · proxy data</span>
+        // Sits with the docks at the bottom (where the persona dock is on
+        // the persona map) — never over the date header.
+        <div className="fixed right-5 bottom-5 z-40 flex items-center gap-3 rounded-full border border-grey-30 bg-card/70 py-1.5 pr-1.5 pl-4 shadow-xl backdrop-blur-md">
+          <span className="leading-tight" title={`Stage gate ${CAMPAIGN.gateLabel}. Numbers on the cards are the gap to benchmark, in points.`}>
+            <span className="block text-sm font-semibold text-grey-90">{CAMPAIGN.name}</span>
+            <span className="block text-xs text-grey-70">{CAMPAIGN.dates} · proxy data</span>
           </span>
-          <a href="/" className={`rounded-full bg-grey-10 px-3 py-1 text-xs font-medium text-grey-90 hover:bg-grey-20 ${FOCUS_RING}`}>
-            Exit campaign
+          <a href="/" className={`rounded-full bg-rmit-blue px-3 py-1.5 text-xs font-medium text-on-accent hover:opacity-90 ${FOCUS_RING}`}>
+            Exit
           </a>
         </div>
       )}
