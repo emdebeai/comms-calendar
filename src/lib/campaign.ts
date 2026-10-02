@@ -5,20 +5,38 @@
 // Sources (all in data/, see data/README.md): campaigns.csv (the window),
 // campaign-touchpoints.csv (the touchpoints, one row per audience variant),
 // chains.csv (one row per CTA), and the PROXY figures in data/dummy/.
-import touchpointsRaw from "../../data/campaign-touchpoints.csv?raw";
-import chainsRaw from "../../data/chains.csv?raw";
-import valuesRaw from "../../data/dummy/metric-values.csv?raw";
-import referrersRaw from "../../data/dummy/page-referrers.csv?raw";
-import nextStepsRaw from "../../data/dummy/page-next-steps.csv?raw";
-import studyDailyRaw from "../../data/dummy/studyat-daily.csv?raw";
-import webDailyRaw from "../../data/dummy/web-daily.csv?raw";
-import webByPageRaw from "../../data/dummy/web-daily-by-page.csv?raw";
+import proxyTouchpoints from "../../data/campaign-touchpoints.csv?raw";
+import proxyChains from "../../data/chains.csv?raw";
+import proxyValues from "../../data/dummy/metric-values.csv?raw";
+import proxyReferrers from "../../data/dummy/page-referrers.csv?raw";
+import proxyNextSteps from "../../data/dummy/page-next-steps.csv?raw";
+import proxyStudyDaily from "../../data/dummy/studyat-daily.csv?raw";
+import proxyWebByPage from "../../data/dummy/web-daily-by-page.csv?raw";
 import { parseCsvRows } from "./csv";
 import type { Comm, CommType, InboundLaneData, Team } from "../data/types";
 
 import { CAMPAIGN_MODE, CAMPAIGN_MOMENT, CAMPAIGN_ROW } from "./campaignFlag";
 export { CAMPAIGN_MODE };
-export const VALUES_ARE_PROXY = true;
+// LOCAL DATA. Real figures never enter the repo. Put a file with the same
+// name in local/campaign/ (git-ignored) and it replaces the proxy one below —
+// read from disk at build time on this machine, bundled into the page, and
+// sent nowhere. A missing local file falls back to its proxy.
+const localFiles = import.meta.glob("../../local/campaign/*.csv", { query: "?raw", import: "default", eager: true }) as Record<string, string>;
+const local = (name: string): string | undefined => {
+  const text = Object.entries(localFiles).find(([path]) => path.endsWith(`/${name}`))?.[1];
+  // header only = not supplied yet
+  return text && text.trim().split("\n").length > 1 ? text : undefined;
+};
+const touchpointsRaw = local("touchpoints.csv") ?? proxyTouchpoints;
+const chainsRaw = local("chains.csv") ?? proxyChains;
+const valuesRaw = local("metric-values.csv") ?? proxyValues;
+const referrersRaw = local("page-referrers.csv") ?? proxyReferrers;
+const nextStepsRaw = local("page-next-steps.csv") ?? proxyNextSteps;
+const studyDailyRaw = local("studyat-daily.csv") ?? proxyStudyDaily;
+const webByPageRaw = local("web-daily-by-page.csv") ?? proxyWebByPage;
+/** Which of the campaign's files are coming from local/campaign/. */
+export const LOCAL_FILES = Object.keys(localFiles).map((p) => p.split("/").pop()!).filter((n) => local(n));
+export const VALUES_ARE_PROXY = !local("metric-values.csv");
 
 export type Objective = "awareness" | "consideration" | "decision";
 export interface MetricValue {
@@ -299,7 +317,11 @@ export function gapsFor(comm: Comm): Gap[] {
 }
 
 // ── the inbound lanes, from the daily proxy files ─────────────────────────
-const webDaily = parseCsvRows(webDailyRaw);
+const webByPage = parseCsvRows(webByPageRaw);
+const webDaily = [...new Set(webByPage.map((r) => r.date))].sort().map((date) => ({
+  date,
+  sessions: String(webByPage.filter((r) => r.date === date).reduce((a, r) => a + (Number(r.sessions) || 0), 0)),
+}));
 const studyDaily = parseCsvRows(studyDailyRaw);
 const studyByDay = [...new Set(studyDaily.map((r) => r.date))].sort().map((date) => {
   const rows = studyDaily.filter((r) => r.date === date);
@@ -308,7 +330,6 @@ const studyByDay = [...new Set(studyDaily.map((r) => r.date))].sort().map((date)
 });
 const peakStudy = studyByDay.reduce((a, b) => (b.contacts > a.contacts ? b : a));
 const peakWeb = webDaily.reduce((a, b) => (Number(b.sessions) > Number(a.sessions) ? b : a));
-const webByPage = parseCsvRows(webByPageRaw);
 // One colour per page, in traffic order — the hover breakdown's key.
 const PAGE_COLOURS = ["--color-cyan", "--color-rmit-blue-interactive", "--color-teal", "--color-purple", "--color-indigo", "--color-pink"];
 export const campaignInbound: InboundLaneData[] = [

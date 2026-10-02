@@ -284,7 +284,7 @@ function Home({ onEnter, setPage }: { onEnter: () => void; setPage: (p: Page) =>
         <h2 className="text-xl font-semibold text-grey-90">Campaigns</h2>
         <div className="mt-5 grid gap-4 sm:grid-cols-3">
           <a
-            href="/?campaign=cop-2026"
+            href="?campaign=cop-2026"
             className={`group ${CARD} text-left transition-colors hover:border-rmit-blue-interactive ${FOCUS_RING}`}
           >
             <span className="inline-block rounded-md bg-tint-amber px-2 py-0.5 text-xs font-semibold uppercase tracking-widest text-grey-90">

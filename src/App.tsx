@@ -14,6 +14,7 @@ import { connectedIds } from "./components/TriggerLayer";
 import { CommDetailPanel } from "./components/CommDetailPanel";
 import { CampaignSections } from "./components/CampaignSections";
 import { CampaignCardFooter, CampaignCardLine } from "./components/CampaignCardLine";
+import { VALUES_ARE_PROXY } from "./lib/campaign";
 import { CAMPAIGN, CAMPAIGN_MODE, campaignAllComms, campaignComms, campaignCommsCollapsed, campaignInbound, campaignInfo, campaignPages, campaignPaid, studyChannels } from "./lib/campaign";
 import { CampaignPagesPanel, CampaignPaidPanel, CampaignStudyPanel } from "./components/CampaignGroupPanel";
 import { compare as compareOf, headline as headlineOf } from "./lib/campaign";
@@ -117,7 +118,7 @@ export default function App() {
   }, []);
   const goHome = useCallback(() => {
     if (CAMPAIGN_MODE) {
-      window.location.assign("/");
+      window.location.assign(window.location.pathname); // works from file:// too
       return;
     }
     window.location.hash = "/";
@@ -1235,9 +1236,9 @@ export default function App() {
         <div className="fixed right-5 bottom-5 z-40 flex items-center gap-3 rounded-full border border-grey-30 bg-card/70 py-1.5 pr-1.5 pl-4 shadow-xl backdrop-blur-md">
           <span className="leading-tight" title={`Stage gate ${CAMPAIGN.gateLabel}. Numbers on the cards are the gap to benchmark, in points.`}>
             <span className="block text-sm font-semibold text-grey-90">{CAMPAIGN.name}</span>
-            <span className="block text-xs text-grey-70">{CAMPAIGN.dates} · proxy data</span>
+            <span className="block text-xs text-grey-70">{CAMPAIGN.dates} · {VALUES_ARE_PROXY ? "proxy data" : "local data"}</span>
           </span>
-          <a href="/" className={`rounded-full bg-rmit-blue px-3 py-1.5 text-xs font-medium text-on-accent hover:opacity-90 ${FOCUS_RING}`}>
+          <a href={window.location.pathname} className={`rounded-full bg-rmit-blue px-3 py-1.5 text-xs font-medium text-on-accent hover:opacity-90 ${FOCUS_RING}`}>
             Exit
           </a>
         </div>

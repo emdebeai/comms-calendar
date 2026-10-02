@@ -17,7 +17,6 @@ copies, never source of truth.
 | `metrics-catalogue.csv` | Metric names, definitions, benchmark *level*, source system and owner per touchpoint type — never values. Edited on `/metrics`; `scripts/apply-metrics-catalogue.mjs` folds edits back. |
 | `dummy/page-referrers.csv` | **Proxy.** Per page: CJA Marketing Channel × UTM source, sessions and share — channel level only (`comm_id,channel,utm_source,sessions,share`). |
 | `dummy/studyat-daily.csv` | **Proxy.** Study@ by day and channel across the window (`date,channel,contacts,handle_time,wait_time,abandonment_rate,csat,csat_responses`). Daily because COP is a three-day spike a monthly average would hide; CSAT blank where responses are thin. Genesys + Qualtrics. |
-| `dummy/web-daily.csv` | **Proxy.** Sessions across the campaign's pages per day (`date,sessions`) — the run sheet's website bars. |
 | `dummy/page-next-steps.csv` | **Proxy.** Top actions people take on a page (`comm_id,action,people,share,to`) — form submissions, clicks to another page; `to` links the action to a touchpoint where one exists. |
 | `dummy/metric-values.csv` | **Proxy figures only.** Obviously fake round numbers so the campaign lens can be seen working. Real values never enter the repo — a team loads its own export locally with the same columns (`comm_id,cta,metric,value,benchmark,period` — `cta` is `primary` / `secondary` / `tertiary` for a metric of one link inside the send, blank for the send as a whole). |
 
@@ -51,3 +50,29 @@ Two rules for the CSVs:
   holds the real thing when configured). Runtime state, not map data.
 - `marketing-edms/data.json` — a **built** snapshot (`npm run
   build:edm-review`); regenerate it, never hand-edit.
+
+## Running a campaign on real data (local only, nothing uploaded)
+
+Real figures never go in this repo or on the hosted site. They live in
+`local/campaign/` on one machine — git-ignored — and the campaign view reads
+them from disk when it's run or built there.
+
+1. `npm run campaign:local` creates `local/campaign/` with a header-only CSV
+   for each file below. Fill them in (a spreadsheet is fine; save as CSV, keep
+   the file names). A file left header-only falls back to the proxy data.
+2. `npm run dev` → `http://localhost:5173/?campaign=cop-2026`, or
+   `npm run build:standalone` → `dist-standalone/index.html`, one file you can
+   open by double-click (add `?campaign=cop-2026` to the address). That file
+   makes no network requests; share it only as you would the data inside it.
+
+| Local file | What goes in it | Comes from |
+|---|---|---|
+| `touchpoints.csv` | One row per touchpoint **per audience variant**: id, team, kind, objective, type, title, date, audience, CTAs, CVP, variants, UTM, URL | The teams (not sensitive, but campaign-specific) |
+| `chains.csv` | One row per CTA: which touchpoint it leaves, which it lands on, the CTA text, whether it carries a UTM, whether the next step is measured, people | Marketo click report + the teams |
+| `metric-values.csv` | One row per metric per touchpoint: `comm_id, cta, metric, value, benchmark, period`. `cta` is blank for send-level metrics, `primary` / `secondary` for a link's | Marketo send + click reports, CJA, event platform |
+| `page-referrers.csv` | Per page: channel, UTM source, sessions, share | CJA Marketing Channel × UTM source |
+| `page-next-steps.csv` | Per page: the top actions people took next, people, share | CJA next page / action |
+| `web-daily-by-page.csv` | `date, page_id, sessions` per page per day in the window | CJA |
+| `studyat-daily.csv` | Per day per channel: contacts, handle time, wait time, abandonment, CSAT | Genesys + Qualtrics |
+
+The campaign itself (window, moment, stage gate) stays in `data/campaigns.csv`.

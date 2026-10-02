@@ -12,3 +12,8 @@ server/data/feedback.json
 ~$*.xlsx
 server/data/edm-review.json
 exports/
+
+# Real campaign data lives here, on this machine only — never committed,
+# never uploaded. See data/README.md → "Running a campaign on real data".
+local/
+dist-standalone/

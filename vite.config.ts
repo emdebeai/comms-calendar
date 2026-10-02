@@ -34,8 +34,18 @@ const marketingEdmsTrailingSlash: Plugin = {
 //    (the double-click build). See the build:standalone script.
 const singleFile = process.env.VITE_SINGLEFILE === "true";
 
+// The single-file (offline) build makes no network requests at all: drop the
+// web-font links so opening it never calls out — it falls back to system fonts.
+const noRemoteFonts: Plugin = {
+  name: "no-remote-fonts",
+  transformIndexHtml(html) {
+    return singleFile ? html.replace(/\s*<link[^>]*fonts\.(googleapis|gstatic)\.com[^>]*>/g, "") : html;
+  },
+};
+
 export default defineConfig({
   plugins: [
+    noRemoteFonts,
     react(),
     tailwindcss(),
     marketingEdmsTrailingSlash,
