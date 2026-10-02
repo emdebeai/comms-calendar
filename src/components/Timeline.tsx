@@ -684,7 +684,10 @@ export function Timeline({
               if (!node) return null;
               const { x, y } = commPos(c);
               return (
-                <div key={`footer-${c.id}`} className="absolute z-30" style={{ left: x + 27, top: y + commHeight(c.id) - 22 }}>
+                // Normally under the sticky gutter and header like any card
+                // (z-30); lifted above its own card only while that card is
+                // hovered (it rises to z-50 for its tooltip and would bury it).
+                <div key={`footer-${c.id}`} className="absolute" style={{ left: x + 27, top: y + commHeight(c.id) - 22, zIndex: activeId === c.id ? 60 : 30 }}>
                   {node}
                 </div>
               );
