@@ -3,12 +3,15 @@ import { Check, Upload } from "lucide-react";
 import { CAMPAIGN_FILES, FILE_SOURCE } from "../lib/campaign";
 import { clearLoaded, readLoaded, writeLoaded, type LoadedFiles } from "../lib/campaignLoaded";
 import { parseCsv } from "../lib/csv";
+import { genesysToDaily, isGenesys } from "../lib/genesys";
 import { EYEBROW, FOCUS_RING } from "../lib/styles";
 import { DetailPanelShell } from "./DetailPanelShell";
 
 // Load campaign CSVs into the page — picked or pasted. They're read by the
 // browser's File API and stored in the browser; this component makes no
 // network request. A file is recognised by its column headers, not its name.
+// Genesys queue exports (one per day, any number of them) are folded into
+// studyat-daily.csv here, in the browser, before anything is stored.
 
 /** Which campaign file a CSV is, from its header row — and what's missing. */
 function recognise(text: string): { name: string; missing: string[] } | null {
@@ -28,9 +31,21 @@ export function CampaignDataLoader({ onClose }: { onClose: () => void }) {
   const [keep, setKeep] = useState(current.kept);
   const [notes, setNotes] = useState<string[]>([]);
   const [paste, setPaste] = useState("");
+  const [genesys, setGenesys] = useState<string[]>([]);
+  const [genesysNote, setGenesysNote] = useState("");
   const input = useRef<HTMLInputElement>(null);
 
+  const foldGenesys = (texts: string[]) => {
+    setGenesys(texts);
+    const r = genesysToDaily(texts);
+    if (!r.days) { setGenesysNote(""); return `${texts.length} Genesys file${texts.length === 1 ? "" : "s"}: no Study@ rows found.`; }
+    setStaged((s) => ({ ...s, "studyat-daily.csv": r.csv }));
+    const note = `${r.files} Genesys daily file${r.files === 1 ? "" : "s"} → ${r.days} day${r.days === 1 ? "" : "s"}, ${r.from} to ${r.to}, ${r.channels.join(" and ")}`;
+    setGenesysNote(note);
+    return note + (r.skipped ? ` (${r.skipped} rows from other queues or media types left out)` : "");
+  };
   const take = (text: string, label: string) => {
+    if (isGenesys(parseCsv(text)[0] ?? [])) return null; // folded together below
     const hit = recognise(text);
     if (!hit) return `${label}: columns don't match any campaign file.`;
     if (parseCsv(text).length < 2) return `${label}: recognised as ${hit.name}, but it has no rows.`;
@@ -40,7 +55,14 @@ export function CampaignDataLoader({ onClose }: { onClose: () => void }) {
   const onFiles = async (list: FileList | null) => {
     if (!list) return;
     const out: string[] = [];
-    for (const file of Array.from(list)) out.push(take(await file.text(), file.name));
+    const daily: string[] = [];
+    for (const file of Array.from(list)) {
+      const text = await file.text();
+      const note = take(text, file.name);
+      if (note) out.push(note);
+      else daily.push(text);
+    }
+    if (daily.length) out.push(foldGenesys([...genesys, ...daily]));
     setNotes(out);
   };
   const apply = () => {
@@ -68,6 +90,7 @@ export function CampaignDataLoader({ onClose }: { onClose: () => void }) {
         <button type="button" onClick={() => input.current?.click()} className={`mt-2 rounded-md border border-grey-30 bg-card px-3 py-2 text-sm font-medium text-grey-90 hover:bg-grey-10 ${FOCUS_RING}`}>
           Choose CSV files
         </button>
+        <p className="mt-2 text-xs text-grey-70">Genesys daily queue exports can be chosen together; they are folded into the Study@ file.</p>
 
         <h3 className={`mt-6 text-grey-70 ${EYEBROW}`}>Or paste one</h3>
         <label htmlFor="campaign-paste" className="sr-only">Paste CSV text, header row included</label>
@@ -83,7 +106,7 @@ export function CampaignDataLoader({ onClose }: { onClose: () => void }) {
         <button
           type="button"
           disabled={!paste.trim()}
-          onClick={() => { setNotes([take(paste, "Pasted text")]); setPaste(""); }}
+          onClick={() => { setNotes([take(paste, "Pasted text") ?? foldGenesys([...genesys, paste])]); setPaste(""); }}
           className={`mt-2 rounded-md border border-grey-30 bg-card px-3 py-2 text-sm font-medium text-grey-90 hover:bg-grey-10 disabled:cursor-not-allowed disabled:opacity-50 ${FOCUS_RING}`}
         >
           Add pasted file
@@ -103,12 +126,12 @@ export function CampaignDataLoader({ onClose }: { onClose: () => void }) {
               <li key={f.name} className="flex items-center justify-between gap-3 py-2">
                 <span className="min-w-0">
                   <span className="block text-sm text-grey-90">{f.what}</span>
-                  <span className="block truncate text-xs text-grey-60">{f.header.join(", ")}</span>
+                  <span className="block truncate text-xs text-grey-60">{f.name === "studyat-daily.csv" && genesysNote ? genesysNote : f.header.join(", ")}</span>
                 </span>
                 {on ? (
                   <span className="flex shrink-0 items-center gap-2 text-xs text-success">
                     <Check size={13} strokeWidth={2.5} aria-hidden /> Loaded
-                    <button type="button" onClick={() => setStaged((s) => { const n = { ...s }; delete n[f.name]; return n; })} className={`rounded text-grey-70 underline-offset-2 hover:underline ${FOCUS_RING}`}>Remove</button>
+                    <button type="button" onClick={() => { if (f.name === "studyat-daily.csv") { setGenesys([]); setGenesysNote(""); } setStaged((s) => { const n = { ...s }; delete n[f.name]; return n; }); }} className={`rounded text-grey-70 underline-offset-2 hover:underline ${FOCUS_RING}`}>Remove</button>
                   </span>
                 ) : (
                   <span className="shrink-0 text-xs text-grey-60">{FILE_SOURCE[f.name] === "local" ? "Local file" : "Proxy"}</span>

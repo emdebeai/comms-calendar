@@ -83,3 +83,13 @@ A file is recognised by its column headers, so the name doesn't matter. They
 are held in that tab (gone when it closes) unless "Keep on this device" is
 ticked, and they win over `local/` and the proxy files. Nothing is sent
 anywhere: campaign mode makes no API calls at all.
+
+**Genesys exports go in as they are.** Study@ gets one Genesys queue export a
+day (`Interval Start, Media Type, Queue Name, Offer, Answer, Abandon, Avg
+Wait, Avg Handle, …`). Choose all of them at once in "Load data" and they are
+folded into `studyat-daily.csv` in the browser (`src/lib/genesys.ts`): only
+the Study@ queues, `voice` → phone and `message` → chat, contacts = Offer,
+wait and handle times weighted by answered contacts, abandonment = Abandon /
+Offer. A day exported twice keeps the later copy. Face to face isn't in
+Genesys and shows as "Not in the data"; CSAT stays blank until Qualtrics is
+added.

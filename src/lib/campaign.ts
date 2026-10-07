@@ -374,27 +374,32 @@ export const campaignInbound: InboundLaneData[] = [
     id: "study",
     baseline: 0,
     peaks: [{ month: dateToMonth(peakStudy.date), height: 0, label: `Results day · ${peakStudy.contacts.toLocaleString()} contacts · phone wait ${peakStudy.wait}` }],
-    seriesNote: "Contacts per day by channel (proxy)",
+    seriesNote: VALUES_ARE_PROXY ? "Contacts per day by channel (proxy)" : "Contacts per day by channel",
     channelsLabel: "Contacts by channel",
     // One line per channel, as the map's own Study@ lane draws them.
     channels: (["phone", "chat", "face-to-face"] as const).map((channel) => ({
       label: channel === "face-to-face" ? "Face to face" : channel === "chat" ? "Chat" : "Phone",
       color: channel === "phone" ? "--color-indigo" : channel === "chat" ? "--color-teal" : "--color-pink",
       points: studyDaily.filter((r) => r.channel === channel).map((r) => ({ month: dateToMonth(r.date), value: Number(r.contacts) })),
-    })),
+    })).filter((ch) => ch.points.length),
   },
 ];
 
 /** Study@ per channel over the window — shown in the Study@ lane's gutter. */
+//  A channel the file doesn't carry (face to face isn't in Genesys) is kept,
+//  marked unmeasured, so the panel can say so rather than drop it.
 export const studyChannels = (["phone", "chat", "face-to-face"] as const).map((channel) => {
   const rows = studyDaily.filter((r) => r.channel === channel);
+  const label = channel === "face-to-face" ? "Face to face" : channel === "chat" ? "Live chat" : "Phone";
+  if (!rows.length) return { channel, label, measured: false, contacts: 0, peakWait: "", peakDate: "", baseline: "", overloaded: false };
   const base = rows.filter((r) => r.date < CAMPAIGN.coreFrom && Number(r.contacts) > 40).map((r) => secs(r.wait_time));
   const baseline = base.reduce((a, b) => a + b, 0) / Math.max(base.length, 1);
   const peak = rows.reduce((a, b) => (secs(b.wait_time) > secs(a.wait_time) ? b : a));
   const clock = (s: number) => `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, "0")}`;
   return {
     channel,
-    label: channel === "face-to-face" ? "Face to face" : channel === "chat" ? "Live chat" : "Phone",
+    label,
+    measured: true,
     contacts: rows.reduce((a, r) => a + Number(r.contacts), 0),
     peakWait: peak.wait_time,
     peakDate: peak.date,

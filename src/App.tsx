@@ -1038,8 +1038,8 @@ export default function App() {
                         : []),
                       {
                         laneId: "study",
-                        label: `${studyChannels.length} channels`,
-                        detail: `peak phone wait ${studyChannels[0].peakWait}`,
+                        label: `${studyChannels.filter((c) => c.measured).length} channels`,
+                        detail: studyChannels[0].measured ? `peak phone wait ${studyChannels[0].peakWait}` : "phone not in the data",
                         onClick: () => { setOpenCommId(null); setGroupPanel("study"); },
                       },
                     ]

@@ -1,5 +1,5 @@
 import { Globe, Headset, Megaphone } from "lucide-react";
-import { campaignAllComms, campaignInfo, campaignPages, campaignPaid, compare, headline, shortDate, studyChannels } from "../lib/campaign";
+import { campaignAllComms, campaignInfo, campaignPages, campaignPaid, compare, FILE_SOURCE, headline, shortDate, studyChannels } from "../lib/campaign";
 import { EYEBROW, FOCUS_RING } from "../lib/styles";
 import { DetailPanelShell } from "./DetailPanelShell";
 import { COMM_COLORS } from "./icons";
@@ -68,16 +68,18 @@ export function CampaignStudyPanel({ onClose }: { onClose: () => void }) {
             <li key={ch.channel} className="flex items-baseline justify-between gap-3 py-2.5">
               <span className="min-w-0">
                 <span className="block text-sm text-grey-90">{ch.label}</span>
-                <span className="block text-xs text-grey-70">{ch.contacts.toLocaleString()} contacts · normal wait {ch.baseline}</span>
+                <span className="block text-xs text-grey-70">{ch.measured ? `${ch.contacts.toLocaleString()} contacts · normal wait ${ch.baseline}` : "Not in the data"}</span>
               </span>
-              <span className="shrink-0 text-right">
-                <span className={`block text-sm font-semibold ${ch.overloaded ? "text-danger" : "text-grey-90"}`}>{ch.peakWait}</span>
-                <span className="block text-xs text-grey-70">peak wait · {shortDate(ch.peakDate)}</span>
-              </span>
+              {ch.measured && (
+                <span className="shrink-0 text-right">
+                  <span className={`block text-sm font-semibold ${ch.overloaded ? "text-danger" : "text-grey-90"}`}>{ch.peakWait}</span>
+                  <span className="block text-xs text-grey-70">peak wait · {shortDate(ch.peakDate)}</span>
+                </span>
+              )}
             </li>
           ))}
         </ul>
-        <p className="mt-4 text-xs text-grey-60">Proxy figures. Source: Genesys by day and channel.</p>
+        <p className="mt-4 text-xs text-grey-60">{FILE_SOURCE["studyat-daily.csv"] === "proxy" ? "Proxy figures. " : ""}Source: Genesys by day and channel.</p>
       </div>
     </DetailPanelShell>
   );
