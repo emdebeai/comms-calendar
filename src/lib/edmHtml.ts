@@ -23,7 +23,12 @@ export type EdmLink = {
   /** primary / secondary / tertiary for buttons by order; "" otherwise. */
   rank: "primary" | "secondary" | "tertiary" | "";
 };
-export type EdmTemplate = { marketoId: string; file: string; headline: string; links: EdmLink[] };
+export type EdmTemplate = { marketoId: string; /** The file stem, normalised like an Email Name. */ nameKey: string; file: string; headline: string; links: EdmLink[] };
+
+/** Email Names and template file names differ only in punctuation
+ *  ("PSTU-Marketing-DOM-SL-9095-20Nov.Year 12" vs
+ *  "PSTU_Marketing_DOM_SL_9095_20Nov_Year_12"): compare them stripped. */
+export const nameKey = (s: string) => s.replace(/\.html?$/i, "").toLowerCase().replace(/[^a-z0-9]/g, "");
 
 // Modules that are chrome, not content: their links never count as CTAs.
 const FURNITURE = /^(top_preheader|logo|footer|acknowledgement|brand_mark|recipient_details|line_space|spacer)/i;
@@ -66,12 +71,18 @@ export function parseEdmTemplate(html: string, file: string): EdmTemplate {
   // Buttons rank by position; everything else is unranked.
   let n = 0;
   for (const l of links) if (l.kind === "button") l.rank = (["primary", "secondary"] as const)[n++] ?? "tertiary";
-  return { marketoId: marketoIdFromName(file), file, headline, links };
+  return { marketoId: marketoIdFromName(file), nameKey: nameKey(file), file, headline, links };
 }
 
-/** Lookup for the eDM fold: "<marketo id>|<path>" → the template's link. */
-export function templateIndex(templates: EdmTemplate[]): Map<string, EdmLink> {
-  const m = new Map<string, EdmLink>();
-  for (const t of templates) for (const l of t.links) m.set(`${t.marketoId}|${l.path}`, l);
-  return m;
+/** Lookup for the eDM fold. A Marketo ID is the program's, shared by every
+ *  audience variant in it, so a template is matched to a send by name first
+ *  and by Marketo ID only when that program has a single send. */
+export type TemplateIndex = { byName: Map<string, EdmTemplate>; byId: Map<string, EdmTemplate[]> };
+export function templateIndex(templates: EdmTemplate[]): TemplateIndex {
+  const byName = new Map<string, EdmTemplate>(), byId = new Map<string, EdmTemplate[]>();
+  for (const t of templates) {
+    byName.set(t.nameKey, t);
+    byId.set(t.marketoId, [...(byId.get(t.marketoId) ?? []), t]);
+  }
+  return { byName, byId };
 }

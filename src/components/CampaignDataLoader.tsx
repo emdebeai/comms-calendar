@@ -100,7 +100,7 @@ export function CampaignDataLoader({ onClose }: { onClose: () => void }) {
     const r = marketoToCampaign(next.sends, next.ctas ?? [], CURRENT_FILES, CAMPAIGN.id, templateIndex(next.templates ?? []));
     const src: Partial<Sources> = { sends: `${plural(r.sends, "send")}` };
     if (next.ctas) src.ctas = `${plural(r.links, "link")}${r.pagesAdded.length ? `, ${plural(r.pagesAdded.length, "destination page")} added` : ""}${r.external ? `, ${r.external} off-site` : ""}${r.footer ? `, ${r.footer} footer links dropped` : ""}`;
-    if (tplNote) src.templates = `${r.templatesMatched.length} of ${plural(next.templates!.length, "template")} matched a send (Marketo ID ${r.templatesMatched.join(", ")})${r.templatesUnmatched.length ? `; no send for ${r.templatesUnmatched.join(", ")}` : ""}${r.rankedFromTemplate ? ` · ${plural(r.rankedFromTemplate, "rank")} filled` : ""}`;
+    if (tplNote) src.templates = `${r.templatesMatched.length} of ${plural(next.templates!.length, "template")} matched a send: ${r.templatesMatched.join(", ") || "none"}${r.templatesUnmatched.length ? ` · no send named like ${r.templatesUnmatched.join(", ")}` : ""}${r.rankedFromTemplate ? ` · ${plural(r.rankedFromTemplate, "rank")} filled` : ""}`;
     stage({ "touchpoints.csv": r.touchpoints, "chains.csv": r.chains, "metric-values.csv": r.values }, src);
     const bits = [plural(r.sends, "send"), next.ctas ? plural(r.links, "link") : "no CTAs file yet"];
     if (r.pagesAdded.length) bits.push(`${plural(r.pagesAdded.length, "destination page")} added: ${r.pagesAdded.join(", ")}`);
@@ -150,7 +150,7 @@ export function CampaignDataLoader({ onClose }: { onClose: () => void }) {
       if (/\.html?$/i.test(file.name)) {
         const t = parseEdmTemplate(await readText(file), file.name);
         if (!t.marketoId) { out.push(`${file.name}: NOT LOADED — no Marketo ID in the file name.`); continue; }
-        html = [...html.filter((x) => x.marketoId !== t.marketoId), t];
+        html = [...html.filter((x) => x.nameKey !== t.nameKey), t];
         continue;
       }
       const r = take(await readText(file), file.name);
@@ -158,7 +158,7 @@ export function CampaignDataLoader({ onClose }: { onClose: () => void }) {
       else daily.push(r.genesys);
     }
     if (html.length) {
-      const merged = [...(edmNow.templates ?? []).filter((x) => !html.some((h) => h.marketoId === x.marketoId)), ...html];
+      const merged = [...(edmNow.templates ?? []).filter((x) => !html.some((h) => h.nameKey === x.nameKey)), ...html];
       out.push(foldEdm({ ...edmNow, templates: merged }, `${plural(html.length, "template")}`));
     }
     if (daily.length) out.push(foldGenesys([...genesys, ...daily]));

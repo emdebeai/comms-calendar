@@ -115,8 +115,12 @@ involved). Every row that isn't a Marketing send is kept as it was. SheetJS
 is loaded only when a workbook is picked.
 
 **Email templates fill the gaps.** Marketo's HTML export of each email
-(file name carrying the Marketo ID, e.g. `…_9095_20Nov_Year_12.html`) can be
-picked alongside the sheets. `src/lib/edmHtml.ts` reads every link in
+(file name = the Email Name with underscores, e.g.
+`PSTU_Marketing_DOM_SL_9095_20Nov_Year_12.html` for
+`PSTU-Marketing-DOM-SL-9095-20Nov.Year 12`) can be picked alongside the
+sheets. A template is matched to its send by that name; the Marketo ID is the
+program's, shared by every audience variant, and only settles a match when
+the program has one send. `src/lib/edmHtml.ts` reads every link in
 module order: buttons (a filled, rounded table) rank primary, secondary,
 tertiary by position; body text links and banner images are unranked;
 footer, logo, social and system links are furniture and are dropped from

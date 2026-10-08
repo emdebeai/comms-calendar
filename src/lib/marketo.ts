@@ -5,7 +5,7 @@
 // reads, keeping every non-Marketing row the files already had. Runs in the
 // browser on a file the user picked; nothing here touches the network.
 import { parseCsv, parseCsvRows } from "./csv";
-import type { EdmLink } from "./edmHtml";
+import { nameKey, type EdmTemplate, type TemplateIndex } from "./edmHtml";
 
 const slugify = (t: string) => t.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 
@@ -116,9 +116,9 @@ export function marketoToCampaign(
   sendsSheet: Sheet, ctasSheet: Sheet,
   current: { touchpoints: string; chains: string; values: string },
   campaign: string,
-  /** From the HTML templates (edmHtml.ts): "<marketo id>|<path>" → link. Fills
-   *  a blank rank by button position and drops footer furniture. */
-  templates: Map<string, EdmLink> = new Map(),
+  /** The HTML templates (edmHtml.ts), matched to sends by name. A matched
+   *  template fills a blank rank by button position and drops footer furniture. */
+  templates: TemplateIndex = { byName: new Map(), byId: new Map() },
 ): MarketoResult {
   const tp = keep(current.touchpoints, (r) => r.team === "Marketing" && r.kind === "send");
   const kept = new Set(tp.rows.map((r) => r[0]));
@@ -171,14 +171,25 @@ export function marketoToCampaign(
   const values = keep(current.values, (r) => !kept.has(r.comm_id));
   const period = "eDM sheet";
   let links = 0, footer = 0, rankedFromTemplate = 0;
-  const templateIds = new Set([...templates.keys()].map((k) => k.split("|")[0]));
-  const sendIds = new Set(sendRows.map((r) => text(r, "marketo id")));
-  const templatesMatched = [...templateIds].filter((t) => sendIds.has(t));
-  const templatesUnmatched = [...templateIds].filter((t) => !sendIds.has(t));
+  // A template belongs to one send: same name as the Email Name, punctuation
+  // aside. Marketo ID is the program's and only settles it for a one-send program.
+  const idCount = new Map<string, number>();
+  for (const r of sendRows) { const id = text(r, "marketo id"); if (id) idCount.set(id, (idCount.get(id) ?? 0) + 1); }
+  const templateFor = (r: Row): EdmTemplate | undefined => {
+    const byName = templates.byName.get(nameKey(text(r, "email name")));
+    if (byName) return byName;
+    const id = text(r, "marketo id");
+    const byId = templates.byId.get(id) ?? [];
+    return idCount.get(id) === 1 && byId.length === 1 ? byId[0] : undefined;
+  };
+  const matched = new Map<string, string>(); // template file → Email Name
+  for (const r of sendRows) { const t = templateFor(r); if (t) matched.set(t.file, text(r, "email name")); }
+  const templatesMatched = [...matched.values()];
+  const templatesUnmatched = [...templates.byName.values()].filter((t) => !matched.has(t.file)).map((t) => t.file.replace(/\.html?$/i, ""));
   for (const r of sendRows) {
     const name = nameOf(r), id = ids.get(name)!;
-    const marketoId = text(r, "marketo id");
-    const tpl = (l: Row) => templates.get(`${marketoId}|${pagePath(text(l, "link"))}`);
+    const template = templateFor(r);
+    const tpl = (l: Row) => template?.links.find((x) => x.path === pagePath(text(l, "link")));
     // The sheet's rank wins; a blank one takes the template's button order.
     const rank = (l: Row): "primary" | "secondary" | "tertiary" => {
       const sheet = sheetRank(l);
@@ -201,7 +212,7 @@ export function marketoToCampaign(
       cvp: text(r, "theme"), variants: variants(r) > 1 ? String(variants(r)) : "", variant_basis: "",
       new_2026: /^(y|yes|true|1|new)$/i.test(text(r, "new this year")) ? "yes" : "", utm: links_.length ? (anyUtm ? "yes" : "no") : "",
       url: "", map_id: "",
-      template: [...templates.keys()].some((k) => k.startsWith(`${marketoId}|`)) ? "yes" : "",
+      template: template ? "yes" : "",
     };
     // Send-level metrics. The sheet's Benchmark column is either a number
     // (the benchmark for the objective's success measure) or the NAME of
