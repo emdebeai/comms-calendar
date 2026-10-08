@@ -1,5 +1,5 @@
 import { Globe, Headset, Megaphone } from "lucide-react";
-import { campaignAllComms, campaignInfo, campaignPages, campaignPaid, compare, FILE_SOURCE, headline, shortDate, studyChannels } from "../lib/campaign";
+import { campaignAllComms, campaignInfo, campaignPages, campaignPaid, compare, FILE_SOURCE, headline, shortDate, studyChannels, VALUES_ARE_PROXY } from "../lib/campaign";
 import { EYEBROW, FOCUS_RING } from "../lib/styles";
 import { DetailPanelShell } from "./DetailPanelShell";
 import { COMM_COLORS } from "./icons";
@@ -124,7 +124,7 @@ export function CampaignPaidPanel({ onClose, onOpenComm }: { onClose: () => void
             </ul>
           </div>
         ))}
-        <p className="mt-4 text-xs text-grey-60">Proxy figures.</p>
+        {VALUES_ARE_PROXY && <p className="mt-4 text-xs text-grey-60">Proxy figures.</p>}
       </div>
     </DetailPanelShell>
   );

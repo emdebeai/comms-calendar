@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { ArrowRight, Layers, Moon, Route, Sun, Target, UserRound, Users } from "lucide-react";
 import { FOCUS_RING } from "../lib/styles";
+import { readLoaded } from "../lib/campaignLoaded";
 import {
   ABOUT_PAGES,
   CONSULTED,
@@ -291,7 +292,7 @@ function Home({ onEnter, setPage }: { onEnter: () => void; setPage: (p: Page) =>
               Pilot
             </span>
             <p className="mt-3 text-base font-semibold text-grey-90">Change of Preference 2026</p>
-            <p className="mt-1 text-sm text-grey-70">19 Nov – 12 Dec · proxy data</p>
+            <p className="mt-1 text-sm text-grey-70">19 Nov – 12 Dec · {Object.keys(readLoaded().files).length ? "your loaded data" : "proxy data"}</p>
             <span className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-rmit-blue-interactive">
               View the campaign
               <ArrowRight size={15} strokeWidth={2} className="transition-transform group-hover:translate-x-0.5" aria-hidden />
