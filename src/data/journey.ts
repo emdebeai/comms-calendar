@@ -1,4 +1,5 @@
 import type { Moment, StageSpan, YearSpan } from "./types";
+import { CAMPAIGN_MODE, CAMPAIGN_ROW } from "../lib/campaignFlag";
 
 // Month 0 = January of Year 10. See src/lib/scale.ts.
 // Edit these spans to move stage boundaries — everything re-lays-out.
@@ -31,7 +32,9 @@ export const STAGES: StageSpan[] = [
 // & 12 goes out on the same day). So every band is the current calendar
 // year, and only the post-results tail rolls into next year. Computed from
 // today's date so it rolls over each January.
-const THIS_YEAR = new Date().getFullYear();
+// The Year 12 band is this calendar year — or the campaign's year when the
+// map is opened on one (a 2025 campaign reviewed in 2026 still reads 2025).
+const THIS_YEAR = Number((CAMPAIGN_MODE ? CAMPAIGN_ROW?.window_from ?? "" : "").slice(0, 4)) || new Date().getFullYear();
 
 export const YEARS: YearSpan[] = [
   { label: `Year 10 · ${THIS_YEAR}`, from: 0, to: 12 },

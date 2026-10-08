@@ -134,9 +134,9 @@ export function CampaignDataLoader({ onClose }: { onClose: () => void }) {
       onClose={onClose}
     >
       <div className="flex-1 overflow-y-auto p-6">
-        <p className={`rounded-md px-3 py-2 text-sm text-grey-90 ${DATA_LABEL === "proxy data" ? "bg-tint-amber" : "bg-tint-green"}`}>
-          <span className="font-semibold">{DATA_LABEL === "proxy data" ? "Showing proxy data: nothing loaded yet." : "Showing your data only."}</span>{" "}
-          {DATA_LABEL === "proxy data" ? "Load any file and the proxy figures go; files you don't load stay empty." : "Files you haven't loaded are empty, never proxy."}
+        <p className={`rounded-md px-3 py-2 text-sm text-grey-90 ${DATA_LABEL === "proxy data" || DATA_LABEL === "no data loaded yet" ? "bg-tint-amber" : "bg-tint-green"}`}>
+          <span className="font-semibold">{DATA_LABEL === "proxy data" ? "Showing proxy data: nothing loaded yet." : DATA_LABEL === "no data loaded yet" ? "Nothing loaded yet for this campaign." : "Showing your data only."}</span>{" "}
+          {DATA_LABEL === "proxy data" ? "Load any file and the proxy figures go; files you don't load stay empty." : DATA_LABEL === "no data loaded yet" ? "The map is empty until you load files." : "Files you haven't loaded are empty, never proxy."}
         </p>
         <p className="mt-2 text-xs text-grey-70">Files are read by your browser and stay in it. Nothing is sent to Vercel, GitHub or any server.</p>
 

@@ -2,6 +2,12 @@ import { useEffect, useState } from "react";
 import { ArrowRight, Layers, Moon, Route, Sun, Target, UserRound, Users } from "lucide-react";
 import { FOCUS_RING } from "../lib/styles";
 import { readLoaded } from "../lib/campaignLoaded";
+import campaignsRaw from "../../data/campaigns.csv?raw";
+import { parseCsvRows } from "../lib/csv";
+
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const day = (iso: string) => `${Number(iso.slice(8, 10))} ${MONTHS[Number(iso.slice(5, 7)) - 1]}`;
+const CAMPAIGNS = parseCsvRows(campaignsRaw).map((r) => ({ id: r.id, name: r.name, dates: `${day(r.window_from)} – ${day(r.window_to)}` }));
 import {
   ABOUT_PAGES,
   CONSULTED,
@@ -284,20 +290,23 @@ function Home({ onEnter, setPage }: { onEnter: () => void; setPage: (p: Page) =>
       <section>
         <h2 className="text-xl font-semibold text-grey-90">Campaigns</h2>
         <div className="mt-5 grid gap-4 sm:grid-cols-3">
-          <a
-            href="?campaign=cop-2026"
-            className={`group ${CARD} text-left transition-colors hover:border-rmit-blue-interactive ${FOCUS_RING}`}
-          >
-            <span className="inline-block rounded-md bg-tint-amber px-2 py-0.5 text-xs font-semibold uppercase tracking-widest text-grey-90">
-              Pilot
-            </span>
-            <p className="mt-3 text-base font-semibold text-grey-90">Change of Preference 2026</p>
-            <p className="mt-1 text-sm text-grey-70">19 Nov – 12 Dec · {Object.keys(readLoaded().files).length ? "your loaded data" : "proxy data"}</p>
-            <span className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-rmit-blue-interactive">
-              View the campaign
-              <ArrowRight size={15} strokeWidth={2} className="transition-transform group-hover:translate-x-0.5" aria-hidden />
-            </span>
-          </a>
+          {CAMPAIGNS.map((c) => (
+            <a
+              key={c.id}
+              href={`?campaign=${c.id}`}
+              className={`group ${CARD} text-left transition-colors hover:border-rmit-blue-interactive ${FOCUS_RING}`}
+            >
+              <span className="inline-block rounded-md bg-tint-amber px-2 py-0.5 text-xs font-semibold uppercase tracking-widest text-grey-90">
+                Pilot
+              </span>
+              <p className="mt-3 text-base font-semibold text-grey-90">{c.name}</p>
+              <p className="mt-1 text-sm text-grey-70">{c.dates} · {Object.keys(readLoaded(c.id).files).length ? "your loaded data" : c.id === "cop-2026" ? "proxy data" : "nothing loaded yet"}</p>
+              <span className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-rmit-blue-interactive">
+                View the campaign
+                <ArrowRight size={15} strokeWidth={2} className="transition-transform group-hover:translate-x-0.5" aria-hidden />
+              </span>
+            </a>
+          ))}
         </div>
       </section>
 

@@ -36,7 +36,10 @@ const loaded = readLoaded().files;
 // so a real figure is never shown beside a made-up one.
 const ANY_REAL = Object.keys(loaded).length > 0 || Object.keys(localFiles).some((path) => local(path.split("/").pop()!));
 const headerOnly = (csv: string) => csv.split("\n")[0] + "\n";
-const pick = (name: string, proxy: string) => loaded[name] ?? local(name) ?? (ANY_REAL ? headerOnly(proxy) : proxy);
+// The proxy files describe cop-2026 only; any other campaign starts empty.
+const PROXY_CAMPAIGN = "cop-2026";
+const NO_PROXY = ANY_REAL || CAMPAIGN_ROW?.id !== PROXY_CAMPAIGN;
+const pick = (name: string, proxy: string) => loaded[name] ?? local(name) ?? (NO_PROXY ? headerOnly(proxy) : proxy);
 /** The files the campaign reads, with the proxy each falls back to. Their
  *  header rows are how a picked or pasted file is recognised. */
 export const CAMPAIGN_FILES: { name: string; what: string; header: string[] }[] = [
@@ -59,14 +62,15 @@ const webByPageRaw = pick("web-daily-by-page.csv", proxyWebByPage);
 export const CURRENT_FILES = { touchpoints: touchpointsRaw, chains: chainsRaw, values: valuesRaw };
 /** Where each file is coming from right now. */
 export const FILE_SOURCE: Record<string, "loaded" | "local" | "proxy" | "none"> = Object.fromEntries(
-  CAMPAIGN_FILES.map((f) => [f.name, loaded[f.name] ? "loaded" : local(f.name) ? "local" : ANY_REAL ? "none" : "proxy"]),
+  CAMPAIGN_FILES.map((f) => [f.name, loaded[f.name] ? "loaded" : local(f.name) ? "local" : NO_PROXY ? "none" : "proxy"]),
 );
 /** What the campaign is showing right now, in words — the pill says which,
  *  the Load data panel says which files. Never a mix of proxy and real. */
 const sources = Object.values(FILE_SOURCE);
-export const DATA_LABEL = !ANY_REAL ? "proxy data"
+export const DATA_LABEL = !NO_PROXY ? "proxy data"
+  : !ANY_REAL ? "no data loaded yet"
   : `${sources.includes("loaded") ? "loaded data" : "local data"} · ${sources.filter((s) => s === "loaded" || s === "local").length} of ${sources.length} files`;
-export const VALUES_ARE_PROXY = !ANY_REAL;
+export const VALUES_ARE_PROXY = !NO_PROXY;
 
 export type Objective = "awareness" | "consideration" | "decision";
 export interface MetricValue {
