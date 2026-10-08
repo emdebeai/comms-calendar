@@ -2,9 +2,9 @@ import { useRef, useState } from "react";
 import { Check, Upload } from "lucide-react";
 import { CAMPAIGN, CAMPAIGN_FILES, CURRENT_FILES, DATA_LABEL, FILE_CONTENTS, FILE_SOURCE } from "../lib/campaign";
 import { clearLoaded, readLoaded, writeLoaded, type LoadedFiles } from "../lib/campaignLoaded";
-import { parseCsv, parseCsvRows } from "../lib/csv";
-import { genesysToDaily, isGenesys } from "../lib/genesys";
-import { isCtasSheet, isSendsSheet, marketoToCampaign, type Sheet } from "../lib/marketo";
+import { parseCsv, parseCsvRows, tidyExport } from "../lib/csv";
+import { GENESYS_HEADER, genesysToDaily, isGenesys } from "../lib/genesys";
+import { CTAS_HEADER, isCtasSheet, isSendsSheet, marketoToCampaign, SENDS_HEADER, type Sheet } from "../lib/marketo";
 import { EYEBROW, FOCUS_RING } from "../lib/styles";
 import { DetailPanelShell } from "./DetailPanelShell";
 
@@ -48,7 +48,10 @@ export function CampaignDataLoader({ onClose }: { onClose: () => void }) {
     setStaged((s) => ({ ...s, "studyat-daily.csv": r.csv }));
     const note = `${r.files} Genesys daily file${r.files === 1 ? "" : "s"} → ${r.days} day${r.days === 1 ? "" : "s"}, ${r.from} to ${r.to}, ${r.channels.join(" and ")}`;
     setGenesysNote(note);
-    return note + (r.skipped ? ` (${r.skipped} rows from other queues or media types left out)` : "");
+    const outside = r.to < CAMPAIGN.from || r.from > CAMPAIGN.to
+      ? ` — NOTE: these days fall outside the campaign window (${CAMPAIGN.from} to ${CAMPAIGN.to}), so they won't show on the map until the window matches`
+      : "";
+    return note + (r.skipped ? ` (${r.skipped} rows from other queues or media types left out)` : "") + outside;
   };
   // The eDM workbook: SheetJS is loaded only when an .xlsx is picked, so the
   // map's own bundle doesn't carry it. Parsed here, in the browser.
@@ -73,13 +76,30 @@ export function CampaignDataLoader({ onClose }: { onClose: () => void }) {
     if (!sends && !ctas) return `${file.name}: no sheet with the eDM columns (Email Name with Sent and Opened, or with Link and People).`;
     return foldEdm({ sends: sends ?? edm.sends, ctas: ctas ?? edm.ctas }, file.name);
   };
-  const take = (text: string, label: string) => {
-    if (isGenesys(parseCsv(text)[0] ?? [])) return null; // folded together below
+  const KNOWN = [...CAMPAIGN_FILES.map((f) => f.header), SENDS_HEADER, CTAS_HEADER, GENESYS_HEADER];
+  /** Any text file in: find its header row, then route it. Returns the
+   *  tidied text for a Genesys file (folded together later), a note
+   *  otherwise. */
+  const take = (raw: string, label: string): { note: string } | { genesys: string } => {
+    const tidy = tidyExport(raw, KNOWN);
+    if (!tidy) {
+      const first = raw.replace(/^\uFEFF/, "").split(/\r?\n/).find((l) => l.trim()) ?? "";
+      return { note: `${label}: NOT LOADED — no row in it matches any file's columns. First line: "${first.slice(0, 120)}"` };
+    }
+    const text = tidy.text;
+    const where = tidy.headerLine > 1 ? ` (header found on line ${tidy.headerLine})` : "";
+    if (isGenesys(parseCsv(text)[0] ?? [])) return { genesys: text };
+    const rows: Sheet = parseCsvRows(text);
+    if (isSendsSheet(rows)) return { note: foldEdm({ ...edm, sends: rows }, label + where) };
+    if (isCtasSheet(rows)) return { note: foldEdm({ ...edm, ctas: rows }, label + where) };
+    return { note: takeCampaignFile(text, label + where) };
+  };
+  const takeCampaignFile = (text: string, label: string) => {
     const rows: Sheet = parseCsvRows(text);
     if (isSendsSheet(rows)) return foldEdm({ ...edm, sends: rows }, label);
     if (isCtasSheet(rows)) return foldEdm({ ...edm, ctas: rows }, label);
     const hit = recognise(text);
-    if (!hit) return `${label}: NOT LOADED — its columns don't match any campaign file. Its header row: ${(parseCsv(text)[0] ?? []).join(", ").slice(0, 160)}`;
+    if (!hit) return `${label}: NOT LOADED — its columns don't match any campaign file. Header row: ${(parseCsv(text)[0] ?? []).join(", ").slice(0, 160)}`;
     if (parseCsv(text).length < 2) return `${label}: recognised as ${hit.name}, but it has no rows.`;
     setStaged((s) => ({ ...s, [hit.name]: text }));
     return `${label} → ${hit.name}${hit.missing.length ? ` (missing columns: ${hit.missing.join(", ")})` : ""}`;
@@ -90,13 +110,12 @@ export function CampaignDataLoader({ onClose }: { onClose: () => void }) {
     const daily: string[] = [];
     for (const file of Array.from(list)) {
       if (/\.xlsx?$/i.test(file.name)) { out.push(await takeWorkbook(file)); continue; }
-      const text = await file.text();
-      const note = take(text, file.name);
-      if (note) out.push(note);
-      else daily.push(text);
+      const r = take(await file.text(), file.name);
+      if ("note" in r) out.push(r.note);
+      else daily.push(r.genesys);
     }
     if (daily.length) out.push(foldGenesys([...genesys, ...daily]));
-    setNotes(out);
+    setNotes((n) => [...out, ...n].slice(0, 12)); // newest first; earlier results stay visible
   };
   const apply = () => {
     if (Object.keys(staged).length) writeLoaded(staged, keep);
@@ -142,7 +161,7 @@ export function CampaignDataLoader({ onClose }: { onClose: () => void }) {
         <button
           type="button"
           disabled={!paste.trim()}
-          onClick={() => { setNotes([take(paste, "Pasted text") ?? foldGenesys([...genesys, paste])]); setPaste(""); }}
+          onClick={() => { const r = take(paste, "Pasted text"); const note = "note" in r ? r.note : foldGenesys([...genesys, r.genesys]); setNotes((n) => [note, ...n].slice(0, 12)); setPaste(""); }}
           className={`mt-2 rounded-md border border-grey-30 bg-card px-3 py-2 text-sm font-medium text-grey-90 hover:bg-grey-10 disabled:cursor-not-allowed disabled:opacity-50 ${FOCUS_RING}`}
         >
           Add pasted file
@@ -150,7 +169,7 @@ export function CampaignDataLoader({ onClose }: { onClose: () => void }) {
 
         {notes.length > 0 && (
           <ul className="mt-3 flex flex-col gap-1 text-xs text-grey-80" aria-live="polite">
-            {notes.map((n) => <li key={n}>{n}</li>)}
+            {notes.map((n, i) => <li key={`${i}-${n}`} className={n.includes("NOT LOADED") ? "rounded-md bg-tint-red px-2 py-1 font-medium text-grey-90" : ""}>{n}</li>)}
           </ul>
         )}
 

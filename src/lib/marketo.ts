@@ -12,8 +12,8 @@ type Row = Record<string, unknown>;
 /** A sheet's rows, keyed by header text, from SheetJS or a CSV. */
 export type Sheet = Row[];
 
-const SENDS_HEADER = ["email name", "sent", "delivered", "opened"];
-const CTAS_HEADER = ["email name", "link", "people"];
+export const SENDS_HEADER = ["email name", "sent", "delivered", "opened"];
+export const CTAS_HEADER = ["email name", "link", "people"];
 const has = (row: Row | undefined, keys: string[]) => {
   const h = Object.keys(row ?? {}).map((k) => k.trim().toLowerCase());
   return keys.every((k) => h.includes(k));

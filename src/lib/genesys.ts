@@ -7,9 +7,10 @@
 import { parseCsvRows } from "./csv";
 
 /** True when a CSV's header row is a Genesys queue export. */
+export const GENESYS_HEADER = ["interval start", "media type", "queue name", "offer"];
 export function isGenesys(header: string[]): boolean {
   const h = header.map((c) => c.trim().toLowerCase());
-  return ["interval start", "media type", "queue name", "offer"].every((c) => h.includes(c));
+  return GENESYS_HEADER.every((c) => h.includes(c));
 }
 
 // Only the Study@ queues count; the same export can carry other queues.
