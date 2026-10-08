@@ -86,24 +86,25 @@ export function CampaignSections({ comm, allComms, onOpenComm }: { comm: Comm; a
   // Other audiences of the same send — the map stacks them as variants;
   // here they're one tap away, each with its own success measure.
   const siblings = allComms.filter((c) => c.id !== comm.id && c.title === comm.title && c.team === comm.team);
-  const status = (ch: Chain | null) =>
-    !ch
-      ? { tone: "text-amber", label: "no destination recorded" }
-      : ch.utm === false
-        ? { tone: "text-amber", label: "no UTM — the page can't tell it was this send" }
-        : !ch.measured
-          ? { tone: "text-amber", label: "next step not measured" }
-          : ch.resolution === "channel"
-            ? { tone: "text-grey-60", label: "known by channel only" }
-            : { tone: "text-grey-60", label: "UTM tagged" };
+  // Only what's wrong is said; a tagged, measured link needs no caption.
+  const status = (ch: Chain | null): string | null =>
+    !ch ? "No destination recorded"
+      : ch.utm === false ? "No UTM — the page can't tell it was this send"
+      : !ch.measured ? "Next step not measured"
+      : ch.resolution === "channel" ? "Known by channel only"
+      : null;
   const metric = (k: string, name: string) => i.values.find((x) => x.cta === k && x.metric === name)?.value;
   const slots = (["primary", "secondary", "tertiary"] as const)
     .map((k) => ({ k, text: k === "primary" ? comm.cta : k === "secondary" ? comm.secondaryCta : comm.tertiaryCta, chains: i.chainsOut.filter((ch) => ch.cta === k) }))
     .filter((sl) => sl.text || sl.chains.length);
+  // Primary, secondary, then every other link by people clicked.
   const destinations = [
-    ...slots.flatMap((sl) => (sl.chains.length ? sl.chains : [null]).map((ch) => ({ k: sl.k as string, text: sl.text ?? ch?.via, ch }))),
-    ...i.chainsOut.filter((ch) => !ch.cta).map((ch) => ({ k: "", text: ch.via, ch })),
-  ];
+    ...slots.flatMap((sl) => (sl.chains.length ? sl.chains : [null]).map((ch) => ({ k: sl.k as string, text: (sl.k === "tertiary" ? ch?.via : sl.text ?? ch?.via) || "", ch }))),
+    ...i.chainsOut.filter((ch) => !ch.cta).map((ch) => ({ k: "", text: ch.via || "", ch })),
+  ].sort((a, b) => {
+    const r = (k: string) => (k === "primary" ? 0 : k === "secondary" ? 1 : 2);
+    return r(a.k) - r(b.k) || (b.ch?.people ?? 0) - (a.ch?.people ?? 0);
+  });
   const edmIn = i.chainsIn.filter((ch) => byId(ch.from)?.type === "email").sort((a, b) => (b.measured ? b.people ?? 0 : -1) - (a.measured ? a.people ?? 0 : -1));
   const edmTotal = edmIn.reduce((a, ch) => a + (ch.measured ? ch.people ?? 0 : 0), 0);
   const edmShare = i.referrers.filter((r) => /edm/i.test(r.channel)).reduce((a, r) => a + Number(r.share.replace("%", "")), 0);
@@ -212,15 +213,17 @@ export function CampaignSections({ comm, allComms, onOpenComm }: { comm: Comm; a
           <ul className="mt-2 divide-y divide-grey-30">
             {destinations.map(({ k, text, ch }, n) => {
               const dest = ch ? byId(ch.to) : undefined;
-              const people = metric(k, "Link — people"), pct = metric(k, "Link — % of people");
+              const ranked = k === "primary" || k === "secondary";
+              // Per-link counts live on the chain; the slot-level metric is
+              // only unambiguous for the one primary and one secondary.
+              const people = ch?.people ?? (ranked ? metric(k, "Link — people") : undefined);
+              const pct = ranked ? metric(k, "Link — % of people") : undefined;
               const st = status(ch);
               return (
-                <li key={`${k}-${n}`} className="grid grid-cols-[1fr_auto] gap-x-4 py-2.5">
+                <li key={`${k}-${n}`} className="grid grid-cols-[1fr_auto] items-start gap-x-4 py-2">
                   <div className="min-w-0">
-                    {k && <p className={`text-grey-70 ${EYEBROW}`}>{k} CTA</p>}
-                    <p className="text-sm font-semibold text-grey-90">“{text}”</p>
-                    <p className="mt-0.5 flex items-center gap-1 text-sm">
-                      <span className="text-grey-60">→</span>
+                    <p className="flex flex-wrap items-center gap-1.5 text-sm">
+                      {ranked && <span className={`rounded bg-grey-10 px-1.5 py-px text-grey-70 ${EYEBROW}`}>{k}</span>}
                       {dest?.type === "webpage" ? (
                         <PageBadge c={dest} onOpen={onOpenComm} />
                       ) : dest ? (
@@ -231,16 +234,17 @@ export function CampaignSections({ comm, allComms, onOpenComm }: { comm: Comm; a
                         <span className="text-grey-60 italic">nowhere recorded</span>
                       )}
                     </p>
-                    <p className={`mt-0.5 text-xs ${st.tone}`}>{st.label}</p>
+                    {text && <p className="mt-0.5 truncate text-xs text-grey-70">“{text}”</p>}
+                    {st && <p className="mt-0.5 text-xs text-amber">{st}</p>}
                   </div>
                   <div className="text-right">
                     {people ? (
                       <>
-                        <p className="text-lg leading-tight font-semibold text-grey-90">{fmt(people)}</p>
-                        <p className="text-xs text-grey-70">people clicked{pct ? ` · ${pct}` : ""}</p>
+                        <p className="text-base leading-tight font-semibold text-grey-90">{fmt(String(people))}</p>
+                        <p className="text-xs text-grey-70">people{pct ? ` · ${pct}` : ""}</p>
                       </>
                     ) : (
-                      <p className="text-xs text-grey-60 italic">no click data</p>
+                      <p className="text-xs text-grey-60 italic">no clicks recorded</p>
                     )}
                   </div>
                 </li>
