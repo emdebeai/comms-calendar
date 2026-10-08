@@ -121,7 +121,7 @@ export function CampaignSections({ comm, allComms, onOpenComm }: { comm: Comm; a
         </ul>
       )}
 
-      {(i.objective || i.new2026) && (
+      {(i.objective || i.new2026 || i.template) && (
         <p className="mt-4 text-sm text-grey-90">
           {i.objective && (
             <>
@@ -130,6 +130,7 @@ export function CampaignSections({ comm, allComms, onOpenComm }: { comm: Comm; a
             </>
           )}
           {i.new2026 && <span className="text-grey-70">{i.objective ? " · " : ""}new for 2026</span>}
+          {i.template && <span className="text-grey-70">{i.objective || i.new2026 ? " · " : ""}template loaded</span>}
         </p>
       )}
       {i.url && (

@@ -105,6 +105,7 @@ const sheetRank = (r: Row): "primary" | "secondary" | "tertiary" | "" => {
 export type MarketoResult = {
   touchpoints: string; chains: string; values: string;
   sends: number; links: number; external: number; footer: number; rankedFromTemplate: number;
+  templatesMatched: string[]; templatesUnmatched: string[];
   pagesAdded: string[]; unmatched: string[]; period: string;
 };
 
@@ -170,6 +171,10 @@ export function marketoToCampaign(
   const values = keep(current.values, (r) => !kept.has(r.comm_id));
   const period = "eDM sheet";
   let links = 0, footer = 0, rankedFromTemplate = 0;
+  const templateIds = new Set([...templates.keys()].map((k) => k.split("|")[0]));
+  const sendIds = new Set(sendRows.map((r) => text(r, "marketo id")));
+  const templatesMatched = [...templateIds].filter((t) => sendIds.has(t));
+  const templatesUnmatched = [...templateIds].filter((t) => !sendIds.has(t));
   for (const r of sendRows) {
     const name = nameOf(r), id = ids.get(name)!;
     const marketoId = text(r, "marketo id");
@@ -196,6 +201,7 @@ export function marketoToCampaign(
       cvp: text(r, "theme"), variants: variants(r) > 1 ? String(variants(r)) : "", variant_basis: "",
       new_2026: /^(y|yes|true|1|new)$/i.test(text(r, "new this year")) ? "yes" : "", utm: links_.length ? (anyUtm ? "yes" : "no") : "",
       url: "", map_id: "",
+      template: [...templates.keys()].some((k) => k.startsWith(`${marketoId}|`)) ? "yes" : "",
     };
     // Send-level metrics. The sheet's Benchmark column is either a number
     // (the benchmark for the objective's success measure) or the NAME of
@@ -239,6 +245,6 @@ export function marketoToCampaign(
   }
   return {
     touchpoints: toCsv(tp.header, tp.rows), chains: toCsv(chains.header, chains.rows), values: toCsv(values.header, values.rows),
-    sends: sendRows.length, links, external, footer, rankedFromTemplate, pagesAdded, unmatched, period,
+    sends: sendRows.length, links, external, footer, rankedFromTemplate, templatesMatched, templatesUnmatched, pagesAdded, unmatched, period,
   };
 }

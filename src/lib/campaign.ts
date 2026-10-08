@@ -108,6 +108,8 @@ export interface CampaignInfo {
   variants?: number;
   variantBasis?: string;
   new2026: boolean;
+  /** The email's HTML template was loaded (campaign mode, Marketing sends). */
+  template: boolean;
   utm?: "yes" | "no";
   url?: string;
   values: MetricValue[];
@@ -180,6 +182,7 @@ export const campaignAllComms: Comm[] = allRows
       variants: Number(r.variants) || undefined,
       variantBasis: r.variant_basis || undefined,
       new2026: yes(r.new_2026),
+      template: yes(r.template),
       utm: yes(r.utm) ? "yes" : /^(n|no)$/i.test(r.utm) ? "no" : undefined,
       url: r.url || undefined,
       values: [],

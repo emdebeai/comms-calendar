@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronRight, Users } from "lucide-react";
+import { ChevronDown, ChevronRight, LayoutTemplate, Users } from "lucide-react";
 import type { Comm } from "../data/types";
 import { campaignInfo, compare, delta, gapsFor, headline, num, variantsOf } from "../lib/campaign";
 import { FOCUS_RING } from "../lib/styles";
@@ -43,7 +43,12 @@ export function CampaignCardLine({ comm, grouped, open }: { comm: Comm; grouped?
         ) : (
           <span className="text-grey-70 italic">not measured</span>
         )}
-        {i.new2026 && <span className="ml-auto rounded-sm border border-current px-1 text-[10px] font-semibold tracking-wider text-grey-70 uppercase">New</span>}
+        {(i.new2026 || i.template) && (
+          <span className="ml-auto flex items-center gap-1">
+            {i.template && <LayoutTemplate size={12} strokeWidth={2} className="fill-tint-blue text-rmit-blue" aria-label="Email template loaded" />}
+            {i.new2026 && <span className="rounded-sm border border-current px-1 text-[10px] font-semibold tracking-wider text-grey-70 uppercase">New</span>}
+          </span>
+        )}
       </span>
       {variants.length > 1 && (
         <>

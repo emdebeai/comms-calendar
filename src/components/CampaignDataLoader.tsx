@@ -100,7 +100,7 @@ export function CampaignDataLoader({ onClose }: { onClose: () => void }) {
     const r = marketoToCampaign(next.sends, next.ctas ?? [], CURRENT_FILES, CAMPAIGN.id, templateIndex(next.templates ?? []));
     const src: Partial<Sources> = { sends: `${plural(r.sends, "send")}` };
     if (next.ctas) src.ctas = `${plural(r.links, "link")}${r.pagesAdded.length ? `, ${plural(r.pagesAdded.length, "destination page")} added` : ""}${r.external ? `, ${r.external} off-site` : ""}${r.footer ? `, ${r.footer} footer links dropped` : ""}`;
-    if (tplNote) src.templates = `${tplNote}${r.rankedFromTemplate ? `, ${plural(r.rankedFromTemplate, "rank")} filled` : ""}`;
+    if (tplNote) src.templates = `${r.templatesMatched.length} of ${plural(next.templates!.length, "template")} matched a send (Marketo ID ${r.templatesMatched.join(", ")})${r.templatesUnmatched.length ? `; no send for ${r.templatesUnmatched.join(", ")}` : ""}${r.rankedFromTemplate ? ` · ${plural(r.rankedFromTemplate, "rank")} filled` : ""}`;
     stage({ "touchpoints.csv": r.touchpoints, "chains.csv": r.chains, "metric-values.csv": r.values }, src);
     const bits = [plural(r.sends, "send"), next.ctas ? plural(r.links, "link") : "no CTAs file yet"];
     if (r.pagesAdded.length) bits.push(`${plural(r.pagesAdded.length, "destination page")} added: ${r.pagesAdded.join(", ")}`);
