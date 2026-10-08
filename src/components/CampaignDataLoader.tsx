@@ -42,6 +42,12 @@ const readSources = (files: LoadedFiles): Sources => {
   try { return JSON.parse(files[SOURCES_KEY] ?? "{}") as Sources; } catch { return {}; }
 };
 const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
+/** Exports from Windows tools are often Windows-1252, not UTF-8 (en dashes,
+ *  curly quotes); decode strictly as UTF-8 first, fall back when it isn't. */
+async function readText(file: File): Promise<string> {
+  const bytes = await file.arrayBuffer();
+  try { return new TextDecoder("utf-8", { fatal: true }).decode(bytes); } catch { return new TextDecoder("windows-1252").decode(bytes); }
+}
 
 export function CampaignDataLoader({ onClose }: { onClose: () => void }) {
   const current = readLoaded();
@@ -79,7 +85,11 @@ export function CampaignDataLoader({ onClose }: { onClose: () => void }) {
   };
   // Marketing: the sends sheet and the CTAs sheet, as two CSVs (together or
   // one at a time) or one workbook; whichever is held is folded.
+  // `edmNow` carries the sheets through one multi-file pick, where React
+  // state would still be the pre-pick value.
+  let edmNow = edm;
   const foldEdm = (next: { sends?: Sheet; ctas?: Sheet }, label: string) => {
+    edmNow = next;
     setEdm(next);
     if (!next.sends) {
       setSources((s) => ({ ...s, ctas: `${plural(next.ctas?.length ?? 0, "link row")} held — add the sends file` }));
@@ -87,7 +97,7 @@ export function CampaignDataLoader({ onClose }: { onClose: () => void }) {
     }
     const r = marketoToCampaign(next.sends, next.ctas ?? [], CURRENT_FILES, CAMPAIGN.id);
     const src: Partial<Sources> = { sends: `${plural(r.sends, "send")}` };
-    if (next.ctas) src.ctas = `${plural(r.links, "link")}${r.pagesAdded.length ? `, ${plural(r.pagesAdded.length, "destination page")} added` : ""}`;
+    if (next.ctas) src.ctas = `${plural(r.links, "link")}${r.pagesAdded.length ? `, ${plural(r.pagesAdded.length, "destination page")} added` : ""}${r.external ? `, ${r.external} off-site` : ""}`;
     stage({ "touchpoints.csv": r.touchpoints, "chains.csv": r.chains, "metric-values.csv": r.values }, src);
     const bits = [plural(r.sends, "send"), next.ctas ? plural(r.links, "link") : "no CTAs file yet"];
     if (r.pagesAdded.length) bits.push(`${plural(r.pagesAdded.length, "destination page")} added: ${r.pagesAdded.join(", ")}`);
@@ -100,7 +110,7 @@ export function CampaignDataLoader({ onClose }: { onClose: () => void }) {
     const sheets: Sheet[] = wb.SheetNames.map((n) => XLSX.utils.sheet_to_json<Record<string, unknown>>(wb.Sheets[n], { defval: "" }));
     const sends = sheets.find(isSendsSheet), ctas = sheets.find(isCtasSheet);
     if (!sends && !ctas) return reject(file.name, wb.SheetNames.join(" · "));
-    return foldEdm({ sends: sends ?? edm.sends, ctas: ctas ?? edm.ctas }, file.name);
+    return foldEdm({ sends: sends ?? edmNow.sends, ctas: ctas ?? edmNow.ctas }, file.name);
   };
   const reject = (name: string, line: string) => {
     setRejected({ name, line });
@@ -119,8 +129,8 @@ export function CampaignDataLoader({ onClose }: { onClose: () => void }) {
     const where = tidy.headerLine > 1 ? ` (header on line ${tidy.headerLine})` : "";
     if (isGenesys(parseCsv(text)[0] ?? [])) return { genesys: text };
     const rows: Sheet = parseCsvRows(text);
-    if (isSendsSheet(rows)) return { note: foldEdm({ ...edm, sends: rows }, label + where) };
-    if (isCtasSheet(rows)) return { note: foldEdm({ ...edm, ctas: rows }, label + where) };
+    if (isSendsSheet(rows)) return { note: foldEdm({ ...edmNow, sends: rows }, label + where) };
+    if (isCtasSheet(rows)) return { note: foldEdm({ ...edmNow, ctas: rows }, label + where) };
     const hit = recognise(text);
     if (!hit) return { note: reject(label, (parseCsv(text)[0] ?? []).join(", ").slice(0, 160)) };
     if (parseCsv(text).length < 2) return { note: `${label}: recognised as ${hit.name}, but it has no rows.` };
@@ -133,7 +143,7 @@ export function CampaignDataLoader({ onClose }: { onClose: () => void }) {
     const daily: string[] = [];
     for (const file of Array.from(list)) {
       if (/\.xlsx?$/i.test(file.name)) { out.push(await takeWorkbook(file)); continue; }
-      const r = take(await file.text(), file.name);
+      const r = take(await readText(file), file.name);
       if ("note" in r) out.push(r.note);
       else daily.push(r.genesys);
     }
@@ -144,7 +154,7 @@ export function CampaignDataLoader({ onClose }: { onClose: () => void }) {
     if (which === "genesys") { setGenesys([]); stage({ "studyat-daily.csv": undefined }, { genesys: undefined }); }
     if (which === "pages") stage(Object.fromEntries(PAGE_FILES.map((f) => [f, undefined])), { pages: undefined });
     if (which === "sends") { setEdm({}); stage(Object.fromEntries(EDM_FILES.map((f) => [f, undefined])), { sends: undefined, ctas: undefined }); }
-    if (which === "ctas") { if (edm.sends) foldEdm({ sends: edm.sends }, "Sends only"); else { setEdm({}); setSources((s) => ({ ...s, ctas: undefined })); } }
+    if (which === "ctas") { if (edmNow.sends) foldEdm({ sends: edmNow.sends }, "Sends only"); else { setEdm({}); setSources((s) => ({ ...s, ctas: undefined })); } }
   };
   const apply = () => {
     const files = { ...staged, [SOURCES_KEY]: JSON.stringify(sources) };

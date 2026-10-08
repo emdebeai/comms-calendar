@@ -17,3 +17,4 @@ exports/
 # never uploaded. See data/README.md → "Running a campaign on real data".
 local/
 dist-standalone/
+public/_tmp/

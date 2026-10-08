@@ -1029,7 +1029,9 @@ export default function App() {
                         label: campaignPages.length ? `${campaignPages.length} campaign pages` : "No pages loaded",
                         detail: (() => {
                           if (!campaignPages.length) return "";
-                          const n = campaignPages.filter((c) => { const i = campaignInfo(c.id); const h = i && headlineOf(c, i); return h && compareOf(h.value) === "worse"; }).length;
+                          const heads = campaignPages.map((c) => { const i = campaignInfo(c.id); return i && headlineOf(c, i); });
+                          if (!heads.some((h) => h && h.value.benchmark)) return "no benchmarks yet";
+                          const n = heads.filter((h) => h && compareOf(h.value) === "worse").length;
                           return n ? `${n} below benchmark` : "all at or above benchmark";
                         })(),
                         onClick: () => { setOpenCommId(null); setGroupPanel("pages"); },

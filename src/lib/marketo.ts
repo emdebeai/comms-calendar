@@ -5,7 +5,8 @@
 // reads, keeping every non-Marketing row the files already had. Runs in the
 // browser on a file the user picked; nothing here touches the network.
 import { parseCsv, parseCsvRows } from "./csv";
-import { slugify } from "./commsSchema";
+
+const slugify = (t: string) => t.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 
 type Row = Record<string, unknown>;
 
@@ -41,8 +42,17 @@ const count = (r: Row, name: string) => {
   const n = Number(String(v ?? "").replace(/,/g, ""));
   return Number.isFinite(n) && String(v ?? "").trim() ? String(Math.round(n)) : "";
 };
-/** A Date, an Excel serial, or dd/mm/yyyy text → ISO day. */
-export const isoDate = (v: unknown): string => {
+const MON = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
+/** A Date, an Excel serial, dd/mm/yyyy text, or "19-Nov" / "5 Dec" with the
+ *  year taken from `yearFrom` (another dated cell) or `fallbackYear` → ISO day. */
+export const isoDate = (v: unknown, yearFrom?: unknown, fallbackYear?: number): string => {
+  const s0 = String(v ?? "").trim();
+  const dm = s0.match(/^(\d{1,2})[-/ ]([A-Za-z]{3})[a-z]*\.?$/); // "19-Nov", "5 Dec"
+  if (dm) {
+    const m = MON.indexOf(dm[2].toLowerCase()) + 1;
+    const y = Number((isoDate(yearFrom) || "").slice(0, 4)) || fallbackYear || new Date().getFullYear();
+    if (m) return `${y}-${String(m).padStart(2, "0")}-${dm[1].padStart(2, "0")}`;
+  }
   // Local calendar day: SheetJS gives a Date at local midnight, which UTC
   // would roll back a day east of Greenwich.
   if (v instanceof Date && !Number.isNaN(v.getTime())) return `${v.getFullYear()}-${String(v.getMonth() + 1).padStart(2, "0")}-${String(v.getDate()).padStart(2, "0")}`;
@@ -88,12 +98,12 @@ const keep = (csv: string, drop: (r: Record<string, string>) => boolean) => {
 };
 const rank = (r: Row) => {
   const v = text(r, "primary/secondary").toLowerCase();
-  return v === "1" || v === "primary" ? "primary" : v === "2" || v === "secondary" ? "secondary" : "tertiary";
+  return v === "1" || v.startsWith("primary") ? "primary" : v === "2" || v.startsWith("secondary") ? "secondary" : "tertiary";
 };
 
 export type MarketoResult = {
   touchpoints: string; chains: string; values: string;
-  sends: number; links: number; pagesAdded: string[]; unmatched: string[]; period: string;
+  sends: number; links: number; external: number; pagesAdded: string[]; unmatched: string[]; period: string;
 };
 
 /** Fold the two sheets into the campaign files. `current` is each file's
@@ -111,7 +121,8 @@ export function marketoToCampaign(
   // between exports, so it's matched normalised.
   const nameOf = (r: Row) => text(r, "email name").toLowerCase();
   const ids = new Map<string, string>(); // Email Name → touchpoint id
-  const sendRows = sendsSheet.filter((r) => nameOf(r));
+  // A row with a name and nothing else (a stub line in the sheet) isn't a send.
+  const sendRows = sendsSheet.filter((r) => nameOf(r) && (text(r, "date") || text(r, "sent") || text(r, "delivered")));
   for (const r of sendRows) {
     let id = slugify(nameOf(r)) || `send-${ids.size + 1}`;
     while (kept.has(id)) id += "-2";
@@ -129,11 +140,19 @@ export function marketoToCampaign(
   }
   const unmatched = [...new Set(ctasSheet.filter((r) => nameOf(r) && !ids.has(nameOf(r))).map((r) => text(r, "email name")))];
   const pagesAdded: string[] = [];
+  let external = 0;
+  const isRmit = (url: string) => /(^|\.)rmit\.edu\.au$/i.test(pagePath(url).split("/")[0]);
   const pageIdFor = (url: string) => {
     const path = pagePath(url);
     const hit = pages.get(path);
     if (hit) return hit;
-    const title = pageNameFromUrl(url);
+    // Two paths can end in the same word (…/change-of-preference and
+    // …/parents/change-of-preference); the second takes its parent segment.
+    let title = pageNameFromUrl(url);
+    if ([...pages.keys()].some((k) => pageNameFromUrl("https://" + k) === title) || pagesAdded.includes(title)) {
+      const parent = pagePath(url).split("/").filter(Boolean).slice(-2, -1)[0];
+      if (parent) title = `${title} (${pageNameFromUrl("https://x/" + parent).toLowerCase()})`;
+    }
     let id = slugify(title) || "page";
     while (kept.has(id) || [...pages.values()].includes(id)) id += "-2";
     pages.set(path, id);
@@ -150,22 +169,29 @@ export function marketoToCampaign(
     const name = nameOf(r), id = ids.get(name)!;
     const links_ = (ctas.get(name) ?? []).slice().sort((a, b) => Number(text(a, "primary/secondary")) - Number(text(b, "primary/secondary")));
     const primary = links_.find((l) => rank(l) === "primary"), secondary = links_.find((l) => rank(l) === "secondary");
+    // Social and "Banner" links sort to the end; ranked ones keep their order.
     const anyUtm = links_.some((l) => utmOf(text(l, "link")).utm_campaign);
-    const objective = text(r, "objective").toLowerCase();
+    const ow = text(r, "objective").toLowerCase();
+    const objective = ow.startsWith("aware") ? "awareness" : ow.startsWith("consider") ? "consideration" : ow.startsWith("decid") || ow.startsWith("decis") ? "decision" : ow;
     const row: Record<string, string> = {
       id, campaign, team: "Marketing", kind: "send", objective, type: "email",
-      title: titleOf(r), date: isoDate(cell(r, "date")), audience: text(r, "audience variant"),
+      title: titleOf(r), date: isoDate(cell(r, "date"), cell(r, "first activity (aedt)") ?? cell(r, "first activity"), Number(campaign.match(/\d{4}/)?.[0])), audience: text(r, "audience variant"),
       primary_cta: primary ? text(primary, "cta") : "", secondary_cta: secondary ? text(secondary, "cta") : "",
       cvp: text(r, "theme"), variants: variants(r) > 1 ? String(variants(r)) : "", variant_basis: "",
       new_2026: /^(y|yes|true|1|new)$/i.test(text(r, "new this year")) ? "yes" : "", utm: links_.length ? (anyUtm ? "yes" : "no") : "",
       url: "", map_id: "",
     };
-    tp.rows.push(tp.header.map((h) => row[h] ?? ""));
-
-    // Send-level metrics; the sheet's one benchmark sits on the objective's
-    // success measure.
-    const bench = pct(r, "benchmark");
-    const success = objective === "awareness" ? "Open rate" : objective === "consideration" ? "Click-to-open rate" : objective === "decision" ? "Link — % of people" : "";
+    // Send-level metrics. The sheet's Benchmark column is either a number
+    // (the benchmark for the objective's success measure) or the NAME of
+    // the success measure ("Open Rate", "Click Rate") with no number.
+    const benchRaw = text(r, "benchmark");
+    const named = /^[a-z %-]+$/i.test(benchRaw) ? benchRaw.toLowerCase() : "";
+    const bench = named ? "" : pct(r, "benchmark");
+    const success = named.startsWith("open") ? "Open rate"
+      : named.startsWith("click-to-open") || named.startsWith("click to open") || named.startsWith("cto") ? "Click-to-open rate"
+      : named.startsWith("click") ? "Click rate"
+      : named.startsWith("unsub") ? "Unsubscribe rate"
+      : objective === "awareness" ? "Open rate" : objective === "consideration" ? "Click-to-open rate" : objective === "decision" ? "Link — % of people" : "";
     const sent = Number(count(r, "sent")), bounced = Number(count(r, "hard bounced") || 0) + Number(count(r, "soft bounced") || 0);
     const metrics: [string, string][] = [
       ["Total delivered", count(r, "delivered")],
@@ -175,12 +201,21 @@ export function marketoToCampaign(
       ["Unsubscribe rate", pct(r, "% unsubscribed")],
       ["Bounce rate (email)", sent ? `${Math.round((bounced / sent) * 1000) / 10}%` : ""],
     ];
+    // The map derives the success measure from the objective, so when the
+    // sheet names a measure the objective follows it.
+    if (success === "Open rate") row.objective = "awareness";
+    else if (success === "Click rate" || success === "Click-to-open rate") row.objective = "consideration";
+    else if (success === "Link — % of people") row.objective = "decision";
+    tp.rows.push(tp.header.map((h) => row[h] ?? ""));
     for (const [metric, value] of metrics) if (value) values.rows.push([id, "", metric, value, metric === success ? bench : "", period]);
 
     for (const l of links_) {
       const url = text(l, "link"), cta = rank(l);
       links++;
-      chains.rows.push([id, pageIdFor(url), cta, text(l, "cta"), utmOf(url).utm_campaign ? "yes" : "no", "send", "yes", count(l, "people")]);
+      // A link off rmit.edu.au (social, partners) is counted but has no page
+      // on the map to land on.
+      if (isRmit(url)) chains.rows.push([id, pageIdFor(url), cta, text(l, "cta"), utmOf(url).utm_campaign ? "yes" : "no", "send", "yes", count(l, "people")]);
+      else external++;
       values.rows.push([id, cta, "Link — people", count(l, "people"), "", period]);
       const share = pct(l, "% people");
       if (share) values.rows.push([id, cta, "Link — % of people", share, cta === "primary" && success === "Link — % of people" ? bench : "", period]);
@@ -188,6 +223,6 @@ export function marketoToCampaign(
   }
   return {
     touchpoints: toCsv(tp.header, tp.rows), chains: toCsv(chains.header, chains.rows), values: toCsv(values.header, values.rows),
-    sends: sendRows.length, links, pagesAdded, unmatched, period,
+    sends: sendRows.length, links, external, pagesAdded, unmatched, period,
   };
 }
