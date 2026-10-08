@@ -15,7 +15,7 @@ import { CommDetailPanel } from "./components/CommDetailPanel";
 import { CampaignSections } from "./components/CampaignSections";
 import { CampaignCardFooter, CampaignCardLine } from "./components/CampaignCardLine";
 import { DATA_LABEL } from "./lib/campaign";
-import { CampaignDataLoader } from "./components/CampaignDataLoader";
+import { CampaignDataLoader, REOPEN } from "./components/CampaignDataLoader";
 import { CAMPAIGN, CAMPAIGN_MODE, campaignAllComms, campaignComms, campaignCommsCollapsed, campaignInbound, campaignInfo, campaignPages, campaignPaid, studyChannels } from "./lib/campaign";
 import { CampaignPagesPanel, CampaignPaidPanel, CampaignStudyPanel } from "./components/CampaignGroupPanel";
 import { compare as compareOf, headline as headlineOf } from "./lib/campaign";
@@ -738,7 +738,12 @@ export default function App() {
       ? (layout.comms.find((c) => c.id === openCommId) ?? (CAMPAIGN_MODE ? campaignAllComms.find((c) => c.id === openCommId) : undefined))
       : undefined;
   // Campaign mode: the lane-gutter panels (pages, channels).
-  const [groupPanel, setGroupPanel] = useState<"pages" | "study" | "paid" | "data" | null>(null);
+  const [groupPanel, setGroupPanel] = useState<"pages" | "study" | "paid" | "data" | null>(() => {
+    // After "Apply and reload" the Load data panel comes back, stating what loaded.
+    if (!CAMPAIGN_MODE || !sessionStorage.getItem(REOPEN)) return null;
+    sessionStorage.removeItem(REOPEN);
+    return "data";
+  });
   // Campaign mode: which grouped cards have their variants list open.
   const [openVariants, setOpenVariants] = useState<Set<string>>(new Set());
   const openCampaign = openCampaignId

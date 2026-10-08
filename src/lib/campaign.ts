@@ -56,9 +56,13 @@ export const CURRENT_FILES = { touchpoints: touchpointsRaw, chains: chainsRaw, v
 export const FILE_SOURCE: Record<string, "loaded" | "local" | "proxy"> = Object.fromEntries(
   CAMPAIGN_FILES.map((f) => [f.name, loaded[f.name] ? "loaded" : local(f.name) ? "local" : "proxy"]),
 );
-/** "proxy data" until real metrics are supplied, by either route. */
-export const DATA_LABEL = loaded["metric-values.csv"] ? "loaded in this browser" : local("metric-values.csv") ? "local data" : "proxy data";
-export const VALUES_ARE_PROXY = DATA_LABEL === "proxy data";
+/** What the campaign is showing right now, in words: all proxy, all real,
+ *  or a mix — the pill says which, the Load data panel says which files. */
+const sources = Object.values(FILE_SOURCE);
+export const DATA_LABEL = sources.every((s) => s === "proxy") ? "proxy data"
+  : sources.every((s) => s !== "proxy") ? (sources.includes("loaded") ? "loaded data" : "local data")
+  : "partly loaded · rest proxy";
+export const VALUES_ARE_PROXY = FILE_SOURCE["metric-values.csv"] === "proxy";
 
 export type Objective = "awareness" | "consideration" | "decision";
 export interface MetricValue {
@@ -249,6 +253,17 @@ for (const r of parseCsvRows(nextStepsRaw)) info.get(r.comm_id)?.nextSteps.push(
 for (const i of info.values()) i.nextSteps.sort((a, b) => b.people - a.people);
 
 export const campaignInfo = (id: string): CampaignInfo | undefined => info.get(id);
+
+/** What each file holds right now, in words — the Load data panel's proof. */
+export const FILE_CONTENTS: Record<string, string> = {
+  "touchpoints.csv": `${allRows.filter((r) => r.kind === "send").length} sends, ${allRows.filter((r) => r.type === "webpage").length} pages, ${allRows.filter((r) => r.type === "paid").length} paid`,
+  "chains.csv": `${CHAINS.length} CTA links`,
+  "metric-values.csv": `${parseCsvRows(valuesRaw).length} values`,
+  "page-referrers.csv": `${parseCsvRows(referrersRaw).length} rows`,
+  "page-next-steps.csv": `${parseCsvRows(nextStepsRaw).length} rows`,
+  "web-daily-by-page.csv": `${new Set(parseCsvRows(webByPageRaw).map((r) => r.date)).size} days`,
+  "studyat-daily.csv": `${new Set(parseCsvRows(studyDailyRaw).map((r) => r.date)).size} days`,
+};
 
 /** Paid media in the campaign: what ran, how it did, which page it fed. */
 export const campaignPaid = paidRows.map((r) => ({

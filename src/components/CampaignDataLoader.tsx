@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { Check, Upload } from "lucide-react";
-import { CAMPAIGN, CAMPAIGN_FILES, CURRENT_FILES, FILE_SOURCE } from "../lib/campaign";
+import { CAMPAIGN, CAMPAIGN_FILES, CURRENT_FILES, DATA_LABEL, FILE_CONTENTS, FILE_SOURCE } from "../lib/campaign";
 import { clearLoaded, readLoaded, writeLoaded, type LoadedFiles } from "../lib/campaignLoaded";
 import { parseCsv, parseCsvRows } from "../lib/csv";
 import { genesysToDaily, isGenesys } from "../lib/genesys";
@@ -15,6 +15,9 @@ import { DetailPanelShell } from "./DetailPanelShell";
 // studyat-daily.csv here, in the browser, before anything is stored; the
 // eDM workbook (.xlsx, sends + CTAs sheets) is folded into touchpoints,
 // chains and metric values the same way.
+
+/** Set before the reload that follows Apply, so the panel reopens with the result. */
+export const REOPEN = "cc-campaign-data-reopen";
 
 /** Which campaign file a CSV is, from its header row — and what's missing. */
 function recognise(text: string): { name: string; missing: string[] } | null {
@@ -98,6 +101,7 @@ export function CampaignDataLoader({ onClose }: { onClose: () => void }) {
   const apply = () => {
     if (Object.keys(staged).length) writeLoaded(staged, keep);
     else clearLoaded();
+    sessionStorage.setItem(REOPEN, "1"); // come back to this panel: it states what loaded
     window.location.reload();
   };
   const dirty = JSON.stringify(staged) !== JSON.stringify(current.files) || keep !== current.kept;
@@ -111,9 +115,11 @@ export function CampaignDataLoader({ onClose }: { onClose: () => void }) {
       onClose={onClose}
     >
       <div className="flex-1 overflow-y-auto p-6">
-        <p className="rounded-md bg-tint-green px-3 py-2 text-sm text-grey-90">
-          Files are read by your browser and stay in it. Nothing is sent to Vercel, GitHub or any server.
+        <p className={`rounded-md px-3 py-2 text-sm text-grey-90 ${DATA_LABEL === "proxy data" ? "bg-tint-amber" : "bg-tint-green"}`}>
+          <span className="font-semibold">{DATA_LABEL === "proxy data" ? "Showing proxy data." : DATA_LABEL === "partly loaded · rest proxy" ? "Showing a mix: some files loaded, the rest proxy." : "Showing loaded data."}</span>{" "}
+          Each file below says where it comes from and what's in it.
         </p>
+        <p className="mt-2 text-xs text-grey-70">Files are read by your browser and stay in it. Nothing is sent to Vercel, GitHub or any server.</p>
 
         <h3 className={`mt-6 text-grey-70 ${EYEBROW}`}>Choose files</h3>
         <input ref={input} type="file" accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" multiple className="sr-only" onChange={(e) => void onFiles(e.target.files)} />
@@ -156,11 +162,15 @@ export function CampaignDataLoader({ onClose }: { onClose: () => void }) {
               <li key={f.name} className="flex items-center justify-between gap-3 py-2">
                 <span className="min-w-0">
                   <span className="block text-sm text-grey-90">{f.what}</span>
-                  <span className="block truncate text-xs text-grey-60">{f.name === "studyat-daily.csv" && genesysNote ? genesysNote : f.header.join(", ")}</span>
+                  <span className="block truncate text-xs text-grey-60">
+                    {f.name === "studyat-daily.csv" && genesysNote ? genesysNote
+                      : staged[f.name] !== current.files[f.name] ? "Not applied yet"
+                      : `${FILE_SOURCE[f.name] === "loaded" ? "Loaded in this browser" : FILE_SOURCE[f.name] === "local" ? "Local file" : "Proxy"} · ${FILE_CONTENTS[f.name]}`}
+                  </span>
                 </span>
                 {on ? (
-                  <span className="flex shrink-0 items-center gap-2 text-xs text-success">
-                    <Check size={13} strokeWidth={2.5} aria-hidden /> Loaded
+                  <span className={`flex shrink-0 items-center gap-2 text-xs ${staged[f.name] === current.files[f.name] ? "text-success" : "text-grey-90"}`}>
+                    <Check size={13} strokeWidth={2.5} aria-hidden /> {staged[f.name] === current.files[f.name] ? "Loaded" : "Ready"}
                     <button type="button" onClick={() => { if (f.name === "studyat-daily.csv") { setGenesys([]); setGenesysNote(""); } setStaged((s) => { const n = { ...s }; delete n[f.name]; return n; }); }} className={`rounded text-grey-70 underline-offset-2 hover:underline ${FOCUS_RING}`}>Remove</button>
                   </span>
                 ) : (
@@ -185,7 +195,7 @@ export function CampaignDataLoader({ onClose }: { onClose: () => void }) {
           Remove loaded data
         </button>
         <button type="button" onClick={apply} disabled={!dirty} className={`rounded-full bg-rmit-blue px-4 py-2 text-sm font-medium text-on-accent disabled:cursor-not-allowed disabled:opacity-50 ${FOCUS_RING}`}>
-          Apply
+          Apply and reload
         </button>
       </div>
     </DetailPanelShell>
