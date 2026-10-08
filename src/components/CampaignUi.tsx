@@ -29,12 +29,20 @@ export function Versus({ v }: { v: MetricValue }) {
 export function PageBadge({ c, onOpen }: { c: Comm; onOpen?: (id: string) => void }) {
   const Icon = COMM_ICONS.webpage;
   const colors = COMM_COLORS.webpage;
+  // Without a handler it's a label, not a control — it may sit inside a
+  // row that is itself a button (the pages panel).
+  if (!onOpen)
+    return (
+      <span className={`inline-flex max-w-full items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${colors.chip} ${colors.text}`}>
+        <Icon size={11} strokeWidth={2} aria-hidden />
+        <span className="truncate">{c.title}</span>
+      </span>
+    );
   return (
     <button
       type="button"
-      onClick={() => onOpen?.(c.id)}
-      disabled={!onOpen}
-      className={`inline-flex max-w-full items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${colors.chip} ${colors.text} ${onOpen ? "hover:ring-1 hover:ring-cyan/40" : ""} ${FOCUS_RING}`}
+      onClick={() => onOpen(c.id)}
+      className={`inline-flex max-w-full items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${colors.chip} ${colors.text} hover:ring-1 hover:ring-cyan/40 ${FOCUS_RING}`}
     >
       <Icon size={11} strokeWidth={2} aria-hidden />
       <span className="truncate">{c.title}</span>

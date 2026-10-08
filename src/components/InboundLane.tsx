@@ -51,8 +51,12 @@ export function InboundLane({ data, onOpen }: { data: InboundLaneData; onOpen?: 
   // ── Channel lane: the total curve at rest, the full per-channel
   // breakdown while hovering (one shared scale, so the channel lines sit
   // honestly inside the total they sum to). ──────────────────────────────
-  if (data.channels && data.channels.length > 0) {
-    const channels = data.channels;
+  // Channel mode needs at least one plotted point: pages or channels that
+  // exist but have no daily rows (a campaign with no traffic file loaded)
+  // would leave the month grid empty, and hovering it reduced an empty array.
+  const plotted = data.channels?.filter((c) => c.points.length) ?? [];
+  if (plotted.length > 0) {
+    const channels = plotted;
     const grid = [...new Set(channels.flatMap((c) => c.points.map((p) => p.month)))].sort(
       (a, b) => a - b,
     );
