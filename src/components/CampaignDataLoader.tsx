@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 import { Check, Upload } from "lucide-react";
 import { CAMPAIGN, CAMPAIGN_FILES, CURRENT_FILES, FILE_SOURCE } from "../lib/campaign";
 import { clearLoaded, readLoaded, writeLoaded, type LoadedFiles } from "../lib/campaignLoaded";
-import { parseCsv } from "../lib/csv";
+import { parseCsv, parseCsvRows } from "../lib/csv";
 import { genesysToDaily, isGenesys } from "../lib/genesys";
 import { isCtasSheet, isSendsSheet, marketoToCampaign, type Sheet } from "../lib/marketo";
 import { EYEBROW, FOCUS_RING } from "../lib/styles";
@@ -49,21 +49,32 @@ export function CampaignDataLoader({ onClose }: { onClose: () => void }) {
   };
   // The eDM workbook: SheetJS is loaded only when an .xlsx is picked, so the
   // map's own bundle doesn't carry it. Parsed here, in the browser.
+  // The sends sheet and the CTAs sheet can arrive as two CSVs, together or
+  // one at a time, or as one workbook; whichever is held is folded.
+  const [edm, setEdm] = useState<{ sends?: Sheet; ctas?: Sheet }>({});
+  const foldEdm = (next: { sends?: Sheet; ctas?: Sheet }, label: string) => {
+    setEdm(next);
+    if (!next.sends) return `${label} → CTAs held; add the sends file to load them.`;
+    const r = marketoToCampaign(next.sends, next.ctas ?? [], CURRENT_FILES, CAMPAIGN.id);
+    setStaged((s) => ({ ...s, "touchpoints.csv": r.touchpoints, "chains.csv": r.chains, "metric-values.csv": r.values }));
+    const bits = [`${r.sends} sends`, next.ctas ? `${r.links} links` : "no CTAs file yet"];
+    if (r.pagesAdded.length) bits.push(`${r.pagesAdded.length} destination page${r.pagesAdded.length === 1 ? "" : "s"} added: ${r.pagesAdded.join(", ")}`);
+    if (r.unmatched.length) bits.push(`${r.unmatched.length} CTA row${r.unmatched.length === 1 ? "" : "s"} with no matching send: ${r.unmatched.join(", ")}`);
+    return `${label} → touchpoints, chains and metric values (${bits.join(" · ")})`;
+  };
   const takeWorkbook = async (file: File): Promise<string> => {
     const XLSX = await import("xlsx");
     const wb = XLSX.read(await file.arrayBuffer(), { cellDates: true });
     const sheets: Sheet[] = wb.SheetNames.map((n) => XLSX.utils.sheet_to_json<Record<string, unknown>>(wb.Sheets[n], { defval: "" }));
     const sends = sheets.find(isSendsSheet), ctas = sheets.find(isCtasSheet);
-    if (!sends) return `${file.name}: no sheet with Email Name, Sent, Delivered and Opened columns.`;
-    const r = marketoToCampaign(sends, ctas ?? [], CURRENT_FILES, CAMPAIGN.id);
-    setStaged((s) => ({ ...s, "touchpoints.csv": r.touchpoints, "chains.csv": r.chains, "metric-values.csv": r.values }));
-    const bits = [`${r.sends} sends`, ctas ? `${r.links} links` : "no CTA sheet"];
-    if (r.pagesAdded.length) bits.push(`${r.pagesAdded.length} destination page${r.pagesAdded.length === 1 ? "" : "s"} added: ${r.pagesAdded.join(", ")}`);
-    if (r.unmatched.length) bits.push(`${r.unmatched.length} CTA row${r.unmatched.length === 1 ? "" : "s"} with no matching send: ${r.unmatched.join(", ")}`);
-    return `${file.name} → touchpoints, chains and metric values (${bits.join(" · ")})`;
+    if (!sends && !ctas) return `${file.name}: no sheet with the eDM columns (Email Name with Sent and Opened, or with Link and People).`;
+    return foldEdm({ sends: sends ?? edm.sends, ctas: ctas ?? edm.ctas }, file.name);
   };
   const take = (text: string, label: string) => {
     if (isGenesys(parseCsv(text)[0] ?? [])) return null; // folded together below
+    const rows: Sheet = parseCsvRows(text);
+    if (isSendsSheet(rows)) return foldEdm({ ...edm, sends: rows }, label);
+    if (isCtasSheet(rows)) return foldEdm({ ...edm, ctas: rows }, label);
     const hit = recognise(text);
     if (!hit) return `${label}: columns don't match any campaign file.`;
     if (parseCsv(text).length < 2) return `${label}: recognised as ${hit.name}, but it has no rows.`;
@@ -109,7 +120,7 @@ export function CampaignDataLoader({ onClose }: { onClose: () => void }) {
         <button type="button" onClick={() => input.current?.click()} className={`mt-2 rounded-md border border-grey-30 bg-card px-3 py-2 text-sm font-medium text-grey-90 hover:bg-grey-10 ${FOCUS_RING}`}>
           Choose files
         </button>
-        <p className="mt-2 text-xs text-grey-70">CSV, or the eDM workbook (.xlsx, sends and CTAs sheets). Genesys daily exports can be chosen together; they fold into the Study@ file.</p>
+        <p className="mt-2 text-xs text-grey-70">The eDM sends and CTAs files (CSV or one .xlsx) fold into touchpoints, chains and metrics; Genesys daily exports can be chosen together and fold into the Study@ file.</p>
 
         <h3 className={`mt-6 text-grey-70 ${EYEBROW}`}>Or paste one</h3>
         <label htmlFor="campaign-paste" className="sr-only">Paste CSV text, header row included</label>

@@ -107,12 +107,15 @@ export function marketoToCampaign(
   const tp = keep(current.touchpoints, (r) => r.team === "Marketing" && r.kind === "send");
   const kept = new Set(tp.rows.map((r) => r[0]));
   const pages = new Map(parseCsvRows(current.touchpoints).filter((r) => r.type === "webpage" && r.url).map((r) => [pagePath(r.url), r.id]));
+  // Email Name is the join between the two sheets; case and spacing vary
+  // between exports, so it's matched normalised.
+  const nameOf = (r: Row) => text(r, "email name").toLowerCase();
   const ids = new Map<string, string>(); // Email Name → touchpoint id
-  const sendRows = sendsSheet.filter((r) => text(r, "email name"));
+  const sendRows = sendsSheet.filter((r) => nameOf(r));
   for (const r of sendRows) {
-    let id = slugify(text(r, "email name")) || `send-${ids.size + 1}`;
+    let id = slugify(nameOf(r)) || `send-${ids.size + 1}`;
     while (kept.has(id)) id += "-2";
-    ids.set(text(r, "email name"), id);
+    ids.set(nameOf(r), id);
   }
   const titleOf = (r: Row) => text(r, "subject line/banner copy") || text(r, "subject line") || text(r, "email name");
   const variants = (r: Row) => sendRows.filter((x) => titleOf(x) === titleOf(r)).length;
@@ -120,11 +123,11 @@ export function marketoToCampaign(
   // CTAs by send, in rank order; untracked destinations become pages.
   const ctas = new Map<string, Row[]>();
   for (const r of ctasSheet) {
-    const name = text(r, "email name");
+    const name = nameOf(r);
     if (!ids.has(name) || !text(r, "link")) continue;
     ctas.set(name, [...(ctas.get(name) ?? []), r]);
   }
-  const unmatched = [...new Set(ctasSheet.map((r) => text(r, "email name")).filter((n) => n && !ids.has(n)))];
+  const unmatched = [...new Set(ctasSheet.filter((r) => nameOf(r) && !ids.has(nameOf(r))).map((r) => text(r, "email name")))];
   const pagesAdded: string[] = [];
   const pageIdFor = (url: string) => {
     const path = pagePath(url);
@@ -144,7 +147,7 @@ export function marketoToCampaign(
   const period = "eDM sheet";
   let links = 0;
   for (const r of sendRows) {
-    const name = text(r, "email name"), id = ids.get(name)!;
+    const name = nameOf(r), id = ids.get(name)!;
     const links_ = (ctas.get(name) ?? []).slice().sort((a, b) => Number(text(a, "primary/secondary")) - Number(text(b, "primary/secondary")));
     const primary = links_.find((l) => rank(l) === "primary"), secondary = links_.find((l) => rank(l) === "secondary");
     const anyUtm = links_.some((l) => utmOf(text(l, "link")).utm_campaign);

@@ -84,13 +84,16 @@ are held in that tab (gone when it closes) unless "Keep on this device" is
 ticked, and they win over `local/` and the proxy files. Nothing is sent
 anywhere: campaign mode makes no API calls at all.
 
-**The eDM workbook goes in as it is.** Marketing's `.xlsx` has two sheets: the
+**The eDM sheets go in as they are.** Marketing exports two files, as CSVs or
+as one `.xlsx` with two sheets, picked together or one at a time: the
 sends (`Email Name, Marketo ID, Date, Audience Variant, Subject Line/Banner
 Copy, Theme, New this year, Objective, Benchmark, Sent, Delivered, …, %
 Opened, …, Clicked to Opened Ratio, …, % Unsubscribed`) and the CTAs (`Email
 Name, CTA, Primary/Secondary, Link, Clicks, % Clicks, People, % People`).
-"Load data" folds it into `touchpoints.csv`, `chains.csv` and
-`metric-values.csv` in the browser (`src/lib/marketo.ts`): one touchpoint per
+"Load data" tells them apart by their headers and folds them into
+`touchpoints.csv`, `chains.csv` and `metric-values.csv` in the browser
+(`src/lib/marketo.ts`); Email Name is the join between them, matched
+regardless of case: one touchpoint per
 send (title = subject line, audience = variant, CVP = theme, the sheet's one
 benchmark on the objective's success measure), one chain per link (rank 1 =
 primary, 2 = secondary, the rest tertiary; UTM = whether the link carries
