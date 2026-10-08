@@ -5,6 +5,7 @@ import { clearLoaded, readLoaded, writeLoaded, type LoadedFiles } from "../lib/c
 import { parseCsv, parseCsvRows, tidyExport } from "../lib/csv";
 import { GENESYS_HEADER, genesysToDaily, isGenesys } from "../lib/genesys";
 import { CTAS_HEADER, isCtasSheet, isSendsSheet, marketoToCampaign, SENDS_HEADER, type Sheet } from "../lib/marketo";
+import { parseEdmTemplate, templateIndex, type EdmTemplate } from "../lib/edmHtml";
 import { EYEBROW, FOCUS_RING } from "../lib/styles";
 import { DetailPanelShell } from "./DetailPanelShell";
 
@@ -22,7 +23,7 @@ import { DetailPanelShell } from "./DetailPanelShell";
 export const REOPEN = "cc-campaign-data-reopen";
 /** Sidecar in the loaded set: what each source export contributed, in words. */
 const SOURCES_KEY = "_sources";
-type Sources = { sends?: string; ctas?: string; genesys?: string; pages?: string };
+type Sources = { sends?: string; ctas?: string; templates?: string; genesys?: string; pages?: string };
 
 const PAGE_FILES = ["page-referrers.csv", "page-next-steps.csv", "web-daily-by-page.csv"];
 const EDM_FILES = ["touchpoints.csv", "chains.csv", "metric-values.csv"];
@@ -59,7 +60,7 @@ export function CampaignDataLoader({ onClose }: { onClose: () => void }) {
   const [rejected, setRejected] = useState<{ name: string; line: string } | null>(null);
   const [paste, setPaste] = useState("");
   const [genesys, setGenesys] = useState<string[]>([]);
-  const [edm, setEdm] = useState<{ sends?: Sheet; ctas?: Sheet }>({});
+  const [edm, setEdm] = useState<{ sends?: Sheet; ctas?: Sheet; templates?: EdmTemplate[] }>({});
   const input = useRef<HTMLInputElement>(null);
 
   const stage = (files: Record<string, string | undefined>, src: Partial<Sources>) => {
@@ -88,16 +89,18 @@ export function CampaignDataLoader({ onClose }: { onClose: () => void }) {
   // `edmNow` carries the sheets through one multi-file pick, where React
   // state would still be the pre-pick value.
   let edmNow = edm;
-  const foldEdm = (next: { sends?: Sheet; ctas?: Sheet }, label: string) => {
+  const foldEdm = (next: { sends?: Sheet; ctas?: Sheet; templates?: EdmTemplate[] }, label: string) => {
     edmNow = next;
     setEdm(next);
+    const tplNote = next.templates?.length ? `${plural(next.templates.length, "template")}, ${next.templates.reduce((a, t) => a + t.links.filter((l) => l.kind !== "footer").length, 0)} links` : undefined;
     if (!next.sends) {
-      setSources((s) => ({ ...s, ctas: `${plural(next.ctas?.length ?? 0, "link row")} held — add the sends file` }));
-      return `${label} → CTAs held; add the sends file to load them.`;
+      setSources((s) => ({ ...s, ctas: next.ctas ? `${plural(next.ctas.length, "link row")} held — add the sends file` : s.ctas, templates: tplNote ? `${tplNote} held — add the sends file` : s.templates }));
+      return `${label} → held; add the sends file to load them.`;
     }
-    const r = marketoToCampaign(next.sends, next.ctas ?? [], CURRENT_FILES, CAMPAIGN.id);
+    const r = marketoToCampaign(next.sends, next.ctas ?? [], CURRENT_FILES, CAMPAIGN.id, templateIndex(next.templates ?? []));
     const src: Partial<Sources> = { sends: `${plural(r.sends, "send")}` };
-    if (next.ctas) src.ctas = `${plural(r.links, "link")}${r.pagesAdded.length ? `, ${plural(r.pagesAdded.length, "destination page")} added` : ""}${r.external ? `, ${r.external} off-site` : ""}`;
+    if (next.ctas) src.ctas = `${plural(r.links, "link")}${r.pagesAdded.length ? `, ${plural(r.pagesAdded.length, "destination page")} added` : ""}${r.external ? `, ${r.external} off-site` : ""}${r.footer ? `, ${r.footer} footer links dropped` : ""}`;
+    if (tplNote) src.templates = `${tplNote}${r.rankedFromTemplate ? `, ${plural(r.rankedFromTemplate, "rank")} filled` : ""}`;
     stage({ "touchpoints.csv": r.touchpoints, "chains.csv": r.chains, "metric-values.csv": r.values }, src);
     const bits = [plural(r.sends, "send"), next.ctas ? plural(r.links, "link") : "no CTAs file yet"];
     if (r.pagesAdded.length) bits.push(`${plural(r.pagesAdded.length, "destination page")} added: ${r.pagesAdded.join(", ")}`);
@@ -141,11 +144,22 @@ export function CampaignDataLoader({ onClose }: { onClose: () => void }) {
     if (!list) return;
     const out: string[] = [];
     const daily: string[] = [];
+    let html: EdmTemplate[] = [];
     for (const file of Array.from(list)) {
       if (/\.xlsx?$/i.test(file.name)) { out.push(await takeWorkbook(file)); continue; }
+      if (/\.html?$/i.test(file.name)) {
+        const t = parseEdmTemplate(await readText(file), file.name);
+        if (!t.marketoId) { out.push(`${file.name}: NOT LOADED — no Marketo ID in the file name.`); continue; }
+        html = [...html.filter((x) => x.marketoId !== t.marketoId), t];
+        continue;
+      }
       const r = take(await readText(file), file.name);
       if ("note" in r) out.push(r.note);
       else daily.push(r.genesys);
+    }
+    if (html.length) {
+      const merged = [...(edmNow.templates ?? []).filter((x) => !html.some((h) => h.marketoId === x.marketoId)), ...html];
+      out.push(foldEdm({ ...edmNow, templates: merged }, `${plural(html.length, "template")}`));
     }
     if (daily.length) out.push(foldGenesys([...genesys, ...daily]));
     setNotes((n) => [...out, ...n].slice(0, 12)); // newest first; earlier results stay visible
@@ -154,7 +168,8 @@ export function CampaignDataLoader({ onClose }: { onClose: () => void }) {
     if (which === "genesys") { setGenesys([]); stage({ "studyat-daily.csv": undefined }, { genesys: undefined }); }
     if (which === "pages") stage(Object.fromEntries(PAGE_FILES.map((f) => [f, undefined])), { pages: undefined });
     if (which === "sends") { setEdm({}); stage(Object.fromEntries(EDM_FILES.map((f) => [f, undefined])), { sends: undefined, ctas: undefined }); }
-    if (which === "ctas") { if (edmNow.sends) foldEdm({ sends: edmNow.sends }, "Sends only"); else { setEdm({}); setSources((s) => ({ ...s, ctas: undefined })); } }
+    if (which === "ctas") { if (edmNow.sends) foldEdm({ ...edmNow, ctas: undefined }, "Without the CTAs sheet"); else { setEdm({ ...edmNow, ctas: undefined }); setSources((s) => ({ ...s, ctas: undefined })); } }
+    if (which === "templates") { if (edmNow.sends) foldEdm({ ...edmNow, templates: undefined }, "Without the templates"); else { setEdm({ ...edmNow, templates: undefined }); setSources((s) => ({ ...s, templates: undefined })); } }
   };
   const apply = () => {
     const files = { ...staged, [SOURCES_KEY]: JSON.stringify(sources) };
@@ -181,6 +196,7 @@ export function CampaignDataLoader({ onClose }: { onClose: () => void }) {
   const rows: { which: keyof Sources; team: string; name: string; expects: string; files: string[] }[] = [
     { which: "sends", team: "Marketing", name: "eDM sends sheet", expects: "Email Name, Date, Objective, Sent, Delivered, % Opened …", files: ["touchpoints.csv", "metric-values.csv"] },
     { which: "ctas", team: "Marketing", name: "CTAs sheet (click report)", expects: "Email Name, CTA, Primary/Secondary, Link, People …", files: ["chains.csv"] },
+    { which: "templates", team: "Marketing", name: "Email templates (HTML)", expects: "Marketo HTML exports, Marketo ID in the file name — fills blank CTA ranks, drops footer links", files: [] },
     { which: "pages", team: "Digital", name: "Page traffic, referrers, next steps", expects: "tool-format CSVs for now — no CJA ingest yet", files: PAGE_FILES },
     { which: "genesys", team: "Study@", name: "Genesys daily queue exports", expects: "Interval Start, Media Type, Queue Name, Offer … any number of days at once", files: ["studyat-daily.csv"] },
   ];
@@ -231,7 +247,7 @@ export function CampaignDataLoader({ onClose }: { onClose: () => void }) {
         )}
 
         <h3 className={`mt-6 text-grey-70 ${EYEBROW}`}>Add exports</h3>
-        <input ref={input} type="file" accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" multiple className="sr-only" onChange={(e) => void onFiles(e.target.files)} />
+        <input ref={input} type="file" accept=".csv,.xlsx,.html,.htm,text/csv,text/html,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" multiple className="sr-only" onChange={(e) => void onFiles(e.target.files)} />
         <button type="button" onClick={() => input.current?.click()} className={`mt-2 rounded-md border border-grey-30 bg-card px-3 py-2 text-sm font-medium text-grey-90 hover:bg-grey-10 ${FOCUS_RING}`}>
           Choose files
         </button>

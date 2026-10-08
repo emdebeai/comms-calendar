@@ -114,6 +114,17 @@ segment ("…/managing-study-stress?utm…" → "Managing study stress", no look
 involved). Every row that isn't a Marketing send is kept as it was. SheetJS
 is loaded only when a workbook is picked.
 
+**Email templates fill the gaps.** Marketo's HTML export of each email
+(file name carrying the Marketo ID, e.g. `…_9095_20Nov_Year_12.html`) can be
+picked alongside the sheets. `src/lib/edmHtml.ts` reads every link in
+module order: buttons (a filled, rounded table) rank primary, secondary,
+tertiary by position; body text links and banner images are unranked;
+footer, logo, social and system links are furniture and are dropped from
+Destinations. A link's UTM is a Marketo token (`{{my.12}}`) in the template,
+so the template shows whether a link is tagged, not the UTM values. The
+sheet's own rank wins where it is filled; the template fills the blanks.
+Templates carry tokens, not recipients.
+
 **Genesys exports go in as they are.** Study@ gets one Genesys queue export a
 day (`Interval Start, Media Type, Queue Name, Offer, Answer, Abandon, Avg
 Wait, Avg Handle, …`). Choose all of them at once in "Load data" and they are

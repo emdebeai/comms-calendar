@@ -5,6 +5,7 @@
 // reads, keeping every non-Marketing row the files already had. Runs in the
 // browser on a file the user picked; nothing here touches the network.
 import { parseCsv, parseCsvRows } from "./csv";
+import type { EdmLink } from "./edmHtml";
 
 const slugify = (t: string) => t.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 
@@ -96,14 +97,15 @@ const keep = (csv: string, drop: (r: Record<string, string>) => boolean) => {
   const rows = parseCsvRows(csv).filter((r) => !drop(r)).map((r) => header.map((h) => r[h.toLowerCase()] ?? ""));
   return { header, rows };
 };
-const rank = (r: Row) => {
+const sheetRank = (r: Row): "primary" | "secondary" | "tertiary" | "" => {
   const v = text(r, "primary/secondary").toLowerCase();
-  return v === "1" || v.startsWith("primary") ? "primary" : v === "2" || v.startsWith("secondary") ? "secondary" : "tertiary";
+  return v === "1" || v.startsWith("primary") ? "primary" : v === "2" || v.startsWith("secondary") ? "secondary" : v ? "tertiary" : "";
 };
 
 export type MarketoResult = {
   touchpoints: string; chains: string; values: string;
-  sends: number; links: number; external: number; pagesAdded: string[]; unmatched: string[]; period: string;
+  sends: number; links: number; external: number; footer: number; rankedFromTemplate: number;
+  pagesAdded: string[]; unmatched: string[]; period: string;
 };
 
 /** Fold the two sheets into the campaign files. `current` is each file's
@@ -113,6 +115,9 @@ export function marketoToCampaign(
   sendsSheet: Sheet, ctasSheet: Sheet,
   current: { touchpoints: string; chains: string; values: string },
   campaign: string,
+  /** From the HTML templates (edmHtml.ts): "<marketo id>|<path>" → link. Fills
+   *  a blank rank by button position and drops footer furniture. */
+  templates: Map<string, EdmLink> = new Map(),
 ): MarketoResult {
   const tp = keep(current.touchpoints, (r) => r.team === "Marketing" && r.kind === "send");
   const kept = new Set(tp.rows.map((r) => r[0]));
@@ -164,12 +169,23 @@ export function marketoToCampaign(
   const chains = keep(current.chains, (r) => !kept.has(r.from));
   const values = keep(current.values, (r) => !kept.has(r.comm_id));
   const period = "eDM sheet";
-  let links = 0;
+  let links = 0, footer = 0, rankedFromTemplate = 0;
   for (const r of sendRows) {
     const name = nameOf(r), id = ids.get(name)!;
-    const links_ = (ctas.get(name) ?? []).slice().sort((a, b) => Number(text(a, "primary/secondary")) - Number(text(b, "primary/secondary")));
+    const marketoId = text(r, "marketo id");
+    const tpl = (l: Row) => templates.get(`${marketoId}|${pagePath(text(l, "link"))}`);
+    // The sheet's rank wins; a blank one takes the template's button order.
+    const rank = (l: Row): "primary" | "secondary" | "tertiary" => {
+      const sheet = sheetRank(l);
+      if (sheet) return sheet;
+      const t = tpl(l)?.rank;
+      if (t) rankedFromTemplate++;
+      return t || "tertiary";
+    };
+    const all = (ctas.get(name) ?? []).slice();
+    // Footer furniture (terms, privacy, social, logo) is not a CTA.
+    const links_ = all.filter((l) => { const f = tpl(l)?.kind === "footer"; if (f) footer++; return !f; });
     const primary = links_.find((l) => rank(l) === "primary"), secondary = links_.find((l) => rank(l) === "secondary");
-    // Social and "Banner" links sort to the end; ranked ones keep their order.
     const anyUtm = links_.some((l) => utmOf(text(l, "link")).utm_campaign);
     const ow = text(r, "objective").toLowerCase();
     const objective = ow.startsWith("aware") ? "awareness" : ow.startsWith("consider") ? "consideration" : ow.startsWith("decid") || ow.startsWith("decis") ? "decision" : ow;
@@ -223,6 +239,6 @@ export function marketoToCampaign(
   }
   return {
     touchpoints: toCsv(tp.header, tp.rows), chains: toCsv(chains.header, chains.rows), values: toCsv(values.header, values.rows),
-    sends: sendRows.length, links, external, pagesAdded, unmatched, period,
+    sends: sendRows.length, links, external, footer, rankedFromTemplate, pagesAdded, unmatched, period,
   };
 }
