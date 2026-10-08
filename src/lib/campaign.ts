@@ -356,7 +356,7 @@ export const campaignInbound: InboundLaneData[] = [
   {
     id: "digital",
     baseline: 0,
-    peaks: [{ month: dateToMonth(peakWeb.date), height: 0, label: `Results day · ${Number(peakWeb.sessions).toLocaleString()} sessions` }],
+    peaks: [{ month: dateToMonth(peakWeb.date), height: 0, label: `Busiest day ${shortDate(peakWeb.date)} · ${Number(peakWeb.sessions).toLocaleString()} sessions` }],
     seriesNote: "Sessions per day by page (proxy)",
     channelsLabel: "Sessions by page",
     // One line per page, as the Study@ lane does per channel: the total at
@@ -373,7 +373,7 @@ export const campaignInbound: InboundLaneData[] = [
   {
     id: "study",
     baseline: 0,
-    peaks: [{ month: dateToMonth(peakStudy.date), height: 0, label: `Results day · ${peakStudy.contacts.toLocaleString()} contacts · phone wait ${peakStudy.wait}` }],
+    peaks: [{ month: dateToMonth(peakStudy.date), height: 0, label: `Busiest day ${shortDate(peakStudy.date)} · ${peakStudy.contacts.toLocaleString()} contacts${peakStudy.wait ? ` · phone wait ${peakStudy.wait}` : ""}` }],
     seriesNote: VALUES_ARE_PROXY ? "Contacts per day by channel (proxy)" : "Contacts per day by channel",
     channelsLabel: "Contacts by channel",
     // One line per channel, as the map's own Study@ lane draws them.
