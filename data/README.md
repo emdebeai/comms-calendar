@@ -84,6 +84,12 @@ are held in that tab (gone when it closes) unless "Keep on this device" is
 ticked, and they win over `local/` and the proxy files. Nothing is sent
 anywhere: campaign mode makes no API calls at all.
 
+**Proxy figures show only while nothing real is loaded.** As soon as any
+file is loaded (or supplied in `local/`), every file that wasn't is read as
+empty — header only — so a real figure is never shown beside a made-up one.
+Lanes with nothing say so ("No pages loaded"); the pill says how many of the
+seven files are in.
+
 **The eDM sheets go in as they are.** Marketing exports two files, as CSVs or
 as one `.xlsx` with two sheets, picked together or one at a time: the
 sends (`Email Name, Marketo ID, Date, Audience Variant, Subject Line/Banner

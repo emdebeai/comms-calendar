@@ -79,7 +79,7 @@ export function CampaignStudyPanel({ onClose }: { onClose: () => void }) {
             </li>
           ))}
         </ul>
-        <p className="mt-4 text-xs text-grey-60">{FILE_SOURCE["studyat-daily.csv"] === "proxy" ? "Proxy figures. " : ""}Source: Genesys by day and channel.</p>
+        <p className="mt-4 text-xs text-grey-60">{FILE_SOURCE["studyat-daily.csv"] === "proxy" ? "Proxy figures. " : FILE_SOURCE["studyat-daily.csv"] === "none" ? "No Study@ file loaded. " : ""}Source: Genesys by day and channel.</p>
       </div>
     </DetailPanelShell>
   );

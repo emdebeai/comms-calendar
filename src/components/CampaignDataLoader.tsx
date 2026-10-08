@@ -79,7 +79,7 @@ export function CampaignDataLoader({ onClose }: { onClose: () => void }) {
     if (isSendsSheet(rows)) return foldEdm({ ...edm, sends: rows }, label);
     if (isCtasSheet(rows)) return foldEdm({ ...edm, ctas: rows }, label);
     const hit = recognise(text);
-    if (!hit) return `${label}: columns don't match any campaign file.`;
+    if (!hit) return `${label}: NOT LOADED — its columns don't match any campaign file. Its header row: ${(parseCsv(text)[0] ?? []).join(", ").slice(0, 160)}`;
     if (parseCsv(text).length < 2) return `${label}: recognised as ${hit.name}, but it has no rows.`;
     setStaged((s) => ({ ...s, [hit.name]: text }));
     return `${label} → ${hit.name}${hit.missing.length ? ` (missing columns: ${hit.missing.join(", ")})` : ""}`;
@@ -116,8 +116,8 @@ export function CampaignDataLoader({ onClose }: { onClose: () => void }) {
     >
       <div className="flex-1 overflow-y-auto p-6">
         <p className={`rounded-md px-3 py-2 text-sm text-grey-90 ${DATA_LABEL === "proxy data" ? "bg-tint-amber" : "bg-tint-green"}`}>
-          <span className="font-semibold">{DATA_LABEL === "proxy data" ? "Showing proxy data." : DATA_LABEL === "partly loaded · rest proxy" ? "Showing a mix: some files loaded, the rest proxy." : "Showing loaded data."}</span>{" "}
-          Each file below says where it comes from and what's in it.
+          <span className="font-semibold">{DATA_LABEL === "proxy data" ? "Showing proxy data: nothing loaded yet." : "Showing your data only."}</span>{" "}
+          {DATA_LABEL === "proxy data" ? "Load any file and the proxy figures go; files you don't load stay empty." : "Files you haven't loaded are empty, never proxy."}
         </p>
         <p className="mt-2 text-xs text-grey-70">Files are read by your browser and stay in it. Nothing is sent to Vercel, GitHub or any server.</p>
 
@@ -165,6 +165,7 @@ export function CampaignDataLoader({ onClose }: { onClose: () => void }) {
                   <span className="block truncate text-xs text-grey-60">
                     {f.name === "studyat-daily.csv" && genesysNote ? genesysNote
                       : staged[f.name] !== current.files[f.name] ? "Not applied yet"
+                      : FILE_SOURCE[f.name] === "none" ? "Not loaded · empty"
                       : `${FILE_SOURCE[f.name] === "loaded" ? "Loaded in this browser" : FILE_SOURCE[f.name] === "local" ? "Local file" : "Proxy"} · ${FILE_CONTENTS[f.name]}`}
                   </span>
                 </span>
@@ -174,7 +175,7 @@ export function CampaignDataLoader({ onClose }: { onClose: () => void }) {
                     <button type="button" onClick={() => { if (f.name === "studyat-daily.csv") { setGenesys([]); setGenesysNote(""); } setStaged((s) => { const n = { ...s }; delete n[f.name]; return n; }); }} className={`rounded text-grey-70 underline-offset-2 hover:underline ${FOCUS_RING}`}>Remove</button>
                   </span>
                 ) : (
-                  <span className="shrink-0 text-xs text-grey-60">{FILE_SOURCE[f.name] === "local" ? "Local file" : "Proxy"}</span>
+                  <span className="shrink-0 text-xs text-grey-60">{FILE_SOURCE[f.name] === "local" ? "Local file" : FILE_SOURCE[f.name] === "none" ? "Not loaded" : "Proxy"}</span>
                 )}
               </li>
             );

@@ -1026,8 +1026,9 @@ export default function App() {
                   ? [
                       {
                         laneId: "digital",
-                        label: `${campaignPages.length} campaign pages`,
+                        label: campaignPages.length ? `${campaignPages.length} campaign pages` : "No pages loaded",
                         detail: (() => {
+                          if (!campaignPages.length) return "";
                           const n = campaignPages.filter((c) => { const i = campaignInfo(c.id); const h = i && headlineOf(c, i); return h && compareOf(h.value) === "worse"; }).length;
                           return n ? `${n} below benchmark` : "all at or above benchmark";
                         })(),
@@ -1043,8 +1044,8 @@ export default function App() {
                         : []),
                       {
                         laneId: "study",
-                        label: `${studyChannels.filter((c) => c.measured).length} channels`,
-                        detail: studyChannels[0].measured ? `peak phone wait ${studyChannels[0].peakWait}` : "phone not in the data",
+                        label: studyChannels.some((c) => c.measured) ? `${studyChannels.filter((c) => c.measured).length} channels` : "No Study@ data loaded",
+                        detail: studyChannels[0].measured ? `peak phone wait ${studyChannels[0].peakWait}` : studyChannels.some((c) => c.measured) ? "phone not in the data" : "",
                         onClick: () => { setOpenCommId(null); setGroupPanel("study"); },
                       },
                     ]

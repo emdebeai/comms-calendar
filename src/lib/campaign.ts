@@ -31,7 +31,12 @@ const local = (name: string): string | undefined => {
 // LOADED IN THE BROWSER. Files picked or pasted on the page (see
 // campaignLoaded.ts) win over both — they exist only in this browser.
 const loaded = readLoaded().files;
-const pick = (name: string, proxy: string) => loaded[name] ?? local(name) ?? proxy;
+// Proxy figures stand in only while NOTHING real has been supplied. Once any
+// file is loaded (or local), the files that weren't are empty — header only —
+// so a real figure is never shown beside a made-up one.
+const ANY_REAL = Object.keys(loaded).length > 0 || Object.keys(localFiles).some((path) => local(path.split("/").pop()!));
+const headerOnly = (csv: string) => csv.split("\n")[0] + "\n";
+const pick = (name: string, proxy: string) => loaded[name] ?? local(name) ?? (ANY_REAL ? headerOnly(proxy) : proxy);
 /** The files the campaign reads, with the proxy each falls back to. Their
  *  header rows are how a picked or pasted file is recognised. */
 export const CAMPAIGN_FILES: { name: string; what: string; header: string[] }[] = [
@@ -53,16 +58,15 @@ const webByPageRaw = pick("web-daily-by-page.csv", proxyWebByPage);
 /** Each file's text as the campaign reads it now — what an ingest merges into. */
 export const CURRENT_FILES = { touchpoints: touchpointsRaw, chains: chainsRaw, values: valuesRaw };
 /** Where each file is coming from right now. */
-export const FILE_SOURCE: Record<string, "loaded" | "local" | "proxy"> = Object.fromEntries(
-  CAMPAIGN_FILES.map((f) => [f.name, loaded[f.name] ? "loaded" : local(f.name) ? "local" : "proxy"]),
+export const FILE_SOURCE: Record<string, "loaded" | "local" | "proxy" | "none"> = Object.fromEntries(
+  CAMPAIGN_FILES.map((f) => [f.name, loaded[f.name] ? "loaded" : local(f.name) ? "local" : ANY_REAL ? "none" : "proxy"]),
 );
-/** What the campaign is showing right now, in words: all proxy, all real,
- *  or a mix — the pill says which, the Load data panel says which files. */
+/** What the campaign is showing right now, in words — the pill says which,
+ *  the Load data panel says which files. Never a mix of proxy and real. */
 const sources = Object.values(FILE_SOURCE);
-export const DATA_LABEL = sources.every((s) => s === "proxy") ? "proxy data"
-  : sources.every((s) => s !== "proxy") ? (sources.includes("loaded") ? "loaded data" : "local data")
-  : "partly loaded · rest proxy";
-export const VALUES_ARE_PROXY = FILE_SOURCE["metric-values.csv"] === "proxy";
+export const DATA_LABEL = !ANY_REAL ? "proxy data"
+  : `${sources.includes("loaded") ? "loaded data" : "local data"} · ${sources.filter((s) => s === "loaded" || s === "local").length} of ${sources.length} files`;
+export const VALUES_ARE_PROXY = !ANY_REAL;
 
 export type Objective = "awareness" | "consideration" | "decision";
 export interface MetricValue {
@@ -365,16 +369,16 @@ const studyByDay = [...new Set(studyDaily.map((r) => r.date))].sort().map((date)
   const phone = rows.find((r) => r.channel === "phone");
   return { date, contacts: rows.reduce((a, r) => a + Number(r.contacts), 0), wait: phone?.wait_time ?? "" };
 });
-const peakStudy = studyByDay.reduce((a, b) => (b.contacts > a.contacts ? b : a));
-const peakWeb = webDaily.reduce((a, b) => (Number(b.sessions) > Number(a.sessions) ? b : a));
+const peakStudy = studyByDay.reduce((a, b) => (b.contacts > a.contacts ? b : a), { date: "", contacts: 0, wait: "" });
+const peakWeb = webDaily.reduce((a, b) => (Number(b.sessions) > Number(a.sessions) ? b : a), { date: "", sessions: "0" });
 // One colour per page, in traffic order — the hover breakdown's key.
 const PAGE_COLOURS = ["--color-cyan", "--color-rmit-blue-interactive", "--color-teal", "--color-purple", "--color-indigo", "--color-pink"];
 export const campaignInbound: InboundLaneData[] = [
   {
     id: "digital",
     baseline: 0,
-    peaks: [{ month: dateToMonth(peakWeb.date), height: 0, label: `Busiest day ${shortDate(peakWeb.date)} · ${Number(peakWeb.sessions).toLocaleString()} sessions` }],
-    seriesNote: "Sessions per day by page (proxy)",
+    peaks: peakWeb.date ? [{ month: dateToMonth(peakWeb.date), height: 0, label: `Busiest day ${shortDate(peakWeb.date)} · ${Number(peakWeb.sessions).toLocaleString()} sessions` }] : [],
+    seriesNote: VALUES_ARE_PROXY ? "Sessions per day by page (proxy)" : webByPage.length ? "Sessions per day by page" : "No page data loaded",
     channelsLabel: "Sessions by page",
     // One line per page, as the Study@ lane does per channel: the total at
     // rest, the per-page breakdown on hover.
@@ -390,8 +394,8 @@ export const campaignInbound: InboundLaneData[] = [
   {
     id: "study",
     baseline: 0,
-    peaks: [{ month: dateToMonth(peakStudy.date), height: 0, label: `Busiest day ${shortDate(peakStudy.date)} · ${peakStudy.contacts.toLocaleString()} contacts${peakStudy.wait ? ` · phone wait ${peakStudy.wait}` : ""}` }],
-    seriesNote: VALUES_ARE_PROXY ? "Contacts per day by channel (proxy)" : "Contacts per day by channel",
+    peaks: peakStudy.date ? [{ month: dateToMonth(peakStudy.date), height: 0, label: `Busiest day ${shortDate(peakStudy.date)} · ${peakStudy.contacts.toLocaleString()} contacts${peakStudy.wait ? ` · phone wait ${peakStudy.wait}` : ""}` }] : [],
+    seriesNote: VALUES_ARE_PROXY ? "Contacts per day by channel (proxy)" : studyDaily.length ? "Contacts per day by channel" : "No Study@ data loaded",
     channelsLabel: "Contacts by channel",
     // One line per channel, as the map's own Study@ lane draws them.
     channels: (["phone", "chat", "face-to-face"] as const).map((channel) => ({
