@@ -50,6 +50,8 @@ const referrersRaw = pick("page-referrers.csv", proxyReferrers);
 const nextStepsRaw = pick("page-next-steps.csv", proxyNextSteps);
 const studyDailyRaw = pick("studyat-daily.csv", proxyStudyDaily);
 const webByPageRaw = pick("web-daily-by-page.csv", proxyWebByPage);
+/** Each file's text as the campaign reads it now — what an ingest merges into. */
+export const CURRENT_FILES = { touchpoints: touchpointsRaw, chains: chainsRaw, values: valuesRaw };
 /** Where each file is coming from right now. */
 export const FILE_SOURCE: Record<string, "loaded" | "local" | "proxy"> = Object.fromEntries(
   CAMPAIGN_FILES.map((f) => [f.name, loaded[f.name] ? "loaded" : local(f.name) ? "local" : "proxy"]),

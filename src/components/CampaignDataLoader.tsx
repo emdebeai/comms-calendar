@@ -1,9 +1,10 @@
 import { useRef, useState } from "react";
 import { Check, Upload } from "lucide-react";
-import { CAMPAIGN_FILES, FILE_SOURCE } from "../lib/campaign";
+import { CAMPAIGN, CAMPAIGN_FILES, CURRENT_FILES, FILE_SOURCE } from "../lib/campaign";
 import { clearLoaded, readLoaded, writeLoaded, type LoadedFiles } from "../lib/campaignLoaded";
 import { parseCsv } from "../lib/csv";
 import { genesysToDaily, isGenesys } from "../lib/genesys";
+import { isCtasSheet, isSendsSheet, marketoToCampaign, type Sheet } from "../lib/marketo";
 import { EYEBROW, FOCUS_RING } from "../lib/styles";
 import { DetailPanelShell } from "./DetailPanelShell";
 
@@ -11,7 +12,9 @@ import { DetailPanelShell } from "./DetailPanelShell";
 // browser's File API and stored in the browser; this component makes no
 // network request. A file is recognised by its column headers, not its name.
 // Genesys queue exports (one per day, any number of them) are folded into
-// studyat-daily.csv here, in the browser, before anything is stored.
+// studyat-daily.csv here, in the browser, before anything is stored; the
+// eDM workbook (.xlsx, sends + CTAs sheets) is folded into touchpoints,
+// chains and metric values the same way.
 
 /** Which campaign file a CSV is, from its header row — and what's missing. */
 function recognise(text: string): { name: string; missing: string[] } | null {
@@ -44,6 +47,21 @@ export function CampaignDataLoader({ onClose }: { onClose: () => void }) {
     setGenesysNote(note);
     return note + (r.skipped ? ` (${r.skipped} rows from other queues or media types left out)` : "");
   };
+  // The eDM workbook: SheetJS is loaded only when an .xlsx is picked, so the
+  // map's own bundle doesn't carry it. Parsed here, in the browser.
+  const takeWorkbook = async (file: File): Promise<string> => {
+    const XLSX = await import("xlsx");
+    const wb = XLSX.read(await file.arrayBuffer(), { cellDates: true });
+    const sheets: Sheet[] = wb.SheetNames.map((n) => XLSX.utils.sheet_to_json<Record<string, unknown>>(wb.Sheets[n], { defval: "" }));
+    const sends = sheets.find(isSendsSheet), ctas = sheets.find(isCtasSheet);
+    if (!sends) return `${file.name}: no sheet with Email Name, Sent, Delivered and Opened columns.`;
+    const r = marketoToCampaign(sends, ctas ?? [], CURRENT_FILES, CAMPAIGN.id);
+    setStaged((s) => ({ ...s, "touchpoints.csv": r.touchpoints, "chains.csv": r.chains, "metric-values.csv": r.values }));
+    const bits = [`${r.sends} sends`, ctas ? `${r.links} links` : "no CTA sheet"];
+    if (r.pagesAdded.length) bits.push(`${r.pagesAdded.length} destination page${r.pagesAdded.length === 1 ? "" : "s"} added: ${r.pagesAdded.join(", ")}`);
+    if (r.unmatched.length) bits.push(`${r.unmatched.length} CTA row${r.unmatched.length === 1 ? "" : "s"} with no matching send: ${r.unmatched.join(", ")}`);
+    return `${file.name} → touchpoints, chains and metric values (${bits.join(" · ")})`;
+  };
   const take = (text: string, label: string) => {
     if (isGenesys(parseCsv(text)[0] ?? [])) return null; // folded together below
     const hit = recognise(text);
@@ -57,6 +75,7 @@ export function CampaignDataLoader({ onClose }: { onClose: () => void }) {
     const out: string[] = [];
     const daily: string[] = [];
     for (const file of Array.from(list)) {
+      if (/\.xlsx?$/i.test(file.name)) { out.push(await takeWorkbook(file)); continue; }
       const text = await file.text();
       const note = take(text, file.name);
       if (note) out.push(note);
@@ -86,11 +105,11 @@ export function CampaignDataLoader({ onClose }: { onClose: () => void }) {
         </p>
 
         <h3 className={`mt-6 text-grey-70 ${EYEBROW}`}>Choose files</h3>
-        <input ref={input} type="file" accept=".csv,text/csv" multiple className="sr-only" onChange={(e) => void onFiles(e.target.files)} />
+        <input ref={input} type="file" accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" multiple className="sr-only" onChange={(e) => void onFiles(e.target.files)} />
         <button type="button" onClick={() => input.current?.click()} className={`mt-2 rounded-md border border-grey-30 bg-card px-3 py-2 text-sm font-medium text-grey-90 hover:bg-grey-10 ${FOCUS_RING}`}>
-          Choose CSV files
+          Choose files
         </button>
-        <p className="mt-2 text-xs text-grey-70">Genesys daily queue exports can be chosen together; they are folded into the Study@ file.</p>
+        <p className="mt-2 text-xs text-grey-70">CSV, or the eDM workbook (.xlsx, sends and CTAs sheets). Genesys daily exports can be chosen together; they fold into the Study@ file.</p>
 
         <h3 className={`mt-6 text-grey-70 ${EYEBROW}`}>Or paste one</h3>
         <label htmlFor="campaign-paste" className="sr-only">Paste CSV text, header row included</label>

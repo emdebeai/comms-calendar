@@ -84,6 +84,22 @@ are held in that tab (gone when it closes) unless "Keep on this device" is
 ticked, and they win over `local/` and the proxy files. Nothing is sent
 anywhere: campaign mode makes no API calls at all.
 
+**The eDM workbook goes in as it is.** Marketing's `.xlsx` has two sheets: the
+sends (`Email Name, Marketo ID, Date, Audience Variant, Subject Line/Banner
+Copy, Theme, New this year, Objective, Benchmark, Sent, Delivered, …, %
+Opened, …, Clicked to Opened Ratio, …, % Unsubscribed`) and the CTAs (`Email
+Name, CTA, Primary/Secondary, Link, Clicks, % Clicks, People, % People`).
+"Load data" folds it into `touchpoints.csv`, `chains.csv` and
+`metric-values.csv` in the browser (`src/lib/marketo.ts`): one touchpoint per
+send (title = subject line, audience = variant, CVP = theme, the sheet's one
+benchmark on the objective's success measure), one chain per link (rank 1 =
+primary, 2 = secondary, the rest tertiary; UTM = whether the link carries
+`utm_campaign`). A link's destination is matched to a tracked page by its
+path; any other destination becomes a page named from its URL's last path
+segment ("…/managing-study-stress?utm…" → "Managing study stress", no lookup
+involved). Every row that isn't a Marketing send is kept as it was. SheetJS
+is loaded only when a workbook is picked.
+
 **Genesys exports go in as they are.** Study@ gets one Genesys queue export a
 day (`Interval Start, Media Type, Queue Name, Offer, Answer, Abandon, Avg
 Wait, Avg Handle, …`). Choose all of them at once in "Load data" and they are
