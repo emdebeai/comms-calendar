@@ -146,13 +146,15 @@ export function CampaignSections({ comm, allComms, onOpenComm }: { comm: Comm; a
         <Sec title={`Audience${siblings.length ? ` · ${siblings.length + 1} variants` : ""}`}>
           {siblings.length > 0 ? (
             <>
+              {/* One measure across every chip — the open variant's success
+                  measure — so the chips compare like with like. */}
               <div role="group" aria-label="Audience variant" className="mt-2 flex flex-wrap gap-1.5">
                 {variantsOf(comm).map((v) => {
                   const ci = campaignInfo(v.id);
-                  const hv = ci ? headline(v, ci) : undefined;
+                  const hv = ci && head ? { value: ci.values.find((x) => !x.cta && x.metric === head.value.metric), label: head.label } : undefined;
                   const on = v.id === comm.id;
-                  const c = hv ? compare(hv.value) : null;
-                  const d = hv ? delta(hv.value) : null;
+                  const c = hv?.value ? compare(hv.value) : null;
+                  const d = hv?.value ? delta(hv.value) : null;
                   return (
                     <button
                       key={v.id}
@@ -164,12 +166,16 @@ export function CampaignSections({ comm, allComms, onOpenComm }: { comm: Comm; a
                       } ${FOCUS_RING}`}
                     >
                       {(v.audience ?? "").replace(/^Year 12 · ?/, "") || "Year 12"}
-                      {hv && <span className={`font-semibold ${on ? "" : c === "worse" ? "text-danger" : c === "better" ? "text-success" : "text-grey-90"}`}>{d ?? fmt(hv.value.value)}</span>}
+                      {head && <span className={`font-semibold ${on ? "" : c === "worse" ? "text-danger" : c === "better" ? "text-success" : "text-grey-90"}`}>{hv?.value ? d ?? fmt(hv.value.value) : "—"}</span>}
                     </button>
                   );
                 })}
               </div>
-              <p className="mt-2 text-xs text-grey-70">{i.variantBasis ? `Variants by ${i.variantBasis}` : "Variants"} · each chip shows its gap to the benchmark</p>
+              <p className="mt-2 text-xs text-grey-70">
+                {head ? `${head.label.charAt(0).toUpperCase()}${head.label.slice(1)} by variant` : "Variants"}
+                {head && variantsOf(comm).some((v) => campaignInfo(v.id)?.values.some((x) => !x.cta && x.metric === head.value.metric && x.benchmark)) ? " · gap to benchmark" : ""}
+                {i.variantBasis ? ` · split by ${i.variantBasis}` : ""}
+              </p>
             </>
           ) : (
             <p className="mt-2 text-sm text-grey-90">{comm.audience ?? "—"}</p>
